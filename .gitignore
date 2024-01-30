@@ -1,4 +1,9 @@
 node_modules
 __pycache__
 __pycache__/
+*.py[cod]
+# PyBuilder
+target/
 
+# Jupyter Notebook
+.ipynb_checkpoints
