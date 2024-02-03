@@ -1,42 +1,62 @@
 import React, { Component } from "react";
 import logo from "./logo.svg";
+import Modal from "./components/Modal";
+import axios from "axios";
 import "./App.css";
-const todoItems = [
-  {
-    id: 1,
-    title: "Go to Market",
-    description: "Buy ingredients to prepare dinner",
-    completed: true,
-  },
-  {
-    id: 2,
-    title: "Study",
-    description: "Read Algebra and History textbook for the upcoming test",
-    completed: false,
-  },
-  {
-    id: 3,
-    title: "Sammy's books",
-    description: "Go to library to return Sammy's books",
-    completed: true,
-  },
-  {
-    id: 4,
-    title: "Article",
-    description: "Write article on how to use Django with React",
-    completed: false,
-  },
-];
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       viewCompleted: false,
-      todoList: todoItems,
+      todoList: [],
+      modal: false,
+      activeItem: {
+        title: "",
+        description: "",
+        completed: false,
+      },
     };
   }
+  componentDidMount() {
+    this.refreshList();
+  }
 
+  refreshList = () => {
+    axios
+      .get("/api/todos/")
+      .then((res) => this.setState({ todoList: res.data }))
+      .catch((err) => console.log(err));
+  };
+
+  toggle = () => {
+    this.setState({ modal: !this.state.modal });
+  };
+
+  handleSubmit = (item) => {
+    this.toggle();
+    if (item.id) {
+      axios
+        .put(`/api/todos/${item.id}/`, item)
+        .then((res) => this.refreshList());
+      return;
+    }
+    axios.post("/api/todos/", item).then((res) => this.refreshList());
+  };
+
+  handleDelete = (item) => {
+    axios.delete(`/api/todos/${item.id}/`).then((res) => this.refreshList());
+  };
+
+  createItem = () => {
+    const item = { title: "", description: "", completed: false };
+
+    this.setState({ activeItem: item, modal: !this.state.modal });
+  };
+
+  editItem = (item) => {
+    this.setState({ activeItem: item, modal: !this.state.modal });
+  };
   displayCompleted = (status) => {
     if (status) {
       return this.setState({ viewCompleted: true });
@@ -83,8 +103,18 @@ class App extends Component {
           {item.title}
         </span>
         <span>
-          <button className="btn btn-secondary mr-2">Edit</button>
-          <button className="btn btn-danger">Delete</button>
+          <button
+            className="btn btn-secondary mr-2"
+            onClick={() => this.editItem(item)}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-danger"
+            onClick={() => this.handleDelete(item)}
+          >
+            Delete
+          </button>
         </span>
       </li>
     ));
@@ -106,6 +136,13 @@ class App extends Component {
             </div>
           </div>
         </div>
+        {this.state.modal ? (
+          <Modal
+            activeItem={this.state.activeItem}
+            toggle={this.toggle}
+            onSave={this.handleSubmit}
+          />
+        ) : null}
       </main>
     );
   }
