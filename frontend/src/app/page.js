@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { Button } from "antd";
 import { Table } from "antd";
+import Link from "next/link";
+
 const dataSource = [
   {
     key: "1",
@@ -37,6 +39,9 @@ const columns = [
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <div>
+        <Link href="/about">About</Link>
+      </div>
       <Table dataSource={dataSource} columns={columns} />;<h1>REZA RASHIDI</h1>
     </main>
   );
