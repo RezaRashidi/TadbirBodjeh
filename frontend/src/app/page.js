@@ -42,7 +42,8 @@ export default function Home() {
       <div>
         <Link href="/about">About</Link>
       </div>
-      <Table dataSource={dataSource} columns={columns} />;<h1>REZA RASHIDI</h1>
+      <Table dataSource={dataSource} columns={columns} />;
+      <h1 style={{ color: "red" }}>REZA RASHIDI</h1>
     </main>
   );
 }
