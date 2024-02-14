@@ -1,45 +1,45 @@
 from django.db import models
 
-# Create your models here.
 
-
-class Todo(models.Model):
-    title = models.CharField(max_length=120)
-    description = models.TextField()
-    completed = models.BooleanField(default=False)
-
-    def _str_(self) -> str:
-        return self.title
-
-
-class Menu(models.Model):
-    name = models.CharField(max_length=255)
-    price = models.FloatField()
+class Financialـdoc(models.Model):
+    name = models.CharField(max_length=255, blank=False)
+    date_doc = models.DateTimeField()
+    Costـtype = models.CharField(max_length=255, blank=False)
+    descr = models.TextField()
+    F_conf = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    programـid = models.CharField(max_length=255)
+    topic_id = models.CharField(max_length=255)
+    row_id = models.CharField(max_length=255)
 
+    def _str_(self) -> str:
+        return self.name
 
 class LogisticsـDoc(models.Model):
     name = models.CharField(max_length=255, blank=False)
-    type = models.CharField(max_length=255)
-    Fdoc_id = models.CharField(max_length=255)
-    price = models.FloatField()
+    type = models.BooleanField(default=True)
+    Fdoc_key = models.ForeignKey(Financialـdoc, related_name="files", on_delete=models.set_null)
+    price = models.FloatField(blank=False)
     seller = models.CharField(max_length=255)
-    date = models.DateTimeField(auto_now_add=True)
+    date_doc = models.DateTimeField()
     Location = models.CharField(max_length=255)
-    Payment_type = models.CharField(max_length=255)
+    Payment_type = models.BooleanField(default=True)
     descr = models.TextField()
-    attachment = models.FileField(upload_to="uploads/")
-    json = models.TextField()
-    docType = models.CharField(
-        max_length=255,
-    )
-    inFdoc = models.CharField(max_length=255)
-    measure = models.CharField(max_length=255)
-    CostـDriver = models.CharField(max_length=255)
-    F_conf = models.CharField(max_length=255)
+    F_conf = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    measure = models.CharField(max_length=255)
+    CostDriver = models.CharField(max_length=255)
+
+    def _str_(self) -> str:
+        return self.name
+
+
+class LogisticsـUploads(models.Model):
+    file = models.FileField(upload_to="uploads/")
+    name = models.CharField(max_length=255, blank=False)
+    Logisticsـkey = models.ForeignKey(LogisticsـDoc, related_name="files", on_delete=models.CASCADE)
 
     def _str_(self) -> str:
         return self.name
