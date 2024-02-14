@@ -1,11 +1,15 @@
-from django.shortcuts import render
 from rest_framework import viewsets
-from .serializers import TodoSerializer
-from .models import Todo
+from .models import Financial, Logistics, LogisticsUploads
+from .serializers import FinancialSerializer, LogisticsSerializer, LogisticsUploadsSerializer
 
-# Create your views here.
+class FinancialViewSet(viewsets.ModelViewSet):
+    queryset = Financial.objects.all()
+    serializer_class = FinancialSerializer
 
+class LogisticsViewSet(viewsets.ModelViewSet):
+    queryset = Logistics.objects.all()
+    serializer_class = LogisticsSerializer
 
-class TodoView(viewsets.ModelViewSet):
-    serializer_class = TodoSerializer
-    queryset = Todo.objects.all()
+class LogisticsUploadsViewSet(viewsets.ModelViewSet):
+    queryset = LogisticsUploads.objects.all()
+    serializer_class = LogisticsUploadsSerializer

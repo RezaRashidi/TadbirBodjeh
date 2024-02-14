@@ -1,25 +1,26 @@
 from django.db import models
 
 
-class Financialـdoc(models.Model):
+class Financial(models.Model):
     name = models.CharField(max_length=255, blank=False)
     date_doc = models.DateTimeField()
-    Costـtype = models.CharField(max_length=255, blank=False)
+    CostType = models.CharField(max_length=255, blank=False)
     descr = models.TextField()
     F_conf = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    programـid = models.CharField(max_length=255)
-    topic_id = models.CharField(max_length=255)
-    row_id = models.CharField(max_length=255)
+    programId = models.CharField(max_length=255,null=True)
+    topicId = models.CharField(max_length=255,null=True)
+    rowId = models.CharField(max_length=255,null=True)
 
     def _str_(self) -> str:
         return self.name
 
-class LogisticsـDoc(models.Model):
+
+class Logistics(models.Model):
     name = models.CharField(max_length=255, blank=False)
     type = models.BooleanField(default=True)
-    Fdoc_key = models.ForeignKey(Financialـdoc, related_name="files", on_delete=models.set_null)
+    Fdoc_key = models.ForeignKey(Financial, related_name="Logistics", on_delete=models.SET_NULL,null=True)
     price = models.FloatField(blank=False)
     seller = models.CharField(max_length=255)
     date_doc = models.DateTimeField()
@@ -29,17 +30,17 @@ class LogisticsـDoc(models.Model):
     F_conf = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    measure = models.CharField(max_length=255)
-    CostDriver = models.CharField(max_length=255)
+    measure = models.CharField(max_length=255,null=True)
+    CostDriver = models.CharField(max_length=255,null=True)
 
     def _str_(self) -> str:
         return self.name
 
 
-class LogisticsـUploads(models.Model):
+class LogisticsUploads(models.Model):
     file = models.FileField(upload_to="uploads/")
     name = models.CharField(max_length=255, blank=False)
-    Logisticsـkey = models.ForeignKey(LogisticsـDoc, related_name="files", on_delete=models.CASCADE)
+    Logistics = models.ForeignKey(Logistics, related_name="files", on_delete=models.CASCADE)
 
     def _str_(self) -> str:
         return self.name

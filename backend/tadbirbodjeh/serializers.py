@@ -1,8 +1,20 @@
 from rest_framework import serializers
-from .models import Todo
+from .models import Financial, Logistics, LogisticsUploads
 
 
-class TodoSerializer(serializers.ModelSerializer):
+class FinancialSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Todo
-        fields = ("id", "title", "description", "completed")
+        model = Financial
+        fields = '__all__'
+
+
+class LogisticsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Logistics
+        fields = '__all__'
+
+
+class LogisticsUploadsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LogisticsUploads
+        fields = '__all__'
