@@ -26,5 +26,4 @@ router.register(r'logistics-uploads', LogisticsUploadsViewSet)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
-
 ]
