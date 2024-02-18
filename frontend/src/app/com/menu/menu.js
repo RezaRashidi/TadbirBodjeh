@@ -19,7 +19,9 @@ const items = [
         getItem('لیست مدارک', 'l2'),
         getItem('ایجاد سند', 'l3'),
         getItem('لیست اسناد', 'l4'),
-    ]),
+    ]), {
+        type: 'divider',
+    },
     getItem('امورمالی', 'sub2', <AppstoreOutlined/>, [
         getItem('لیست اسناد تازه', '5'),
         getItem('صدور اسناد مالی', '6'),
@@ -37,6 +39,9 @@ const items = [
             getItem('محرکه هزینه', '12')]),
 
     ]),
+        {
+        type: 'divider',
+    },
     getItem('حساب کاربری', 'grp', null, [getItem('تنطیمات', '13')]),
 ];
 const Menur = () => {
