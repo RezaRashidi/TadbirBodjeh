@@ -1,6 +1,6 @@
 'use client'
 import React from 'react';
-import {AppstoreOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
+import {AppstoreOutlined, DiffOutlined, SettingOutlined , CalculatorOutlined} from '@ant-design/icons';
 import {Menu} from 'antd';
 
 function getItem(label, key, icon, children, type) {
@@ -22,7 +22,7 @@ const items = [
     ]), {
         type: 'divider',
     },
-    getItem('امورمالی', 'sub2', <AppstoreOutlined/>, [
+    getItem('امورمالی', 'sub2',<CalculatorOutlined /> , [
         getItem('لیست اسناد تازه', '5'),
         getItem('صدور اسناد مالی', '6'),
         getItem('لیست اسناد مالی', '7'),
@@ -30,7 +30,7 @@ const items = [
     {
         type: 'divider',
     },
-    getItem('بودجه ریزی', 'sub4', <SettingOutlined/>, [
+    getItem('بودجه ریزی', 'sub4', <AppstoreOutlined/>, [
         getItem('فرم 5', '9'),
         getItem('مراکز هزینه', '12'),
         getItem('بودجه‌ریزی مبتنی برعملکرد', null, null, [getItem('برنامه ها', '10'),
@@ -42,7 +42,7 @@ const items = [
         {
         type: 'divider',
     },
-    getItem('حساب کاربری', 'grp', null, [getItem('تنطیمات', '13')]),
+    getItem('حساب کاربری', 'grp', <SettingOutlined/>, [getItem('تنطیمات', '13')]),
 ];
 const Menur = () => {
     const onClick = (e) => {
@@ -52,7 +52,7 @@ const Menur = () => {
         <Menu
             onClick={onClick}
             style={{
-                width: 256,
+                width: "100%",
                 direction: "rtl"
             }}
             defaultSelectedKeys={['1']}
