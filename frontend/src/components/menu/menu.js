@@ -1,4 +1,6 @@
 'use client'
+import {router} from "next/client";
+import {useRouter} from "next/navigation";
 import React from 'react';
 import {AppstoreOutlined, DiffOutlined, SettingOutlined , CalculatorOutlined} from '@ant-design/icons';
 import {Menu} from 'antd';
@@ -37,7 +39,6 @@ const items = [
             getItem('سنجه ها', '11'),
             getItem('فعالیت ها و ریز فعالیت ها', '12'),
             getItem('محرکه هزینه', '12')]),
-
     ]),
         {
         type: 'divider',
@@ -45,7 +46,12 @@ const items = [
     getItem('حساب کاربری', 'grp', <SettingOutlined/>, [getItem('تنطیمات', '13')]),
 ];
 const Menur = () => {
+      const router = useRouter()
     const onClick = (e) => {
+
+        if (e.key === 'l1') router.push('/Logistics/Docs');
+        if (e.key === 'l2') router.push('/Logistics/List_docs');
+        if (e.key === 'l3') router.push('/Logistics/Financial_docs');
         console.log('click ', e);
     };
     return (

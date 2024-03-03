@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Button } from "antd";
 import { Table } from "antd";
 import Link from "next/link";
-import Menur from "./com/menu/menu.js";
+import Menur from "@/components/menu/menu.js";
 const dataSource = [
   {
     key: "1",
