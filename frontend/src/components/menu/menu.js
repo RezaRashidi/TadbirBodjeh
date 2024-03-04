@@ -37,13 +37,13 @@ const items = [
         getItem('مراکز هزینه', '12'),
         getItem('بودجه‌ریزی مبتنی برعملکرد', null, null, [getItem('برنامه ها', '10'),
             getItem('سنجه ها', '11'),
-            getItem('فعالیت ها و ریز فعالیت ها', '12'),
-            getItem('محرکه هزینه', '12')]),
+            getItem('فعالیت ها و ریز فعالیت ها', '13'),
+            getItem('محرکه هزینه', '14')]),
     ]),
         {
         type: 'divider',
     },
-    getItem('حساب کاربری', 'grp', <SettingOutlined/>, [getItem('تنطیمات', '13')]),
+    getItem('حساب کاربری', 'grp', <SettingOutlined/>, [getItem('تنطیمات', '15')]),
 ];
 const Menur = () => {
       const router = useRouter()
