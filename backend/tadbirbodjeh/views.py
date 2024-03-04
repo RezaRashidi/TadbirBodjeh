@@ -34,9 +34,13 @@ class LogisticsUploadsViewSet(viewsets.ModelViewSet):
     serializer_class = LogisticsUploadsSerializer
 
     def destroy(self, request, *args, **kwargs):
+        upload = self.get_object()
+        # delete the file before the object
+        upload.file.delete()
         try:
             instance = self.get_object()
             self.perform_destroy(instance)
+
         except django.http.Http404:
             pass
         return Response(status=status.HTTP_204_NO_CONTENT)
