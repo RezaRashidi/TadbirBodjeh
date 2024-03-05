@@ -7,3 +7,4 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+/backend/uploads
