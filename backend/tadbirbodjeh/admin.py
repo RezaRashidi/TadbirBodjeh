@@ -6,7 +6,8 @@ admin.site.register(tadbirbodjeh.models.Logistics)
 admin.site.register(tadbirbodjeh.models.Financial)
 admin.site.register(tadbirbodjeh.models.LogisticsUploads)
 
-class TodoAdmin(admin.ModelAdmin):
+
+class tadbirAdmin(admin.ModelAdmin):
     list_display = ("title", "description", "completed")
 
 

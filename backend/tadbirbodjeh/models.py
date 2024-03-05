@@ -17,13 +17,25 @@ class Financial(models.Model):
         return self.name
 
 
-class Logistics(models.Model):
+class LogisticsUploads(models.Model):
+    file = models.FileField(upload_to="./uploads/")
     name = models.CharField(max_length=255, blank=False)
+
+    # Logistics = models.ForeignKey(
+    #     Logistics, related_name="files", on_delete=models.CASCADE
+    # )
+
+    def _str_(self) -> str:
+        return self.name
+
+
+class Logistics(models.Model):
+    name = models.CharField(max_length=255, blank=True)
     type = models.BooleanField(default=True)
     Fdoc_key = models.ForeignKey(
         Financial, related_name="Logistics", on_delete=models.SET_NULL, null=True
     )
-    price = models.FloatField(blank=True)
+    price = models.FloatField(blank=True, null=True)
     seller = models.CharField(max_length=255, blank=True)
     seller_id = models.CharField(max_length=255, blank=True)
     date_doc = models.DateTimeField(blank=True)
@@ -35,18 +47,9 @@ class Logistics(models.Model):
     updated = models.DateTimeField(auto_now=True, blank=True)
     measure = models.CharField(max_length=255, null=True, blank=True)
     CostDriver = models.CharField(max_length=255, null=True, blank=True)
-    #filed for array of upload id for each file
-    upload_ids= models.CharField(max_length=255, null=True, blank=True)
-    def _str_(self) -> str:
-        return self.name
+    # filed for array of upload id for each file
+    uploads = models.ManyToManyField(LogisticsUploads, blank=True, null=True)
 
-
-class LogisticsUploads(models.Model):
-    file = models.FileField(upload_to="./uploads/")
-    name = models.CharField(max_length=255, blank=False)
-    # Logistics = models.ForeignKey(
-    #     Logistics, related_name="files", on_delete=models.CASCADE
-    # )
-
+    # upload_ids= models.CharField(max_length=255, null=True, blank=True)
     def _str_(self) -> str:
         return self.name
