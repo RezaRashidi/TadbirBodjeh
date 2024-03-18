@@ -1,40 +1,56 @@
 "use client";
 import {UploadOutlined} from "@ant-design/icons";
-import {Button, Checkbox, Col, Form, Input, InputNumber, message, Radio, Row, Upload,} from "antd";
-import React, {useRef, useState} from "react";
+import {Button, Checkbox, Col, Form, Input, InputNumber, message, Radio, Row, Select, Upload,} from "antd";
+import React, {useState} from "react";
 import {DatePicker} from "zaman";
 
-const layout = {
-    // colon:true,
-    // layout: "Inline",
-    //
-    labelAlign: "left",
-    // labelCol: {
-    //     span: 8,
-    // },
-    // wrapperCol: {
-    //     span: 12,
-    // },
-};
 
 /* eslint-disable no-template-curly-in-string */
-const validateMessages = {
-    required: "${label} is required!",
-    types: {
-        email: "${label} is not a valid email!",
-        number: "${label} is not a valid number!",
-    },
-    number: {
-        range: "${label} must be between ${min} and ${max}",
-    },
-};
 
 
-const App = () => {
-    const formRef = useRef();
+const Logistics_Doc = (prop) => {
+    const [form] = Form.useForm();
     const [fileList, setFileList] = useState([])
+    console.log(prop)
+    if (prop.Fdata) {
+        prop.Fdata.filter((item) => {
+            if (item.id === prop.selectedid) {
+                console.log(item)
+                form.setFieldsValue({
+                    name: item.name,
+                    type: item.type,
+                    price: item.price,
+                    seller: item.seller,
+                    seller_id: item.seller_id,
+                    date_doc: {value: item.date_doc},
+                    Location: item.Location,
+                    Payment_type: item.Payment_type,
+                    descr: item.descr,
+                })
+                var x = item.uploads.map((file) => {
+                    return {
+                        uid: file,
+                        name: file,
+                        status: 'done',
+                        url: "http://localhost:8000/api/logistics-uploads/" + file
+                    }
+                })
+                setFileList(x)
+
+            }
+        })
+    }
+    const validateMessages = {
+        required: "${label} is required!",
+        types: {
+            email: "${label} is not a valid email!",
+            number: "${label} is not a valid number!",
+        },
+        number: {
+            range: "${label} must be between ${min} and ${max}",
+        },
+    };
     const onFinish = (values) => {
-        console.log(values);
         const jsondata = {
             "name": values.name,
             "type": values.type,
@@ -64,7 +80,9 @@ const App = () => {
         })
 
         request.then(response => {
-            response.ok ? message.success("logistics uploaded successfully") : null
+            response.ok ? message.success("مدارک با موفقیت ثبت شد") : null
+            form.resetFields();
+
         })
         request.then((response, reject) => response.json().then((value) => console.log(value)))
     };
@@ -116,7 +134,8 @@ const App = () => {
     };
     return (
         <Form
-            {...layout}
+            labelAlign="left"
+            form={form}
             name="nest-messages"
             onFinish={onFinish}
             style={{
@@ -131,7 +150,7 @@ const App = () => {
             validateMessages={validateMessages}
             // onFinishFailed={onFinishFailed}
             autoComplete="on"
-            ref={formRef}
+
         >
             <Row gutter={50}>
                 <Col span={12}>
@@ -227,7 +246,7 @@ const App = () => {
                         <Input placeholder=" فروشگاه/شرکت/شخص"/>
                     </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={6}>
                     <Form.Item name="date_doc" label="تاریخ">
                         <DatePicker
                             inputClass="border-2 rounded-md text-center"
@@ -245,6 +264,58 @@ const App = () => {
                         />
                     </Form.Item>
                 </Col>
+                <Col span={6}>
+                    <Form.Item name="Location" label="محل هزینه">
+                        <Select
+                            showSearch
+                            placeholder=" انتخاب محل هزینه"
+                            // optionFilterProp="children"
+                            // onChange={onChange}
+                            // onSearch={onSearch}
+                            // filterOption={filterOption}
+                            options={[
+                                {value: 'حوزه ریاست',},
+                                {value: 'مدیریت طرح و برنامه اسلامی شدن، نظارت و ارزیابی',},
+                                {value: "اداره حراست"},
+                                {value: "دفتر ریاست، روابط عمومی و بین الملل"},
+                                {value: "گروه امور شاهد و ایثارگر"},
+                                {value: "دبیرخانه هیات اجرایی جذب"},
+                                {value: " اداره امور حقوقی و قراردادها"},
+                                {value: "مدیریت توسعه فناوري اطلاعات، امنیت و هوشمندسازی"},
+                                {value: "حوزه معاونت آموزشی"},
+                                {value: "مدیریت امور آموزشی و تحصیلات تکمیلی"},
+                                {value: "اداره آموزش‌هاي آزاد و مجازی"},
+                                {value: "گروه هدایت استعدادهای درخشان"},
+                                {value: "اداره خلاقیت هنری و امور نمایشگاهی کشورهای اسلامی"},
+                                {value: "حوزه معاونت اداري، عمرانی و مالی"},
+                                {value: "مدیریت منابع انسانی، اداري و پشتیبانی"},
+                                {value: "مدیریت فنی، نظارت بر امور عمرانی، استحکام بخشی و مرمت"},
+                                {value: "مدیریت امور مالی"},
+                                {value: "اداره بودجه و تشکیلات"},
+                                {value: "حوزه معاونت پژوهش، کارآفرینی و فناوری"},
+                                {value: " مدیریت امور پژوهشی"},
+                                {value: "مدیریت کارآفرینی، و فناوری‌های نرم و ارتباط با جامعه"},
+                                {value: "کتابخانه مرکزي، مرکز اسناد و آثار"},
+                                {value: " اداره آزمایشگاه مرکزی"},
+                                {value: "مدیریت امور فرهنگی و اجتماعی"},
+                                {value: " مدیریت امور دانشجویی"},
+                                {value: " اداره تربیت بدنی"},
+                                {value: " اداره مشاوره، سلامت و سبک زندگی دانشجویان و امور زنان و خانواده"},
+                                {value: "دانشکده ها"},
+                                {value: " دانشکده مهندسی معماري و شهرسازي"},
+                                {value: "دانشکده هنرهای کاربردی"},
+                                {value: " دانشکده فرش"},
+                                {value: " دانشکده هنرهاي تجسمی"},
+                                {value: " دانشکده طراحی"},
+                                {value: "دانشکده چند رسانه اي"},
+                                {value: "دانشکده هنرهاي اسلامی"},
+                                {value: " آموزشکده فرش هریس"},
+                            ]}
+                        />
+
+                    </Form.Item>
+                </Col>
+
             </Row>
             <Row>
                 <Col span={24}>
@@ -252,7 +323,7 @@ const App = () => {
                         name="descr"
                         label="توضیحات"
                         labelCol={{span: 2}}
-                        wrapperCol={{span: 16}}
+                        wrapperCol={{span: 15}}
                     >
                         <Input.TextArea/>
                     </Form.Item>
@@ -260,20 +331,20 @@ const App = () => {
             </Row>
 
             <Upload {...propsUpload}>
-                <Button icon={<UploadOutlined/>}>Click to Upload</Button>
+                <Button icon={<UploadOutlined/>}>ضمیمه فایل</Button>
             </Upload>
 
             <Form.Item
                 wrapperCol={{
-                    ...layout.wrapperCol,
+
                     offset: 8,
                 }}
             >
                 <Button type="primary" htmlType="submit">
-                    Submit
+                    ایجاد مدرک
                 </Button>
             </Form.Item>
         </Form>
     );
 };
-export default App;
+export default Logistics_Doc;

@@ -1,10 +1,10 @@
-
+import Menur from "@/components/menu/menu";
+import {AntdRegistry} from '@ant-design/nextjs-registry';
 import {Inter} from "next/font/google";
 import "@/styles/globals.css";
-import {AntdRegistry} from '@ant-design/nextjs-registry';
-import Menur from "@/components/menu/menu";
 import Image from 'next/image'
 import arm from '../images/Arm.jpg'
+
 const inter = Inter({subsets: ["latin"]});
 
 export const metadata = {
@@ -12,7 +12,9 @@ export const metadata = {
 };
 
 export default function RootLayout({children}) {
-    return (<html lang="en" dir="rtl">
+    return (
+
+        <html lang="en" dir="rtl">
     <body className={`${inter.className} bg-slate-200`}>
     <AntdRegistry>
         <div className="flex bg-slate-200  flex-row pt-10 px-20 justify-between items-start	">

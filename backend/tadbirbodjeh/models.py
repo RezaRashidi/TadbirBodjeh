@@ -1,22 +1,6 @@
 from django.db import models
 
 
-class Financial(models.Model):
-    name = models.CharField(max_length=255, blank=False)
-    date_doc = models.DateTimeField()
-    CostType = models.CharField(max_length=255, blank=False)
-    descr = models.TextField()
-    F_conf = models.BooleanField(default=False)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-    programId = models.CharField(max_length=255, null=True)
-    topicId = models.CharField(max_length=255, null=True)
-    rowId = models.CharField(max_length=255, null=True)
-
-    def _str_(self) -> str:
-        return self.name
-
-
 class LogisticsUploads(models.Model):
     file = models.FileField(upload_to="./uploads/")
     name = models.CharField(max_length=255, blank=False)
@@ -24,6 +8,24 @@ class LogisticsUploads(models.Model):
     # Logistics = models.ForeignKey(
     #     Logistics, related_name="files", on_delete=models.CASCADE
     # )
+
+    def _str_(self) -> str:
+        return self.name
+
+
+class Financial(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+    date_doc = models.DateTimeField(blank=True, null=True)
+    CostType = models.CharField(max_length=255, blank=True, null=True)
+    descr = models.TextField(blank=True, null=True)
+    F_conf = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    programId = models.CharField(max_length=255, blank=True, null=True)
+    topicId = models.CharField(max_length=255, blank=True, null=True)
+    rowId = models.CharField(max_length=255, blank=True, null=True)
+
+    # Logistics = models.ManyToManyField('Logistics', blank=True, null=True)
 
     def _str_(self) -> str:
         return self.name

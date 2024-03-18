@@ -1,9 +1,8 @@
 'use client'
-import {router} from "next/client";
+import {AppstoreOutlined, CalculatorOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
+import {Menu} from 'antd';
 import {useRouter} from "next/navigation";
 import React from 'react';
-import {AppstoreOutlined, DiffOutlined, SettingOutlined , CalculatorOutlined} from '@ant-design/icons';
-import {Menu} from 'antd';
 
 function getItem(label, key, icon, children, type) {
     return {
@@ -50,8 +49,9 @@ const Menur = () => {
     const onClick = (e) => {
 
         if (e.key === 'l1') router.push('/Logistics/Docs');
-        if (e.key === 'l2') router.push('/Logistics/List_docs');
+        if (e.key === 'l2') router.push('/Logistics/Docs_List');
         if (e.key === 'l3') router.push('/Logistics/Financial_docs');
+        if (e.key === 'l4') router.push('/Logistics/Financial_List');
         console.log('click ', e);
     };
     return (

@@ -18,6 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
+
 from tadbirbodjeh.views import (
     FinancialViewSet,
     LogisticsViewSet,
@@ -27,7 +28,6 @@ from tadbirbodjeh.views import (
 
 router = routers.DefaultRouter()
 router.register(r"logistics", LogisticsViewSet, basename="logistics")
-
 router.register(r"financial", FinancialViewSet)
 router.register(r"logistics-uploads", LogisticsUploadsViewSet)
 urlpatterns = [
