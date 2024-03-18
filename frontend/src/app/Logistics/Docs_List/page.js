@@ -125,7 +125,7 @@ const App = () => {
     }, [updatedata]);
 
     return (<>
-            <Modal title="ویرایش مدارک" style={{marginLeft: "-15%"}} mask={false} centered open={isModalOpen}
+            <Modal title="ویرایش مدارک" style={{marginLeft: "-15%"}} centered open={isModalOpen}
                    onOk={handleOk} width={"75%"} onCancel={handleCancel}>
 
 

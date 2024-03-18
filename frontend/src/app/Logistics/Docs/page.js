@@ -1,7 +1,7 @@
 "use client";
 import {UploadOutlined} from "@ant-design/icons";
 import {Button, Checkbox, Col, Form, Input, InputNumber, message, Radio, Row, Select, Upload,} from "antd";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {DatePicker} from "zaman";
 
 
@@ -11,35 +11,39 @@ import {DatePicker} from "zaman";
 const Logistics_Doc = (prop) => {
     const [form] = Form.useForm();
     const [fileList, setFileList] = useState([])
-    console.log(prop)
-    if (prop.Fdata) {
-        prop.Fdata.filter((item) => {
-            if (item.id === prop.selectedid) {
-                console.log(item)
-                form.setFieldsValue({
-                    name: item.name,
-                    type: item.type,
-                    price: item.price,
-                    seller: item.seller,
-                    seller_id: item.seller_id,
-                    date_doc: {value: item.date_doc},
-                    Location: item.Location,
-                    Payment_type: item.Payment_type,
-                    descr: item.descr,
-                })
-                var x = item.uploads.map((file) => {
-                    return {
-                        uid: file,
-                        name: file,
-                        status: 'done',
-                        url: "http://localhost:8000/api/logistics-uploads/" + file
-                    }
-                })
-                setFileList(x)
+    useEffect(() => {
+        if (prop.Fdata) {
+            prop.Fdata.filter((item) => {
+                if (item.id === prop.selectedid) {
+                    // console.log(item)
+                    var x = item.uploads.map((file) => {
+                        return {
+                            uid: file,
+                            name: file.name,
+                            status: 'done',
+                            url: file.file
+                        }
+                    })
+                    form.setFieldsValue({
+                        name: item.name,
+                        type: item.type,
+                        price: item.price,
+                        seller: item.seller,
+                        seller_id: item.seller_id,
+                        date_doc: {value: item.date_doc},
+                        Location: item.Location,
+                        Payment_type: item.Payment_type,
+                        descr: item.descr,
+                        files: item.uploads
+                    })
+                    setFileList(x)
+                }
+            })
+        }
+    }, [prop.Fdata, prop.selectedid]);
+    // console.log(prop)
 
-            }
-        })
-    }
+
     const validateMessages = {
         required: "${label} is required!",
         types: {
@@ -69,7 +73,7 @@ const Logistics_Doc = (prop) => {
                 return file.response.id
             })
         }
-        console.log(jsondata);
+        // console.log(jsondata);
         var request = fetch("http://127.0.0.1:8000/api/logistics/", {
             method: "POST",
             headers: {
@@ -87,7 +91,7 @@ const Logistics_Doc = (prop) => {
         request.then((response, reject) => response.json().then((value) => console.log(value)))
     };
     const propsUpload = {
-        // name: "file",
+        name: "files",
         action: "http://localhost:8000/api/logistics-uploads/",
         headers: {
             authorization: "authorization-text",
@@ -103,13 +107,13 @@ const Logistics_Doc = (prop) => {
             });
             setFileList(newFileList);
             if (info.file.status !== "uploading") {
-                console.log(info.file, info.fileList);
+                // console.log(info.file, info.fileList);
             }
             if (info.file.status === "done") {
 
                 message.success(`${info.file.name} file uploaded successfully`);
-                console.log("done");
-                console.log(info.file, info.fileList);
+                // console.log("done");
+                // console.log(info.file, info.fileList);
             } else if (info.file.status === "error") {
                 message.error(`${info.file.name} file upload failed.`);
             }
@@ -252,12 +256,12 @@ const Logistics_Doc = (prop) => {
                             inputClass="border-2 rounded-md text-center"
                             className={"text-center"}
                             round="x4"
-                            defaultValue={Date.now()}
+                            // defaultValue={Date.now()}
                             position="right"
                             customShowDateFormat="YYYY MMMM DD"
                             onChange={(e) => {
-                                console.log(Date.parse(e.value))
-                                console.log(e)
+                                // console.log(Date.parse(e.value))
+                                // console.log(e)
                             }
 
                             }
