@@ -1,13 +1,13 @@
 "use client";
 import {Button, Col, Form, Input, message, Row, Select} from "antd";
-import React, {useMemo, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {DatePicker} from "zaman";
 
 function RezaSelect(props) {
     const [list, setlist] = useState({});
     const next = useRef({});
     const pagenumber = useRef(1);
-    const fetchlist = useMemo(() => {
+    const fetchlist = useEffect(() => {
         fetch(`http://127.0.0.1:8000/api/logistics/?page=${pagenumber.current}`)
             .then((res) => res.json())
             .then((res) => {

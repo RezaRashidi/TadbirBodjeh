@@ -1,27 +1,41 @@
 "use client";
 import {UploadOutlined} from "@ant-design/icons";
+import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
 import {Button, Checkbox, Col, Form, Input, InputNumber, message, Radio, Row, Select, Upload,} from "antd";
+import dayjs from "dayjs";
 import React, {useEffect, useState} from "react";
-import {DatePicker} from "zaman";
+///اخرین
 
 
 /* eslint-disable no-template-curly-in-string */
 
 
 const Logistics_Doc = (prop) => {
-    const [form] = Form.useForm();
+    const [form] = Form.useForm()
     const [fileList, setFileList] = useState([])
+    useJalaliLocaleListener();
+    dayjs.calendar('jalali');
+    dayjs.extend(jalaliPlugin);
+    const [form_date, set_form_date] = useState(dayjs(new Date, {jalali: true}))
+
+
+    // console.log(prop)
     useEffect(() => {
         if (prop.Fdata) {
             prop.Fdata.filter((item) => {
                 if (item.id === prop.selectedid) {
+
                     // console.log(item)
                     var x = item.uploads.map((file) => {
                         return {
                             uid: file,
                             name: file.name,
                             status: 'done',
-                            url: file.file
+                            url: file.file,
+                            response: {
+                                id: file.id,
+                                file: file.file
+                            }
                         }
                     })
                     form.setFieldsValue({
@@ -30,19 +44,44 @@ const Logistics_Doc = (prop) => {
                         price: item.price,
                         seller: item.seller,
                         seller_id: item.seller_id,
-                        date_doc: {value: item.date_doc},
+                        // date_doc: form.setFieldValue("date_doc", dayjs(new Date(item.date_doc))),
+                        date_doc: dayjs(new Date(item.date_doc)),
                         Location: item.Location,
                         Payment_type: item.Payment_type,
                         descr: item.descr,
                         files: item.uploads
                     })
+
                     setFileList(x)
+                    // set_form_date(new Date(item.date_doc).toISOString())
+                    console.log(form.getFieldsValue().date_doc)
+                    // form.setFieldValue("date_doc", {value: new Date(item.date_doc)})
+                    // console.log(form.getFieldsValue().date_doc)
+
                 }
             })
         }
     }, [prop.Fdata, prop.selectedid]);
+
     // console.log(prop)
 
+//write fun that get the changed data from the form and update prop.Fdata with new data
+    function updateData(data) {
+        prop.Fdata.filter((item) => {
+            if (item.id === prop.selectedid) {
+                item.name = data.name
+                item.type = data.type
+                item.price = data.price
+                item.seller = data.seller
+                item.seller_id = data.seller_id
+                item.date_doc = data.date_doc
+                item.Location = data.Location
+                item.Payment_type = data.Payment_type
+                item.descr = data.descr
+                item.uploads = data.uploads
+            }
+        })
+    }
 
     const validateMessages = {
         required: "${label} is required!",
@@ -55,13 +94,14 @@ const Logistics_Doc = (prop) => {
         },
     };
     const onFinish = (values) => {
+        console.log(values);
         const jsondata = {
             "name": values.name,
             "type": values.type,
             "price": typeof values.price !== 'undefined' ? values.price : 0,
             "seller": values.seller,
             "seller_id": values.seller_id,
-            "date_doc": values.date_doc.value,
+            "date_doc": values.date_doc,
             "Location": values.Location,
             "Payment_type": values.Payment_type,
             "descr": values.descr,
@@ -73,19 +113,28 @@ const Logistics_Doc = (prop) => {
                 return file.response.id
             })
         }
+
+        // updateData(jsondata)
         // console.log(jsondata);
-        var request = fetch("http://127.0.0.1:8000/api/logistics/", {
-            method: "POST",
+        const request = prop.selectedid ? fetch(`http://127.0.0.1:8000/api/logistics/${prop.selectedid} /`, {
+            method: "PUT",
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'
             },
             body: JSON.stringify(jsondata),
 
-        })
+        }) : fetch("http://127.0.0.1:8000/api/logistics/", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(jsondata),
+        });
 
         request.then(response => {
             response.ok ? message.success("مدارک با موفقیت ثبت شد") : null
-            form.resetFields();
+            !prop.selectedid && form.resetFields();
+
 
         })
         request.then((response, reject) => response.json().then((value) => console.log(value)))
@@ -121,9 +170,14 @@ const Logistics_Doc = (prop) => {
         UploadFile: {
             crossOrigin: '*',
 
-        },
+        }
+        ,
         data(file) {
-            return {name: file.name}
+            // console.log(file)
+            return {
+                name: file.name,
+                file: file
+            }
         }
         , onDownload(file) {
             return file.response.file
@@ -148,7 +202,7 @@ const Logistics_Doc = (prop) => {
             initialValues={{
                 Payment_type: true,
                 type: true,
-                date_doc: {value: new Date().toISOString()},
+                date_doc: form_date,
 
             }}
             validateMessages={validateMessages}
@@ -252,20 +306,46 @@ const Logistics_Doc = (prop) => {
                 </Col>
                 <Col span={6}>
                     <Form.Item name="date_doc" label="تاریخ">
-                        <DatePicker
-                            inputClass="border-2 rounded-md text-center"
-                            className={"text-center"}
-                            round="x4"
-                            // defaultValue={Date.now()}
-                            position="right"
-                            customShowDateFormat="YYYY MMMM DD"
-                            onChange={(e) => {
-                                // console.log(Date.parse(e.value))
-                                // console.log(e)
-                            }
+                        {/*<DatePicker*/}
+                        {/*    inputClass="border-2 rounded-md text-center"*/}
+                        {/*    className={"text-center z-[105]"}*/}
+                        {/*    defaultValue={form_date}*/}
+                        {/*    round="x4"*/}
+                        {/*    position="right"*/}
+                        {/*    customShowDateFormat="YYYY MMMM DD"*/}
+                        {/*    onChange={(e) => {*/}
+                        {/*        // console.log(Date.parse(e.value))*/}
+                        {/*        console.log(e)*/}
 
+                        {/*        console.log(form.getFieldsValue().date_doc)*/}
+                        {/*    }*/}
+
+                        {/*    }*/}
+                        {/*/>*/}
+
+                        {/*<JalaliLocaleListener/>*/}
+                        <DatePickerJalali
+                            // value={form_date}
+                            // defaultValue={form_date}
+                            onChange={e => {
+                                console.log(form_date)
+                                set_form_date(e)
+                                console.log(form_date)
+                            }
                             }
                         />
+
+
+                        {/*<DatePicker*/}
+                        {/*    value={new Date()}*/}
+                        {/*    className={"text-center"}*/}
+                        {/*    calendar={persian}*/}
+                        {/*    locale={persian_fa}*/}
+                        {/*    calendarPosition="bottom-right"*/}
+                        {/*    onChange={*/}
+                        {/*    console.log(form.getFieldsValue().date_doc)*/}
+                        {/*    }*/}
+                        {/*/>*/}
                     </Form.Item>
                 </Col>
                 <Col span={6}>
@@ -345,7 +425,8 @@ const Logistics_Doc = (prop) => {
                 }}
             >
                 <Button type="primary" htmlType="submit">
-                    ایجاد مدرک
+                    {prop.Fdata ? "ویرایش مدرک" : "ایجاد مدرک"}
+
                 </Button>
             </Form.Item>
         </Form>

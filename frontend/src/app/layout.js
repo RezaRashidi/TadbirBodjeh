@@ -15,6 +15,7 @@ export default function RootLayout({children}) {
     return (
 
         <html lang="en" dir="rtl">
+        {/*<ConfigProvider locale={fa_IR} direction="rtl">*/}
     <body className={`${inter.className} bg-slate-200`}>
     <AntdRegistry>
         <div className="flex bg-slate-200  flex-row pt-10 px-20 justify-between items-start	">
@@ -37,5 +38,6 @@ export default function RootLayout({children}) {
 
     </AntdRegistry>
     </body>
+        {/*</ConfigProvider>*/}
     </html>);
 }
