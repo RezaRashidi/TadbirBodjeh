@@ -14,6 +14,9 @@ const App = () => {
             current: 1, pageSize: 10,
         },
     });
+    const handleModalChange = (newState) => {
+        setIsModalOpen(newState);
+    };
     const showModal = (value) => {
         setselectedid(value.id)
         setIsModalOpen(true);
@@ -86,10 +89,10 @@ const App = () => {
 
     return (<>
         <Modal title="ویرایش مدارک" style={{marginLeft: "-15%"}} centered open={isModalOpen}
-               onOk={handleOk} width={"75%"} onCancel={handleCancel} zIndex={100}>
+               onOk={handleOk} width={"75%"} onCancel={handleCancel} footer={null} zIndex={100}>
 
 
-            <Logistics_Doc Fdata={data} selectedid={selectedid}/>
+            <Logistics_Doc Fdata={data} selectedid={selectedid} modal={handleModalChange}/>
 
         </Modal>
         <Table columns={columns} dataSource={data} pagination={tableParams.pagination}

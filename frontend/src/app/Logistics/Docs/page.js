@@ -7,7 +7,6 @@ import React, {useEffect, useState} from "react";
 ///اخرین
 
 
-/* eslint-disable no-template-curly-in-string */
 
 
 const Logistics_Doc = (prop) => {
@@ -16,7 +15,7 @@ const Logistics_Doc = (prop) => {
     useJalaliLocaleListener();
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
-    const [form_date, set_form_date] = useState(dayjs(new Date, {jalali: true}))
+    const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
 
 
     // console.log(prop)
@@ -25,7 +24,7 @@ const Logistics_Doc = (prop) => {
             prop.Fdata.filter((item) => {
                 if (item.id === prop.selectedid) {
 
-                    // console.log(item)
+                    console.log(item)
                     var x = item.uploads.map((file) => {
                         return {
                             uid: file,
@@ -54,7 +53,7 @@ const Logistics_Doc = (prop) => {
 
                     setFileList(x)
                     // set_form_date(new Date(item.date_doc).toISOString())
-                    console.log(form.getFieldsValue().date_doc)
+                    // console.log(form.getFieldsValue().date_doc)
                     // form.setFieldValue("date_doc", {value: new Date(item.date_doc)})
                     // console.log(form.getFieldsValue().date_doc)
 
@@ -94,7 +93,7 @@ const Logistics_Doc = (prop) => {
         },
     };
     const onFinish = (values) => {
-        console.log(values);
+        // console.log(values);
         const jsondata = {
             "name": values.name,
             "type": values.type,
@@ -113,9 +112,18 @@ const Logistics_Doc = (prop) => {
                 return file.response.id
             })
         }
+        let new_jasondata = {...jsondata}
 
-        // updateData(jsondata)
-        // console.log(jsondata);
+        new_jasondata.uploads = fileList.map((file) => {
+            return {
+                name: file.name,
+                file: file.url,
+                id: file.response.id
+            }
+        })
+
+        prop.selectedid && updateData(new_jasondata)
+        console.log(new_jasondata);
         const request = prop.selectedid ? fetch(`http://127.0.0.1:8000/api/logistics/${prop.selectedid} /`, {
             method: "PUT",
             headers: {
@@ -132,12 +140,19 @@ const Logistics_Doc = (prop) => {
         });
 
         request.then(response => {
-            response.ok ? message.success("مدارک با موفقیت ثبت شد") : null
+            if (response.ok) {
+                message.success("مدارک با موفقیت ثبت شد")
+                prop.selectedid && prop.modal(false)
             !prop.selectedid && form.resetFields();
+            } else {
+                message.error("خطا در ثبت مدارک")
+            }
+
+
 
 
         })
-        request.then((response, reject) => response.json().then((value) => console.log(value)))
+        // request.then((response, reject) => response.json().then((value) => console.log(value)))
     };
     const propsUpload = {
         name: "files",
@@ -306,46 +321,20 @@ const Logistics_Doc = (prop) => {
                 </Col>
                 <Col span={6}>
                     <Form.Item name="date_doc" label="تاریخ">
-                        {/*<DatePicker*/}
-                        {/*    inputClass="border-2 rounded-md text-center"*/}
-                        {/*    className={"text-center z-[105]"}*/}
-                        {/*    defaultValue={form_date}*/}
-                        {/*    round="x4"*/}
-                        {/*    position="right"*/}
-                        {/*    customShowDateFormat="YYYY MMMM DD"*/}
-                        {/*    onChange={(e) => {*/}
-                        {/*        // console.log(Date.parse(e.value))*/}
-                        {/*        console.log(e)*/}
 
-                        {/*        console.log(form.getFieldsValue().date_doc)*/}
-                        {/*    }*/}
-
-                        {/*    }*/}
-                        {/*/>*/}
 
                         {/*<JalaliLocaleListener/>*/}
                         <DatePickerJalali
                             // value={form_date}
                             // defaultValue={form_date}
                             onChange={e => {
-                                console.log(form_date)
                                 set_form_date(e)
-                                console.log(form_date)
+
                             }
                             }
                         />
 
 
-                        {/*<DatePicker*/}
-                        {/*    value={new Date()}*/}
-                        {/*    className={"text-center"}*/}
-                        {/*    calendar={persian}*/}
-                        {/*    locale={persian_fa}*/}
-                        {/*    calendarPosition="bottom-right"*/}
-                        {/*    onChange={*/}
-                        {/*    console.log(form.getFieldsValue().date_doc)*/}
-                        {/*    }*/}
-                        {/*/>*/}
                     </Form.Item>
                 </Col>
                 <Col span={6}>

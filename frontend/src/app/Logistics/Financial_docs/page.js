@@ -1,14 +1,16 @@
 "use client";
+import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
 import {Button, Col, Form, Input, message, Row, Select} from "antd";
+import dayjs from "dayjs";
 import React, {useEffect, useRef, useState} from "react";
-import {DatePicker} from "zaman";
 
 function RezaSelect(props) {
     const [list, setlist] = useState({});
     const next = useRef({});
     const pagenumber = useRef(1);
-    const fetchlist = useEffect(() => {
-        fetch(`http://127.0.0.1:8000/api/logistics/?page=${pagenumber.current}`)
+
+    useEffect(() => {
+        fetch(`http://127.0.0.1:8000/api/logistics/?get_nulls=0&?page=${pagenumber.current}`)
             .then((res) => res.json())
             .then((res) => {
                 next.correct = res.next
@@ -16,9 +18,10 @@ function RezaSelect(props) {
 
             })
 
+
     }, [])
     const onSearch = (value) => {
-        fetch(`http://127.0.0.1:8000/api/logistics/?search=${value}`)
+        fetch(`http://127.0.0.1:8000/api/logistics/?get_nulls=0?search=${value}`)
             .then((res) => res.json())
             .then((res) => {
 
@@ -41,9 +44,18 @@ function RezaSelect(props) {
 
                 })
         }
+    }
+    const Deselect = ({value}) => {
+
+            fetch(`http://127.0.0.1:8000/api/logistics/${value}/`, {
+                method: "PATCH", headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }, body: JSON.stringify({"Fdoc_key": null}),
+            })
+        }
 
 
-    };
+    ;
     return (
         <Select
             labelInValue
@@ -58,19 +70,62 @@ function RezaSelect(props) {
             onPopupScroll={onPopupScroll}
             // notFoundContent={fetching ? <Spin size="small"/> : null}
             options={list}
-
+            onDeselect={Deselect}
             {...props}
 
-        />
-    );
+        />);
 }
 
-const App = () => {
+const Financial_docs = (prop) => {
     const [form] = Form.useForm();
+    useJalaliLocaleListener();
+    dayjs.calendar('jalali');
+    dayjs.extend(jalaliPlugin);
+    const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
+    useEffect(() => {
+        if (prop.Fdata) {
+            prop.Fdata.filter((item) => {
+                if (item.id === prop.selectedid) {
+                    console.log(item)
+                    form.setFieldsValue({
+                        name: item.name,
+                        date_doc: dayjs(new Date(item.date_doc)),
+                        CostType: item.CostType,
+                        descr: item.descr,
+                    })
+
+                    fetch(`http://127.0.0.1:8000/api/logistics/?Fdoc_key=${item.id}`)
+                        .then((res) => res.json())
+                        .then((res) => {
+                            console.log(res)
+                            form.setFieldsValue({
+                                logistics: res.results.map((item) => ({"value": item.id, "label": item.name}))
+                            })
+                        })
+                }
+
+
+            })
+
+        }
+    }, [prop.Fdata, prop.selectedid]);
+
+    //write fun that get the changed data from the form and update prop.Fdata with new data
+    function updateData(data) {
+        prop.Fdata.filter((item) => {
+            if (item.id === prop.selectedid) {
+                item.name = data.name;
+                item.date_doc = data.date_doc;
+                item.CostType = data.CostType;
+                item.descr = data.descr;
+                item.logistics = data.logistics;
+            }
+        })
+    }
     const onFinish = (values) => {
         const jsondata = {
             "name": values.name,
-            "date_doc": values.date_doc.value,
+            "date_doc": values.date_doc,
             "CostType": values.CostType,
             "descr": values.descr,
             "F_conf": false,
@@ -78,49 +133,45 @@ const App = () => {
             "TopicId": "",
             "RowId": null,
         }
-        // console.log(values)
-
-        var request = fetch("http://127.0.0.1:8000/api/financial/", {
-            method: "POST",
+        console.log(values)
+        const request = prop.selectedid ? fetch(`http://127.0.0.1:8000/api/financial/${prop.selectedid} /`, {
+            method: "PUT",
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'
             },
             body: JSON.stringify(jsondata),
+        }) : fetch("http://127.0.0.1:8000/api/financial/", {
+            method: "POST", headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            }, body: JSON.stringify(jsondata),
+        });
+        request.then(response => {
+            console.log()
+            if (response.ok) {
+                response.json().then((response) => {
 
-        })
+                    values.logistics.forEach((item) => {
 
-        request.then(
-            response => {
-                console.log()
-                if (response.ok) {
-                    response.json().then(
-                        (response) => {
-
-                            values.logistics.forEach((item) => {
-
-                                    console.log({"Fdoc_key": response.id})
-                                    fetch(`http://127.0.0.1:8000/api/logistics/${item.value}/`, {
-                                        method: "PATCH",
-                                        headers: {
-                                            'Content-Type': 'application/json;charset=utf-8'
-                                        },
-                                        body: JSON.stringify({"Fdoc_key": response.id}),
-
-                                    })
-                                    //.then((response) => console.log(response.json()))
-                                }
-                            )
-
-
+                        console.log({"Fdoc_key": response.id})
+                        fetch(`http://127.0.0.1:8000/api/logistics/${item.value}/`, {
+                            method: "PATCH", headers: {
+                                'Content-Type': 'application/json;charset=utf-8'
+                            }, body: JSON.stringify({"Fdoc_key": response.id}),
                         })
-                    response.ok ? message.success("مدارک با موفقیت ثبت شد") : null
-
-                    // form.resetFields();
-
-
+                        //.then((response) => console.log(response.json()))
+                    })
+                })
+                if (response.ok) {
+                    updateData(values)
+                    message.success("سند با موفقیت ثبت شد")
+                    prop.selectedid && prop.modal(false)
+                    !prop.selectedid && form.resetFields();
+                } else {
+                    message.error("خطا در ثبت سند")
                 }
+                // form.resetFields();
             }
-        )
+        })
         // request.then((response, reject) => response.json().then((value) => console.log(value)))
     };
 
@@ -129,7 +180,7 @@ const App = () => {
         autoComplete="off"
         onFinish={onFinish}
         initialValues={{
-            date_doc: {value: new Date().toISOString()},
+            date_doc: form_date,
 
         }}
     >
@@ -138,12 +189,10 @@ const App = () => {
                 <Form.Item
                     name="name"
                     label="نام سند"
-                    rules={[
-                        {
-                            // required: true,
-                            message: "نام سند را وارد نمایید",
-                        },
-                    ]}
+                    rules={[{
+                        // required: true,
+                        message: "نام سند را وارد نمایید",
+                    },]}
                 >
                     <Input/>
                 </Form.Item>
@@ -157,26 +206,21 @@ const App = () => {
                         // onChange={onChange}
                         // onSearch={onSearch}
                         // filterOption={filterOption}
-                        options={[{value: 'جاری',},
-                            {value: 'عمرانی',},
-                            {value: "متفرقه"},
-                            {value: "تجهیزات"},
-                            {value: "خارج از شمول"}
-                        ]}
+                        options={[{value: 'جاری',}, {value: 'عمرانی',}, {value: "متفرقه"}, {value: "تجهیزات"}, {value: "خارج از شمول"}]}
                     />
                 </Form.Item>
             </Col>
             <Col span={6}>
                 <Form.Item name="date_doc" label="تاریخ">
-                    <DatePicker
-                        inputClass="border-2 rounded-md text-center"
-                        className={"text-center"}
-                        round="x4"
-                        // defaultValue={Date.now()}
-                        position="right"
-                        customShowDateFormat="YYYY MMMM DD"
-
+                    <DatePickerJalali
+                        // value={form_date}
+                        // defaultValue={form_date}
+                        onChange={e => {
+                            set_form_date(e)
+                        }
+                        }
                     />
+
                 </Form.Item>
             </Col>
         </Row>
@@ -212,11 +256,11 @@ const App = () => {
             }}
         >
             <Button type="primary" htmlType="submit">
-                ایجاد سند
+                {prop.Fdata ? "ویرایش سند" : "ایجاد سند"}
             </Button>
         </Form.Item>
     </Form>)
 }
 
 
-export default App;
+export default Financial_docs;

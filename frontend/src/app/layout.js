@@ -1,5 +1,7 @@
 import Menur from "@/components/menu/menu";
 import {AntdRegistry} from '@ant-design/nextjs-registry';
+import {ConfigProvider} from "antd";
+import fa_IR from "antd/lib/locale/fa_IR";
 import {Inter} from "next/font/google";
 import "@/styles/globals.css";
 import Image from 'next/image'
@@ -15,7 +17,7 @@ export default function RootLayout({children}) {
     return (
 
         <html lang="en" dir="rtl">
-        {/*<ConfigProvider locale={fa_IR} direction="rtl">*/}
+        <ConfigProvider locale={fa_IR} direction="rtl">
     <body className={`${inter.className} bg-slate-200`}>
     <AntdRegistry>
         <div className="flex bg-slate-200  flex-row pt-10 px-20 justify-between items-start	">
@@ -38,6 +40,6 @@ export default function RootLayout({children}) {
 
     </AntdRegistry>
     </body>
-        {/*</ConfigProvider>*/}
+        </ConfigProvider>
     </html>);
 }

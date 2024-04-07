@@ -1,5 +1,6 @@
 import django.http
 import rest_framework.decorators
+from django.db.models import Q
 from rest_framework import filters
 from rest_framework import status
 from rest_framework import viewsets
@@ -19,8 +20,15 @@ class FinancialViewSet(viewsets.ModelViewSet):
 
 
 class LogisticsViewSet(viewsets.ModelViewSet):
-    queryset = Logistics.objects.all().reverse().order_by('id')
-
+    def get_queryset(self):
+        Fdoc_key = self.request.query_params.get('Fdoc_key', None)
+        get_nulls = self.request.query_params.get('get_nulls', None)
+        if get_nulls is not None:
+            return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id')
+        elif Fdoc_key is not None:
+            return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).reverse().order_by('id')
+        else:
+            return Logistics.objects.all().reverse().order_by('id')
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return LogisticsSerializerlist
