@@ -22,7 +22,8 @@ export default function RootLayout({children}) {
     <AntdRegistry>
         <div className="flex bg-slate-200  flex-row pt-10 px-20 justify-between items-start	">
             <div className="basis-2/12 pl-6">
-                <div className={"bg-white"}><Image
+                <div className={"bg-white"}>
+                    <Image
                     src={arm}
                     alt="Picture of the author"
                     className={"p-5"}
@@ -32,7 +33,7 @@ export default function RootLayout({children}) {
                 <Menur className={"p-10"}/>
             </div>
 
-            <div className="basis-10/12 bg-white py-10 px-16  ">{children}</div>
+            <div className="basis-10/12 bg-white py-10 px-16">{children}</div>
 
 
         </div>

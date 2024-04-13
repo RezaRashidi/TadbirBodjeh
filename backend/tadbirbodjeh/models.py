@@ -24,7 +24,7 @@ class Financial(models.Model):
     programId = models.CharField(max_length=255, blank=True, null=True)
     topicId = models.CharField(max_length=255, blank=True, null=True)
     rowId = models.CharField(max_length=255, blank=True, null=True)
-
+    tax = models.CharField(max_length=255, blank=True, null=True)
     # Logistics = models.ManyToManyField('Logistics', blank=True, null=True)
 
     def _str_(self) -> str:

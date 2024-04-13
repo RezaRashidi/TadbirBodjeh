@@ -15,7 +15,6 @@ function RezaSelect(props) {
             .then((res) => {
                 next.correct = res.next
                 setlist(res.results.map((item) => ({"value": item.id, "label": item.name, "key": item.id})))
-
             })
 
 
@@ -24,9 +23,7 @@ function RezaSelect(props) {
         fetch(`http://127.0.0.1:8000/api/logistics/?get_nulls=0?search=${value}`)
             .then((res) => res.json())
             .then((res) => {
-
                 setlist(res.results.map((item) => ({"value": item.id, "label": item.name, "key": item.id})))
-
             })
     };
     const onPopupScroll = () => {
@@ -34,27 +31,22 @@ function RezaSelect(props) {
             fetch(next.correct)
                 .then((res) => res.json())
                 .then((res) => {
-
                     next.correct = res.next
                     // console.log(res.next)
                     let resplt = res.results.map((item) => ({"value": item.id, "label": item.name}))
                     setlist([...list, ...resplt])
                     // console.log(resplt)
                     // console.log([...list, ...resplt])
-
                 })
         }
     }
     const Deselect = ({value}) => {
-
             fetch(`http://127.0.0.1:8000/api/logistics/${value}/`, {
                 method: "PATCH", headers: {
                     'Content-Type': 'application/json;charset=utf-8'
                 }, body: JSON.stringify({"Fdoc_key": null}),
             })
         }
-
-
     ;
     return (
         <Select
@@ -92,6 +84,7 @@ const Financial_docs = (prop) => {
                         date_doc: dayjs(new Date(item.date_doc)),
                         CostType: item.CostType,
                         descr: item.descr,
+                        tax: item.tax,
                     })
 
                     fetch(`http://127.0.0.1:8000/api/logistics/?Fdoc_key=${item.id}`)
@@ -119,9 +112,11 @@ const Financial_docs = (prop) => {
                 item.CostType = data.CostType;
                 item.descr = data.descr;
                 item.logistics = data.logistics;
+                item.tax = data.tax;
             }
         })
     }
+
     const onFinish = (values) => {
         const jsondata = {
             "name": values.name,
@@ -132,6 +127,7 @@ const Financial_docs = (prop) => {
             "ProgramId": "",
             "TopicId": "",
             "RowId": null,
+            "tax": values.tax,
         }
         console.log(values)
         const request = prop.selectedid ? fetch(`http://127.0.0.1:8000/api/financial/${prop.selectedid} /`, {
@@ -162,7 +158,7 @@ const Financial_docs = (prop) => {
                     })
                 })
                 if (response.ok) {
-                    updateData(values)
+                    prop.selectedid && updateData(values)
                     message.success("سند با موفقیت ثبت شد")
                     prop.selectedid && prop.modal(false)
                     !prop.selectedid && form.resetFields();
@@ -238,7 +234,19 @@ const Financial_docs = (prop) => {
         </Row>
 
 
-        <Row>
+        <Row gutter={50}>
+            <Col span={7}>
+                <Form.Item
+                    name="tax"
+                    label="کد رهگیری مالیاتی"
+                    rules={[{
+                        // required: true,
+                        message: "کد رهگیری را وارد نمایید",
+                    },]}
+                >
+                    <Input/>
+                </Form.Item>
+            </Col>
             <Col span={12}>
                 <Form.Item
                     name="logistics"

@@ -15,6 +15,7 @@
     "antd": "^5.14.0",
     "dayjs": "^1.11.10",
     "next": "^14.1.4",
+    "num2persian": "^3.2.2",
     "react": "^18",
     "react-dom": "^18",
     "react-multi-date-picker": "^4.4.1",

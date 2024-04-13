@@ -19,6 +19,10 @@ const App = () => {
         setIsModalOpen(newState);
     };
     const showModal = (value) => {
+
+        // console.log(  ...data.filter((item) => item.id === value.id).flat())
+
+
         setselectedid(value.id)
         setIsModalOpen(true);
     };
