@@ -1,5 +1,10 @@
+import django.core.exceptions
 import django.http
 import rest_framework.decorators
+import rest_framework.permissions
+import rest_framework.views
+import rest_framework_simplejwt.exceptions
+import rest_framework_simplejwt.tokens
 from django.db.models import Q
 from rest_framework import filters
 from rest_framework import status
@@ -17,7 +22,7 @@ from .serializers import (
 class FinancialViewSet(viewsets.ModelViewSet):
     queryset = Financial.objects.all().reverse().order_by('id')
     serializer_class = FinancialSerializer
-
+    # permission_classes = [rest_framework.permissions.IsAuthenticated]
 
 class LogisticsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
@@ -29,6 +34,7 @@ class LogisticsViewSet(viewsets.ModelViewSet):
             return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).reverse().order_by('id')
         else:
             return Logistics.objects.all().reverse().order_by('id')
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return LogisticsSerializerlist
@@ -81,3 +87,17 @@ def snippet_list(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutView(rest_framework.views.APIView):
+    permission_classes = (rest_framework.permissions.AllowAny,)
+    authentication_classes = ()
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = rest_framework_simplejwt.tokens.RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_200_OK)
+        except (django.core.exceptions.ObjectDoesNotExist, rest_framework_simplejwt.exceptions.TokenError):
+            return Response(status=status.HTTP_400_BAD_REQUEST)

@@ -1,20 +1,29 @@
 "use client";
 import Financial_docs from "@/app/Logistics/Financial_docs/page";
-import {Modal, Table} from "antd";
+import Fin_print from "@/app/Logistics/Print/page";
+import {PrinterOutlined} from "@ant-design/icons";
+import {Button, Modal, Table} from "antd";
 import React, {useEffect, useState} from "react";
-
+import ReactToPrint from "react-to-print";
 
 const App = () => {
     const [data, setData] = useState();
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedid, setselectedid] = useState(0);
+    const [selectedrecord, setselectedrecord] = useState(0);
     const [tableParams, setTableParams] = useState({
         pagination: {
             current: 1,
             pageSize: 10,
         },
     });
+    const [printRefs, setPrintRefs] = useState({});
+    const [triggerUpdate, setTriggerUpdate] = useState(0);
+    const [key, setKey] = useState(0);
+    useEffect(() => {
+        setKey(prevKey => prevKey + 1);
+    }, [selectedid]);
     const handleModalChange = (newState) => {
         setIsModalOpen(newState);
     };
@@ -42,7 +51,7 @@ const App = () => {
                 let newdata = res.results.map(
                     (item) => ({"key": item.id, ...item})
                 )
-                // console.log(newdata);
+                console.log(newdata);
                 setData(newdata);
                 setLoading(false);
                 setTableParams({
@@ -57,6 +66,12 @@ const App = () => {
             });
     };
     const columns = [
+        {
+            title: 'شماره سند',
+            dataIndex: 'id',
+            key: 'id',
+
+        },
         {
             title: 'نام سند',
             dataIndex: 'name',
@@ -86,7 +101,27 @@ const App = () => {
             key: 'F_conf',
             // eslint-disable-next-line react/jsx-key
             render: (bool) => bool ? "تایید" : "تایید نشده",
-        },
+        }, {
+            title: "چاپ", key: 'print', render: (record) => {
+
+                if (!printRefs[record.id]) {
+                    setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));
+                }
+
+                // console.log(`${record.id}-${record.updated}`);
+
+
+                return <>
+                    <div style={{display: ''}}>
+                        <Fin_print ref={printRefs[record.id]} record={record}/>
+                    </div>
+                    <ReactToPrint
+                        trigger={() => <Button icon={<PrinterOutlined/>}>پرینت</Button>}
+                        content={() => printRefs[record.id].current}
+                    /></>
+            }
+        }
+
     ];
     useEffect(() => {
         fetchData();
@@ -101,7 +136,9 @@ const App = () => {
     return (
 
         <>
-            <Modal title="ویرایش سند" style={{marginLeft: "-15%"}} centered open={isModalOpen}
+
+
+        <Modal title="ویرایش سند" style={{marginLeft: "-15%"}} centered open={isModalOpen}
                    onOk={handleOk} width={"75%"} onCancel={handleCancel} footer={null} zIndex={100}>
 
                 <Financial_docs Fdata={data} selectedid={selectedid} modal={handleModalChange}/>

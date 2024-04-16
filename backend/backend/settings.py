@@ -27,7 +27,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
-      "http://localhost:3001",
+    "http://localhost:3001",
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3001",
@@ -35,7 +35,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ORIGIN_WHITELIST = ["*","http://localhost:3001"]
+CORS_ORIGIN_WHITELIST = ["*", "http://localhost:3001"]
 # Application definition
 
 INSTALLED_APPS = [
@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "tadbirbodjeh",
+    # 'rest_framework.authtoken',
+    "djoser",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 MIDDLEWARE = [
@@ -135,6 +138,24 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        # 'rest_framework.permissions.IsAuthenticated',
+    ],
 
 }
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DJOSER = {
+    "PASSWORD_RESET_CONFIRM_URL": "auth/password/reset-password-confirmation/?uid={uid}&token={token}",
+    "ACTIVATION_URL": "#/activate/{uid}/{token}",
+    "SEND_ACTIVATION_EMAIL": False,
+    "SERIALIZERS": {},
+}
+SITE_NAME = "تدبیر بودجه"
+DOMAIN = 'localhost:3001'

@@ -18,7 +18,7 @@ function RezaSelect(props) {
             })
 
 
-    }, [])
+    }, [props.data])
     const onSearch = (value) => {
         fetch(`http://127.0.0.1:8000/api/logistics/?get_nulls=0?search=${value}`)
             .then((res) => res.json())
@@ -78,7 +78,7 @@ const Financial_docs = (prop) => {
         if (prop.Fdata) {
             prop.Fdata.filter((item) => {
                 if (item.id === prop.selectedid) {
-                    console.log(item)
+                    // console.log(item)
                     form.setFieldsValue({
                         name: item.name,
                         date_doc: dayjs(new Date(item.date_doc)),
@@ -90,7 +90,7 @@ const Financial_docs = (prop) => {
                     fetch(`http://127.0.0.1:8000/api/logistics/?Fdoc_key=${item.id}`)
                         .then((res) => res.json())
                         .then((res) => {
-                            console.log(res)
+                            // console.log(res)
                             form.setFieldsValue({
                                 logistics: res.results.map((item) => ({"value": item.id, "label": item.name}))
                             })
@@ -113,6 +113,7 @@ const Financial_docs = (prop) => {
                 item.descr = data.descr;
                 item.logistics = data.logistics;
                 item.tax = data.tax;
+                item.updated = data.updated
             }
         })
     }
@@ -129,7 +130,7 @@ const Financial_docs = (prop) => {
             "RowId": null,
             "tax": values.tax,
         }
-        console.log(values)
+        // console.log(values)
         const request = prop.selectedid ? fetch(`http://127.0.0.1:8000/api/financial/${prop.selectedid} /`, {
             method: "PUT",
             headers: {
@@ -142,13 +143,13 @@ const Financial_docs = (prop) => {
             }, body: JSON.stringify(jsondata),
         });
         request.then(response => {
-            console.log()
+            // console.log()
             if (response.ok) {
                 response.json().then((response) => {
 
                     values.logistics.forEach((item) => {
 
-                        console.log({"Fdoc_key": response.id})
+                        // console.log({"Fdoc_key": response.id})
                         fetch(`http://127.0.0.1:8000/api/logistics/${item.value}/`, {
                             method: "PATCH", headers: {
                                 'Content-Type': 'application/json;charset=utf-8'
@@ -156,15 +157,17 @@ const Financial_docs = (prop) => {
                         })
                         //.then((response) => console.log(response.json()))
                     })
+                }).then(() => {
+                    if (response.ok) {
+                        prop.selectedid && updateData({...values, updated: dayjs(new Date())})
+                        message.success("سند با موفقیت ثبت شد")
+                        prop.selectedid && prop.modal(false)
+                        !prop.selectedid && form.resetFields();
+                    } else {
+                        message.error("خطا در ثبت سند")
+                    }
                 })
-                if (response.ok) {
-                    prop.selectedid && updateData(values)
-                    message.success("سند با موفقیت ثبت شد")
-                    prop.selectedid && prop.modal(false)
-                    !prop.selectedid && form.resetFields();
-                } else {
-                    message.error("خطا در ثبت سند")
-                }
+
                 // form.resetFields();
             }
         })
@@ -253,7 +256,7 @@ const Financial_docs = (prop) => {
                     label="انتخاب مدارک"
 
                 >
-                    <RezaSelect/>
+                    <RezaSelect data={prop.Fdata}/>
                 </Form.Item>
             </Col>
         </Row>
