@@ -66,7 +66,7 @@ const App = () => {
 
     const fetchData = () => {
         setLoading(true);
-        fetch(`http://127.0.0.1:8000/api/logistics/?page=${tableParams.pagination.current}`)
+        fetch(`http://172.16.10.50:8000/api/logistics/?page=${tableParams.pagination.current}`)
             .then((res) => res.json())
             .then((res) => {
                 // console.log(res);

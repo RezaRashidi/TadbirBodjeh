@@ -1,10 +1,11 @@
 "use client";
 import arm from "@/images/Arm.jpg";
-import {Col, Row, Table, Typography} from "antd";
-import Title from "antd/lib/typography/Title";
+import {Col, ConfigProvider, Row, Table, Typography} from "antd";
+import fa_IR from "antd/lib/locale/fa_IR";
 import Image from "next/image";
 import Num2persian from 'num2persian';
 import React, {useEffect, useState} from "react";
+import "@/styles/table.css";
 
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -28,7 +29,7 @@ function Fin_print(props, ref) {
     });
     let Price_ir = numberWithCommas(convertToPersianNumber(Price))
     useEffect(() => {
-        fetch(`http://127.0.0.1:8000/api/logistics/?Fdoc_key=${id}`)
+        fetch(`http://172.16.10.50:8000/api/logistics/?Fdoc_key=${id}`)
             .then((res) => res.json())
             .then((res) => {
                 console.log(res);
@@ -42,7 +43,7 @@ function Fin_print(props, ref) {
 
             set_fin(props.record);
         } else {
-            fetch(`http://127.0.0.1:8000/api/financial/${id}`)
+            fetch(`http://172.16.10.50:8000/api/financial/${id}`)
                 .then((res) => res.json())
                 .then((res) => {
                     // console.log(res);
@@ -51,98 +52,141 @@ function Fin_print(props, ref) {
         }
 
 
-    }, [props.record.updated])
+    }, [])
+    //props.record.updated
     const columns = [{
-        title: 'نام کالا/خدمات\n', dataIndex: 'name', key: 'name'
+        title: '#',
+        dataIndex: 'index',
+        key: 'index',
+        width: "5px",
+        align: "center",
+        render: (text, record, index) => index + 1
     }, {
-        title: 'نوع ارائه', dataIndex: 'type', key: 'type', render: (bool) => bool ? "کالا" : "خدمات",
+        title: 'نام کالا/خدمات\n', dataIndex: 'name', key: 'name', align: "center"
     }, {
-        title: 'کدملی/شناسه', dataIndex: 'seller_id', key: 'seller_id',
+        title: 'نوع ارائه', dataIndex: 'type', key: 'type', render: (bool) => bool ? "کالا" : "خدمات", align: "center",
     }, {
-        title: 'محل هزینه', dataIndex: 'Location', key: 'Location',
+        title: 'کدملی/شناسه', dataIndex: 'seller_id', key: 'seller_id', align: "center",
     }, {
-        title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller',
+        title: 'محل هزینه', dataIndex: 'Location', key: 'Location', align: "center",
     }, {
-        title: 'قیمت', dataIndex: 'price', key: 'price', render: (price) => convertToPersianNumber(price)
+        title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller', align: "center",
+    }, {
+        title: 'توضیحات', dataIndex: 'descr', key: 'descr', align: "center",
     }, {
         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
-
             return new Intl.DateTimeFormat('fa-IR').format(new Date(date));
-
-        }
-
+        }, align: "center",
+    }, {
+        title: 'قیمت',
+        dataIndex: 'price',
+        key: 'price',
+        render: (price) => convertToPersianNumber(price),
+        align: "center",
     }
 
 
     ];
 
-    return <div ref={ref} className={"p-5"} dir="rtl">
-        <header>
-            <Row gutter={50}>
-                <Col span={6}>
-                    <Image
-                        src={arm}
-                        height={100}
-                        alt="Picture of the author"
-                        className={""}
-                    />
-                </Col>
-                <Col span={10}>
-                    <Title level={3} className={"text-center font-bold"}>صورت ریز هزینه دانشگاه هنر اسلامی تبریز</Title>
-                    <Title level={4} className={"text-center"}>تدارکات</Title>
-                </Col>
-                <Col span={4} className={"leading-8"}>
-                    <h1>نوع هزینه: {fin.CostType}</h1>
-                    <h1> کد رهگیری مالیاتی: {fin.tax}</h1>
+    return <ConfigProvider locale={fa_IR} direction="rtl" theme={{
+        token: {
+            fontFamily: "Yekan",
+            Table: {
+                cellFontSize: 10,
+                padding: "10px",
 
-                </Col>
-                <Col span={4} className={"leading-8"}>
-                    <h1>تاریخ: {fin.date_doc && !isNaN(new Date(fin.date_doc)) ? new Intl.DateTimeFormat('fa-IR').format(new Date(fin.date_doc)) : ''}</h1>
-                    <h1> شماره سند: {fin.id} </h1>
+                borderColor: "black"
+                /* here is your component tokens */
+            }
 
-                </Col>
-            </Row>
-        </header>
+        }
+    }}>
+        <div ref={ref} className={"p-5 yekan"} dir="rtl">
 
-        <article className={"py-8"}>
-            <Table columns={columns} dataSource={Log_list} bordered pagination={{position: ["none"]}}
-                   summary={(pageData) => {
+            <header>
+                <Row gutter={50}>
+                    <Col span={4}>
+                        <Image
+                            src={arm}
+                            height={100}
+                            alt="Picture of the author"
+                            className={""}
+                        />
+                    </Col>
+                    <Col span={16}>
+                        <p className={"text-center font-bold yekan text-2xl"}>دانشگاه هنر اسلامی تبریز </p>
+                        <p className={"text-center font-bold yekan text-2xl"}>صورت ریز هزینه </p>
+                        <p className={"text-center text-xl"}>تدارکات</p>
+                    </Col>
+
+                </Row>
+                <Row gutter={50}>
+                    <Col span={6} className={"leading-8"}>
+
+                        <h1> شماره سند: {fin.id} </h1>
+
+                    </Col>
+                    <Col span={6} className={"leading-8"}>
+                        <h1>نوع هزینه: {fin.CostType}</h1>
 
 
-                       return (<>
-                           <Table.Summary.Row>
-                               <Table.Summary.Cell index={0}>جمع مبلغ</Table.Summary.Cell>
-                               <Table.Summary.Cell index={1} colSpan={2} align={"center"}>
-                                   <Text type="">{Price_ir} ریال</Text>
-                               </Table.Summary.Cell>
-                               <Table.Summary.Cell index={1} colSpan={4} align={"center"}>
-                                   <Text type="">مبلغ کل به حروف : {Num2persian(Price)} ریال </Text>
-                               </Table.Summary.Cell>
-                           </Table.Summary.Row>
+                    </Col>
+                    <Col span={6} className={"leading-8"}>
+                        <h1> کد مالیاتی: {fin.tax}</h1>
+                    </Col>
+                    <Col span={6} className={"leading-8"}>
+                        <h1>تاریخ: {fin.date_doc && !isNaN(new Date(fin.date_doc)) ? new Intl.DateTimeFormat('fa-IR').format(new Date(fin.date_doc)) : ''}</h1>
+                    </Col>
 
-                       </>);
-                   }}/>
-        </article>
-        <footer>
-            <div>
-                <p>مدیر محترم منابع انسانی، اداری و پشتیبانی:</p>
-                <p> احتراماً ریز هزینه به مبلغ {Price_ir} ریال جهت دستور پرداخت به حضور تقدیم می گردد.</p>
-                <p className={"text-left"}>کارپرداز</p>
-            </div>
-            <div>
-                <p>معاون محترم اداری، عمرانی و مالی:</p>
-                <p> احتراماً ریز هزینه به مبلغ {Price_ir} ریال جهت مورد تایید می باشد خواهشنمد است دستور
-                    فرمایید اقدام لازم جهت دستور پرداخت مبذول گردد.</p>
-                <p className={"text-left"}>مدیر منابع انسانی، اداری و پشتیبانی</p>
-            </div>
-            <div>
-                <p>مدیر محترم امور مالی:</p>
-                <p> به استناد ماده ۱۲،۳۱و ۳۲ آئين نامه مالی و معاملاتی دانشگاه، مبلغ اسناد هزینه پیوستی از محل اعتبارات
-                    پرداخت گردد </p>
-                <p className={"text-left"}>معاون اداری، عمرانی و مالی</p>
-            </div>
-        </footer>
-    </div>
+
+                </Row>
+            </header>
+
+            <article className={"py-8"}>
+                <Table className={"text-xs"} columns={columns} dataSource={Log_list} bordered
+                       pagination={{position: ["none"]}}
+                       rowClassName={'row'}
+                       summary={(pageData) => {
+
+
+                           return (<>
+                               <Table.Summary.Row>
+                                   <Table.Summary.Cell index={0} colSpan={2} align={'center'}>جمع
+                                       کل</Table.Summary.Cell>
+                                   <Table.Summary.Cell index={1} colSpan={5} align={"center"}>
+                                       <Text type="">مبلغ کل به حروف : {Num2persian(Price)} ریال </Text>
+                                   </Table.Summary.Cell>
+                                   <Table.Summary.Cell index={2} colSpan={2} align={"center"}>
+                                       <Text type="">{Price_ir} ریال</Text>
+                                   </Table.Summary.Cell>
+
+                               </Table.Summary.Row>
+
+                           </>);
+                       }}/>
+            </article>
+            <footer>
+                <div>
+                    <p>مدیر محترم منابع انسانی، اداری و پشتیبانی:</p>
+                    <p> احتراماً ریز هزینه به مبلغ {Price_ir} ریال جهت دستور پرداخت به حضور تقدیم می گردد.</p>
+                    <p className={"text-left"}>کارپرداز</p>
+                </div>
+                <div>
+                    <p>معاون محترم اداری، عمرانی و مالی:</p>
+                    <p> احتراماً ریز هزینه به مبلغ {Price_ir} ریال جهت مورد تایید می باشد خواهشنمد است دستور
+                        فرمایید اقدام لازم جهت دستور پرداخت مبذول گردد.</p>
+                    <p className={"text-left"}>مدیر منابع انسانی، اداری و پشتیبانی</p>
+                </div>
+                <div>
+                    <p>مدیر محترم امور مالی:</p>
+                    <p> به استناد ماده ۱۲،۳۱و ۳۲ آئين نامه مالی و معاملاتی دانشگاه، مبلغ اسناد هزینه پیوستی از محل
+                        اعتبارات
+                        پرداخت گردد </p>
+                    <p className={"text-left"}>معاون اداری، عمرانی و مالی</p>
+                </div>
+            </footer>
+        </div>
+    </ConfigProvider>
 }
 
 const ForwardedFinPrint = React.forwardRef(Fin_print);

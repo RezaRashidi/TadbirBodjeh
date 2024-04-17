@@ -1,0 +1,7 @@
+@media print {
+    /* Whatever */
+    .row:nth-child(odd) {
+        print-color-adjust: exact;
+        background-color: #f2f2f2;
+    }
+}

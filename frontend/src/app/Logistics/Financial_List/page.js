@@ -6,7 +6,6 @@ import {Button, Modal, Table} from "antd";
 import React, {useEffect, useState} from "react";
 import ReactToPrint from "react-to-print";
 
-
 const App = (props) => {
     const [data, setData] = useState();
     const [loading, setLoading] = useState(true);
@@ -40,7 +39,7 @@ const App = (props) => {
     };
     const fetchData = () => {
         // setLoading(true);
-        fetch(`http://127.0.0.1:8000/api/financial/?page=${tableParams.pagination.current}`)
+        fetch(`http://172.16.10.50:8000/api/financial/?page=${tableParams.pagination.current}`)
             .then((res) => res.json())
             .then((res) => {
                 // console.log(res);
@@ -114,6 +113,15 @@ const App = (props) => {
                         <Fin_print key={record.updated} ref={printRefs[record.id]} record={record}/>
                     </div>
                     <ReactToPrint
+                        pageStyle="@media print {
+                                          html, body {
+                                            height: 100vh; /* Use 100% here to support printing more than a single page*/
+                                            margin: 0 !important;
+                                            padding: 0 !important;
+                                            overflow: hidden;
+                                          }
+
+                                        }"
                         trigger={() => <Button icon={<PrinterOutlined/>}>پرینت</Button>}
                         content={() => printRefs[record.id].current}
                     /></>

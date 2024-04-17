@@ -104,10 +104,10 @@ const Logistics_Doc = (prop) => {
             "Location": values.Location,
             "Payment_type": values.Payment_type,
             "descr": values.descr,
-            "F_conf": false,
-            "measure": "",
-            "CostDriver": "",
-            "Fdoc_key": null,
+            // "F_conf": false,
+            // "measure": "",
+            // "CostDriver": "",
+            // "Fdoc_key": null,
             "uploads": fileList.map((file) => {
                 return file.response.id
             })
@@ -124,14 +124,14 @@ const Logistics_Doc = (prop) => {
 
         prop.selectedid && updateData(new_jasondata)
         console.log(new_jasondata);
-        const request = prop.selectedid ? fetch(`http://127.0.0.1:8000/api/logistics/${prop.selectedid} /`, {
+        const request = prop.selectedid ? fetch(`http://172.16.10.50:8000/api/logistics/${prop.selectedid} /`, {
             method: "PUT",
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'
             },
             body: JSON.stringify(jsondata),
 
-        }) : fetch("http://127.0.0.1:8000/api/logistics/", {
+        }) : fetch("http://172.16.10.50:8000/api/logistics/", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'

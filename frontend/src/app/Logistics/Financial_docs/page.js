@@ -10,7 +10,7 @@ function RezaSelect(props) {
     const pagenumber = useRef(1);
 
     useEffect(() => {
-        fetch(`http://127.0.0.1:8000/api/logistics/?get_nulls=0&?page=${pagenumber.current}`)
+        fetch(`http://172.16.10.50:8000/api/logistics/?get_nulls=0&?page=${pagenumber.current}`)
             .then((res) => res.json())
             .then((res) => {
                 next.correct = res.next
@@ -20,7 +20,7 @@ function RezaSelect(props) {
 
     }, [props.data])
     const onSearch = (value) => {
-        fetch(`http://127.0.0.1:8000/api/logistics/?get_nulls=0?search=${value}`)
+        fetch(`http://172.16.10.50:8000/api/logistics/?get_nulls=0?search=${value}`)
             .then((res) => res.json())
             .then((res) => {
                 setlist(res.results.map((item) => ({"value": item.id, "label": item.name, "key": item.id})))
@@ -41,7 +41,7 @@ function RezaSelect(props) {
         }
     }
     const Deselect = ({value}) => {
-            fetch(`http://127.0.0.1:8000/api/logistics/${value}/`, {
+        fetch(`http://172.16.10.50:8000/api/logistics/${value}/`, {
                 method: "PATCH", headers: {
                     'Content-Type': 'application/json;charset=utf-8'
                 }, body: JSON.stringify({"Fdoc_key": null}),
@@ -87,7 +87,7 @@ const Financial_docs = (prop) => {
                         tax: item.tax,
                     })
 
-                    fetch(`http://127.0.0.1:8000/api/logistics/?Fdoc_key=${item.id}`)
+                    fetch(`http://172.16.10.50:8000/api/logistics/?Fdoc_key=${item.id}`)
                         .then((res) => res.json())
                         .then((res) => {
                             // console.log(res)
@@ -131,13 +131,13 @@ const Financial_docs = (prop) => {
             "tax": values.tax,
         }
         // console.log(values)
-        const request = prop.selectedid ? fetch(`http://127.0.0.1:8000/api/financial/${prop.selectedid} /`, {
+        const request = prop.selectedid ? fetch(`http://172.16.10.50:8000/api/financial/${prop.selectedid} /`, {
             method: "PUT",
             headers: {
                 'Content-Type': 'application/json;charset=utf-8'
             },
             body: JSON.stringify(jsondata),
-        }) : fetch("http://127.0.0.1:8000/api/financial/", {
+        }) : fetch("http://172.16.10.50:8000/api/financial/", {
             method: "POST", headers: {
                 'Content-Type': 'application/json;charset=utf-8'
             }, body: JSON.stringify(jsondata),
@@ -150,7 +150,7 @@ const Financial_docs = (prop) => {
                     values.logistics.forEach((item) => {
 
                         // console.log({"Fdoc_key": response.id})
-                        fetch(`http://127.0.0.1:8000/api/logistics/${item.value}/`, {
+                        fetch(`http://172.16.10.50:8000/api/logistics/${item.value}/`, {
                             method: "PATCH", headers: {
                                 'Content-Type': 'application/json;charset=utf-8'
                             }, body: JSON.stringify({"Fdoc_key": response.id}),
