@@ -32,7 +32,10 @@ function Fin_print(props, ref) {
             .then((res) => res.json())
             .then((res) => {
                 console.log(res);
-                set_Log_list([...res.results])
+                let newdata = res.results.map(
+                    (item) => ({"key": item.id, ...item})
+                )
+                set_Log_list([...newdata])
             })
 
         if (props.record) {

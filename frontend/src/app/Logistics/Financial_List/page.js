@@ -6,12 +6,12 @@ import {Button, Modal, Table} from "antd";
 import React, {useEffect, useState} from "react";
 import ReactToPrint from "react-to-print";
 
-const App = () => {
+
+const App = (props) => {
     const [data, setData] = useState();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedid, setselectedid] = useState(0);
-    const [selectedrecord, setselectedrecord] = useState(0);
     const [tableParams, setTableParams] = useState({
         pagination: {
             current: 1,
@@ -19,19 +19,16 @@ const App = () => {
         },
     });
     const [printRefs, setPrintRefs] = useState({});
-    const [triggerUpdate, setTriggerUpdate] = useState(0);
-    const [key, setKey] = useState(0);
-    useEffect(() => {
-        setKey(prevKey => prevKey + 1);
-    }, [selectedid]);
+
     const handleModalChange = (newState) => {
         setIsModalOpen(newState);
     };
+
+
+// Usage
+
     const showModal = (value) => {
-
         // console.log(  ...data.filter((item) => item.id === value.id).flat())
-
-
         setselectedid(value.id)
         setIsModalOpen(true);
     };
@@ -42,7 +39,7 @@ const App = () => {
         setIsModalOpen(false);
     };
     const fetchData = () => {
-        setLoading(true);
+        // setLoading(true);
         fetch(`http://127.0.0.1:8000/api/financial/?page=${tableParams.pagination.current}`)
             .then((res) => res.json())
             .then((res) => {
@@ -51,6 +48,9 @@ const App = () => {
                 let newdata = res.results.map(
                     (item) => ({"key": item.id, ...item})
                 )
+                newdata.map((item) => {
+                    printRefs[item.id] = React.createRef();
+                });
                 console.log(newdata);
                 setData(newdata);
                 setLoading(false);
@@ -59,12 +59,14 @@ const App = () => {
                     pagination: {
                         ...tableParams.pagination,
                         total: res.count,
-                        // 200 is mock data, you should read it from server
-                        // total: data.totalCount,
                     },
                 });
             });
     };
+    useEffect(() => {
+        fetchData();
+        // console.log("useEffect");
+    }, [JSON.stringify(tableParams)]);
     const columns = [
         {
             title: 'شماره سند',
@@ -103,17 +105,13 @@ const App = () => {
             render: (bool) => bool ? "تایید" : "تایید نشده",
         }, {
             title: "چاپ", key: 'print', render: (record) => {
-
-                if (!printRefs[record.id]) {
-                    setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));
-                }
-
+                // if (!printRefs[record.id]) {
+                //     setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));
+                // }
                 // console.log(`${record.id}-${record.updated}`);
-
-
-                return <>
-                    <div style={{display: ''}}>
-                        <Fin_print ref={printRefs[record.id]} record={record}/>
+                return < >
+                    <div style={{display: 'none'}}>
+                        <Fin_print key={record.updated} ref={printRefs[record.id]} record={record}/>
                     </div>
                     <ReactToPrint
                         trigger={() => <Button icon={<PrinterOutlined/>}>پرینت</Button>}
@@ -123,9 +121,7 @@ const App = () => {
         }
 
     ];
-    useEffect(() => {
-        fetchData();
-    }, [JSON.stringify(tableParams)]);
+
     const handleTableChange = (pagination, filters, sorter) => {
         setTableParams({
             pagination,
@@ -138,15 +134,15 @@ const App = () => {
         <>
 
 
-        <Modal title="ویرایش سند" style={{marginLeft: "-15%"}} centered open={isModalOpen}
+            <Modal title="ویرایش سند" style={{marginLeft: "-15%"}} centered open={isModalOpen}
                    onOk={handleOk} width={"75%"} onCancel={handleCancel} footer={null} zIndex={100}>
 
                 <Financial_docs Fdata={data} selectedid={selectedid} modal={handleModalChange}/>
             </Modal>
 
 
-            <Table columns={columns} dataSource={data} pagination={tableParams.pagination}
-                   loading={loading} onChange={handleTableChange}/>
+            <Table columns={columns} dataSource={data} loading={loading} pagination={tableParams.pagination}
+                   onChange={handleTableChange}/>
 
         </>
 
