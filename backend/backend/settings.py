@@ -166,3 +166,14 @@ DJOSER = {
 }
 SITE_NAME = "تدبیر بودجه"
 DOMAIN = 'localhost:3001'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'tadbir',
+        'USER': 'tadbir',
+        'PASSWORD': 'tadbir',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+}
