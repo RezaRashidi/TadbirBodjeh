@@ -36,8 +36,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3001',
-    'http://172.16.10.50:3001'
-    , 'http://172.16.10.50:8000'
+    'http://172.16.10.50:3001',
+    'http://172.16.10.50:8000'
 ]
 
 # CORS_ORIGIN_WHITELIST = ["*", 'http://localhost:3001', 'http://172.16.10.50:3001', 'http://172.16.10.50:8000']
@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "tadbirbodjeh",
     # 'rest_framework.authtoken',
     "djoser",
+    'guardian',
     "rest_framework_simplejwt.token_blacklist",
 ]
 
@@ -167,13 +168,17 @@ DJOSER = {
 SITE_NAME = "تدبیر بودجه"
 DOMAIN = 'localhost:3001'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tadbir',
-        'USER': 'tadbir',
-        'PASSWORD': 'tadbir',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'tadbir',
+#         'USER': 'tadbir',
+#         'PASSWORD': 'tadbir',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#     }
+# }
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Django's default auth backend
+    'guardian.backends.ObjectPermissionBackend',
+]

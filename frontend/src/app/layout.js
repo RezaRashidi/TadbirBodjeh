@@ -1,4 +1,4 @@
-import Menur from "@/components/menu/menu";
+import Menur from "@/app/components/menu/menu";
 import {AntdRegistry} from '@ant-design/nextjs-registry';
 import {ConfigProvider} from "antd";
 import fa_IR from "antd/lib/locale/fa_IR";
@@ -58,13 +58,9 @@ export default function RootLayout({children}) {
                                 className={"p-5"}
                             />
                         </div>
-
                         <Menur className={"p-10"}/>
                     </div>
-
                     <div className={`basis-10/12 bg-white py-10 px-16 yekan`}>{children}</div>
-
-
                 </div>
 
 

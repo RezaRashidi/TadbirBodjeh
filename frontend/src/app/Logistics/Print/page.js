@@ -1,4 +1,5 @@
 "use client";
+import {api} from "@/app/fetcher";
 import arm from "@/images/Arm.jpg";
 import {Col, ConfigProvider, Row, Table, Typography} from "antd";
 import fa_IR from "antd/lib/locale/fa_IR";
@@ -29,26 +30,41 @@ function Fin_print(props, ref) {
     });
     let Price_ir = numberWithCommas(convertToPersianNumber(Price))
     useEffect(() => {
-        fetch(`http://172.16.10.50:8000/api/logistics/?Fdoc_key=${id}`)
-            .then((res) => res.json())
-            .then((res) => {
-                console.log(res);
-                let newdata = res.results.map(
-                    (item) => ({"key": item.id, ...item})
-                )
-                set_Log_list([...newdata])
-            })
+
+        api().url(`/api/logistics/?Fdoc_key=${id}`).get().json().then((res) => {
+            console.log(res);
+            let newdata = res.results.map(
+                (item) => ({"key": item.id, ...item})
+            )
+            set_Log_list([...newdata])
+        })
+
+
+        // fetch(`http://localhost:8000/api/logistics/?Fdoc_key=${id}`)
+        //     .then((res) => res.json())
+        //     .then((res) => {
+        //         console.log(res);
+        //         let newdata = res.results.map(
+        //             (item) => ({"key": item.id, ...item})
+        //         )
+        //         set_Log_list([...newdata])
+        //     })
 
         if (props.record) {
 
             set_fin(props.record);
         } else {
-            fetch(`http://172.16.10.50:8000/api/financial/${id}`)
-                .then((res) => res.json())
-                .then((res) => {
-                    // console.log(res);
-                    set_fin(res)
-                })
+            api().url(`/api/financial/${id}`).get().json().then((res) => {
+                set_fin(res)
+            })
+
+
+            // fetch(`http://localhost:8000/api/financial/${id}`)
+            //     .then((res) => res.json())
+            //     .then((res) => {
+            //         // console.log(res);
+            //         set_fin(res)
+            //     })
         }
 
 

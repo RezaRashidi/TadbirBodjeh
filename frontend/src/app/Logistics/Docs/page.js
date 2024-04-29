@@ -1,4 +1,6 @@
 "use client";
+import {AuthActions} from "@/app/auth/utils";
+import {api} from "@/app/fetcher";
 import {UploadOutlined} from "@ant-design/icons";
 import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
 import {Button, Checkbox, Col, Form, Input, InputNumber, message, Radio, Row, Select, Upload,} from "antd";
@@ -7,11 +9,10 @@ import React, {useEffect, useState} from "react";
 ///اخرین
 
 
-
-
 const Logistics_Doc = (prop) => {
     const [form] = Form.useForm()
     const [fileList, setFileList] = useState([])
+    const {handleJWTRefresh, storeToken, getToken} = AuthActions();
     useJalaliLocaleListener();
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
@@ -124,41 +125,38 @@ const Logistics_Doc = (prop) => {
 
         prop.selectedid && updateData(new_jasondata)
         console.log(new_jasondata);
-        const request = prop.selectedid ? fetch(`http://172.16.10.50:8000/api/logistics/${prop.selectedid} /`, {
-            method: "PUT",
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify(jsondata),
+        const request = prop.selectedid ? api().url(`/api/logistics/${prop.selectedid}/`).put(jsondata).json() :
+            api().url(`/api/logistics/`).post(jsondata).json()
 
-        }) : fetch("http://172.16.10.50:8000/api/logistics/", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify(jsondata),
-        });
-
-        request.then(response => {
-            if (response.ok) {
-                message.success("مدارک با موفقیت ثبت شد")
-                prop.selectedid && prop.modal(false)
+        request.then(data => {
+            message.success("مدارک با موفقیت ثبت شد")
+            prop.selectedid && prop.modal(false)
             !prop.selectedid && form.resetFields();
-            } else {
-                message.error("خطا در ثبت مدارک")
-            }
-
-
-
-
         })
+            .catch(error => {
+                message.error("خطا در ثبت مدارک")
+                console.log(error)
+            })
+        // request.res(response => {
+        //     if (response.ok) {
+        //         message.success("مدارک با موفقیت ثبت شد")
+        //         prop.selectedid && prop.modal(false)
+        //         !prop.selectedid && form.resetFields();
+        //     } else {
+        //         message.error("خطا در ثبت مدارک")
+        //     }
+
+
+        // })
         // request.then((response, reject) => response.json().then((value) => console.log(value)))
     };
     const propsUpload = {
         name: "files",
         action: "http://localhost:8000/api/logistics-uploads/",
         headers: {
-            authorization: "authorization-text",
+            // authorization: "authorization-text",
+            authorization: `Bearer ${getToken("access")}`,
+
         },
         onChange(info) {
             let newFileList = [...info.fileList];
@@ -199,9 +197,10 @@ const Logistics_Doc = (prop) => {
         },
         fileList: fileList,
         onRemove(file) {
-            fetch("http://localhost:8000/api/logistics-uploads/" + file.response.id, {
-                method: "delete",
-            })
+            api().url("/api/logistics-uploads/" + file.response.id).delete().res().then()
+            // fetch("http://localhost:8000/api/logistics-uploads/" + file.response.id, {
+            //     method: "delete",
+            // })
         }
 
     };

@@ -1,15 +1,20 @@
 "use client";
 
-import useSWR from "swr";
 import {fetcher} from "@/app/fetcher";
 import {AuthActions} from "@/app/auth/utils";
 import {useRouter} from "next/navigation";
+import {useEffect, useState} from "react";
 
 export default function Home() {
     const router = useRouter();
-
-    const {data: user} = useSWR("/auth/users/me", fetcher);
-
+    let [user, set_user] = useState<any>()
+    // const {data: user} = useSWR("/auth/users/me", fetcher);
+    useEffect(() => {
+        fetcher("/auth/users/me").then((data) => {
+            console.log(data)
+            set_user(data)
+        })
+    }, [])
     const {logout, removeTokens} = AuthActions();
 
     const handleLogout = () => {

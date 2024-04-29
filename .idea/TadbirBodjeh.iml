@@ -17,7 +17,7 @@
       <sourceFolder url="file://$MODULE_DIR$/backend" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/frontend/src" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.10" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.10 (tadbir)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="@types/react" level="application" />
   </component>

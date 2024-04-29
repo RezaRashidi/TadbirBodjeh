@@ -4,6 +4,7 @@ import {AuthActions} from "@/app/auth/utils";
 import type {FormProps} from 'antd';
 import {Button, Form, Input, message} from 'antd';
 import {useRouter} from "next/navigation";
+import Link from "next/link";
 
 type FormData = {
     email: string;
@@ -12,6 +13,7 @@ type FormData = {
 
 
 type FieldType = {
+    email: string;
     username?: string;
     password?: string;
 };
@@ -28,25 +30,26 @@ const Login = () => {
     //
     const {login, storeToken} = AuthActions();
     const onFinish: FormProps<FieldType>['onFinish'] = (data) => {
-        login(data.email, data.password)
+
+        login(data.username, data.password)
             .json((json) => {
+                console.log(json);
                 storeToken(json.access, "access");
                 storeToken(json.refresh, "refresh");
                 router.push("dashboard");
             })
             .catch((err) => {
+                console.log(err.text)
                 message.error("اصلاعات صحیح نیست")
+                message.error(err.json.detail)
                 // setError("root", {type: "manual", message: err.json.detail});
             });
-        console.log('Success:', data);
+
     };
     const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (errorInfo) => {
         console.log('Failed:', errorInfo);
     };
-
-
     return (
-
         <Form
             name="basic"
             labelCol={{span: 8}}
@@ -57,14 +60,14 @@ const Login = () => {
             onFinishFailed={onFinishFailed}
             autoComplete="off"
         >
-            <Form.Item<FieldType>
+            <Form.Item
                 label="نام کاربری"
                 name="username"
                 rules={[{required: true, message: 'Please input your username!'}]}
             >
                 <Input/>
             </Form.Item>
-            <Form.Item<FieldType>
+            <Form.Item
                 label="پسورد"
                 name="password"
                 rules={[{required: true, message: 'Please input your password!'}]}
@@ -77,14 +80,14 @@ const Login = () => {
                     ورود
                 </Button>
             </Form.Item>
-            {/*<div className="mt-6 text-center">*/}
-            {/*    <Link*/}
-            {/*        href="/auth/password/reset-password"*/}
-            {/*        className="text-sm text-blue-600 hover:underline"*/}
-            {/*    >*/}
-            {/*        فراموشی رمز*/}
-            {/*    </Link>*/}
-            {/*</div>*/}
+            <div className="mt-6 text-center">
+                <Link
+                    href="/auth/password/reset-password"
+                    className="text-sm text-blue-600 hover:underline"
+                >
+                    فراموشی رمز
+                </Link>
+            </div>
         </Form>
 
     )

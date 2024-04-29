@@ -48,7 +48,7 @@ const register = (email: string, username: string, password: string) => {
  * @returns {Promise} A promise that resolves with the login response.
  */
 const login = (email: string, password: string) => {
-    return api.post({username: email, password}, "/auth/jwt/create");
+    return api.post({username: email, password: password}, "/auth/jwt/create");
 };
 
 /**

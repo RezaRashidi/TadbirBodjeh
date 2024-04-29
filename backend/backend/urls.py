@@ -18,11 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 
+import tadbirbodjeh.views
 from tadbirbodjeh.views import (
     FinancialViewSet,
     LogisticsViewSet,
-    LogisticsUploadsViewSet, snippet_list, LogoutView,
-
+    LogisticsUploadsViewSet, LogoutView,
 )
 
 router = routers.DefaultRouter()
@@ -32,8 +32,9 @@ router.register(r"logistics-uploads", LogisticsUploadsViewSet)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
-    path('snippets/', snippet_list),
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
     path("auth/logout/", LogoutView.as_view()),
+    path("reza/", tadbirbodjeh.views.index),
+    # path("accounts/", include("django.contrib.auth.urls")),
 ]

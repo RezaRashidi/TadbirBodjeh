@@ -1,4 +1,5 @@
 "use client";
+import {api} from "@/app/fetcher";
 import Logistics_Doc from "@/app/Logistics/Docs/page";
 import {Modal, Table} from "antd";
 import React, {useEffect, useState} from "react";
@@ -32,8 +33,6 @@ const App = () => {
             // setselectedid(record.id)
             return <>
                 <a onClick={() => showModal(record)}>{text}</a>
-
-
             </>
         }
     }, {
@@ -66,22 +65,33 @@ const App = () => {
 
     const fetchData = () => {
         setLoading(true);
-        fetch(`http://172.16.10.50:8000/api/logistics/?page=${tableParams.pagination.current}`)
-            .then((res) => res.json())
-            .then((res) => {
-                // console.log(res);
-
-                let newdata = res.results.map((item) => ({"key": item.id, ...item}))
-                // console.log(newdata);
-                setData(newdata);
-                setLoading(false);
-                setTableParams({
-                    ...tableParams, pagination: {
-                        ...tableParams.pagination, total: res.count, // 200 is mock data, you should read it from server
-                        // total: data.totalCount,
-                    },
-                });
+        api().url(`/api/logistics/?page=${tableParams.pagination.current}`).get().json().then((res) => {
+            let newdata = res.results.map((item) => ({"key": item.id, ...item}))
+            setData(newdata);
+            setLoading(false);
+            setTableParams({
+                ...tableParams, pagination: {
+                    ...tableParams.pagination, total: res.count, // 200 is mock data, you should read it from server
+                    // total: data.totalCount,
+                },
             });
+        });
+        // fetch(`http://localhost:8000/api/logistics/?page=${tableParams.pagination.current}`)
+        //     .then((res) => res.json())
+        //     .then((res) => {
+        //         // console.log(res);
+        //
+        //         let newdata = res.results.map((item) => ({"key": item.id, ...item}))
+        //         // console.log(newdata);
+        //         setData(newdata);
+        //         setLoading(false);
+        //         setTableParams({
+        //             ...tableParams, pagination: {
+        //                 ...tableParams.pagination, total: res.count, // 200 is mock data, you should read it from server
+        //                 // total: data.totalCount,
+        //             },
+        //         });
+        //     });
     };
     useEffect(() => {
         fetchData();

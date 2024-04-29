@@ -1,4 +1,0 @@
-DELETE http://localhost:8000/api/logistics-uploads/8/
-Accept: application/json
-
-###
