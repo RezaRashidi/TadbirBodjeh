@@ -1,7 +1,7 @@
 "use client";
 import {api} from "@/app/fetcher";
 import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
-import {Button, Col, Form, Input, message, Row, Select} from "antd";
+import {Button, Checkbox, Col, Form, Input, message, Row, Select} from "antd";
 import dayjs from "dayjs";
 import React, {useEffect, useRef, useState} from "react";
 
@@ -21,8 +21,6 @@ function RezaSelect(props) {
         //         next.correct = res.next
         //         setlist(res.results.map((item) => ({"value": item.id, "label": item.name, "key": item.id})))
         //     })
-
-
     }, [props.data])
     const onSearch = (value) => {
         api().url(`/api/logistics/?get_nulls=0?search=${value}`).get().json().then((res) => {
@@ -37,21 +35,28 @@ function RezaSelect(props) {
     };
     const onPopupScroll = () => {
         if (next.correct !== null) {
-            fetch(next.correct)
-                .then((res) => res.json())
-                .then((res) => {
-                    next.correct = res.next
-                    // console.log(res.next)
-                    let resplt = res.results.map((item) => ({"value": item.id, "label": item.name}))
-                    setlist([...list, ...resplt])
-                    // console.log(resplt)
-                    // console.log([...list, ...resplt])
-                })
+            api(next.correct, true).json((res) => {
+                next.correct = res.next
+                let result = res.results.map((item) => ({"value": item.id, "label": item.name}))
+                setlist([...list, ...result])
+            })
+
+            // fetch(next.correct)
+            //     .then((res) => res.json())
+            //     .then((res) => {
+            //         next.correct = res.next
+            //         console.log(res.next)
+            //         let result = res.results.map((item) => ({"value": item.id, "label": item.name}))
+            //         setlist([...list, ...result])
+            //         // console.log(resplt)
+            //         // console.log([...list, ...resplt])
+            //     })
+
+
         }
     }
     const Deselect = ({value}) => {
-
-            api().url(`/api/logistics/${value}/`).patch({"Fdoc_key": null}).json().then((res) => {
+            props.fin_state == 0 && api().url(`/api/logistics/${value}/`).patch({"Fdoc_key": null}).json().then((res) => {
 
             })
         }
@@ -65,7 +70,7 @@ function RezaSelect(props) {
     return (
         <Select
             labelInValue
-            allowClear={true}
+            // allowClear={true}
             autoClearSearchValue={true}
             placeholder="انتخاب مدارک"
             // showSearch={true}
@@ -87,24 +92,55 @@ const Financial_docs = (prop) => {
     useJalaliLocaleListener();
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
+    const [fin_state, set_fin_state] = useState(0)
     const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
     useEffect(() => {
         if (prop.Fdata) {
             prop.Fdata.filter((item) => {
                 if (item.id === prop.selectedid) {
                     // console.log(item)
+                    set_fin_state(item.fin_state)
+                    // console.log(item.Payment_type)
                     form.setFieldsValue({
                         name: item.name,
                         date_doc: dayjs(new Date(item.date_doc)),
                         CostType: item.CostType,
                         descr: item.descr,
+                        Payment_type: item.Payment_type,
                         tax: item.tax,
                     })
-                    api().url(`/api/logistics/?Fdoc_key=${item.id}`).get().json().then((res) => {
-                            form.setFieldsValue({
-                                logistics: res.results.map((item) => ({"value": item.id, "label": item.name}))
-                            })
+
+                    let nextURL = `/api/logistics/?Fdoc_key=${item.id}`;
+                    let url = false
+
+                    async function fetchLogisticsData() {
+                        let newdata = []
+                        while (nextURL) {
+                            const res = await api().url(nextURL, url).get().json();
+                            if (res.next !== null) {
+                                url = true
+                            }
+                            nextURL = res.next;
+                            newdata.push(...res.results.map((item) => ({"key": item.id, ...item})));
+                        }
+                        return newdata
+                    }
+
+                    fetchLogisticsData().then(r => {
+
+                        form.setFieldsValue({
+                            logistics: r.map((item) => ({"value": item.id, "label": item.name, "title": item.price}))
                         })
+
+                        // console.log(r);
+                    });
+
+
+                    // api().url(`/api/logistics/?Fdoc_key=${item.id}`).get().json().then((res) => {
+                    //     form.setFieldsValue({
+                    //         logistics: res.results.map((item) => ({"value": item.id, "label": item.name}))
+                    //     })
+                    // })
                     // fetch(`http://localhost:8000/api/logistics/?Fdoc_key=${item.id}`)
                     //     .then((res) => res.json())
                     //     .then((res) => {
@@ -132,6 +168,8 @@ const Financial_docs = (prop) => {
                 item.logistics = data.logistics;
                 item.tax = data.tax;
                 item.updated = data.updated
+                item.Payment_type = data.Payment_type
+                item.total_logistics_price = data.total_logistics_price
             }
         })
     }
@@ -142,6 +180,7 @@ const Financial_docs = (prop) => {
             "date_doc": values.date_doc,
             "CostType": values.CostType,
             "descr": values.descr,
+            "Payment_type": values.Payment_type,
             "F_conf": false,
             "ProgramId": "",
             "TopicId": "",
@@ -174,10 +213,17 @@ const Financial_docs = (prop) => {
             }) : null
 
         }).then(() => {
-                        prop.selectedid && updateData({...values, updated: dayjs(new Date())})
-                        message.success("سند با موفقیت ثبت شد")
-                        prop.selectedid && prop.modal(false)
-                        !prop.selectedid && form.resetFields();
+            //cheek  log_price nan?
+
+            let log_price = form.getFieldValue("logistics").reduce((acc, item) => acc + item.title, 0)
+            prop.selectedid && updateData({
+                ...values,
+                updated: dayjs(new Date()),
+                total_logistics_price: (isNaN(log_price) ? 0 : log_price)
+            })
+            message.success("سند با موفقیت ثبت شد")
+            prop.selectedid && prop.modal(false)
+            !prop.selectedid && form.resetFields();
         })
         // request.then(response => {
         //     // console.log()
@@ -214,16 +260,16 @@ const Financial_docs = (prop) => {
         onFinish={onFinish}
         initialValues={{
             date_doc: form_date,
-
+            Payment_type: false,
         }}
     >
         <Row gutter={50}>
-            <Col span={8}>
+            <Col span={6}>
                 <Form.Item
                     name="name"
-                    label="نام سند"
+                    label="عنوان"
                     rules={[{
-                        // required: true,
+                        required: true,
                         message: "نام سند را وارد نمایید",
                     },]}
                 >
@@ -254,6 +300,17 @@ const Financial_docs = (prop) => {
                         }
                     />
 
+                </Form.Item>
+
+            </Col>
+            <Col span={6}>
+                <Form.Item
+                    name="Payment_type"
+                    label="نوع پرداخت"
+                    valuePropName="checked"
+                    labelCol={{span: 8}}
+                    wrapperCol={{span: 16}}>
+                    <Checkbox>پرداخت مستقیم</Checkbox>
                 </Form.Item>
             </Col>
         </Row>
@@ -290,7 +347,7 @@ const Financial_docs = (prop) => {
                     label="انتخاب مدارک"
 
                 >
-                    <RezaSelect data={prop.Fdata}/>
+                    <RezaSelect data={prop.Fdata} fin_state={fin_state}/>
                 </Form.Item>
             </Col>
         </Row>
@@ -300,7 +357,8 @@ const Financial_docs = (prop) => {
                 offset: 8,
             }}
         >
-            <Button type="primary" htmlType="submit">
+
+            <Button disabled={fin_state > 0} type="primary" htmlType="submit">
                 {prop.Fdata ? "ویرایش سند" : "ایجاد سند"}
             </Button>
         </Form.Item>

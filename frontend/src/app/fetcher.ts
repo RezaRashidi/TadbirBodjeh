@@ -1,13 +1,14 @@
 import wretch, {Wretch, WretchError} from "wretch";
 import {AuthActions} from "@/app/auth/utils";
-// Extract necessary functions from the AuthActions utility.
+import {url} from "@/app/Server"; // Extract necessary functions from the AuthActions utility.
 const {handleJWTRefresh, storeToken, getToken} = AuthActions();
 /**
  * Configures the API with authentication and automatic token refresh on 401 responses.
  */
+
 export const api = () => {
     return (
-        wretch("http://localhost:8000")
+        wretch(url)
             // Initialize authentication with the access token.
             .auth(`Bearer ${getToken("access")}`)
             // Catch 401 errors to refresh the token and retry the request.
@@ -25,11 +26,11 @@ export const api = () => {
                         .fetch()
                         .unauthorized(() => {
                             // Rethrow the error if unauthorized after token refresh.
-                            window.location.replace("/");
+                            window.location.replace("/Login");
                         })
                         .json();
                 } catch (err) {
-                    window.location.replace("/");
+                    window.location.replace("/Login");
                 }
             })
     );

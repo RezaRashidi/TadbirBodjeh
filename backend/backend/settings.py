@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+import datetime
 import os
 from pathlib import Path
 
@@ -56,7 +57,7 @@ INSTALLED_APPS = [
     "tadbirbodjeh",
     # 'rest_framework.authtoken',
     "djoser",
-    'guardian',
+    # 'guardian',
     "rest_framework_simplejwt.token_blacklist",
 ]
 
@@ -157,6 +158,9 @@ REST_FRAMEWORK = {
 }
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=30),
+    "UPDATE_LAST_LOGIN": True,
 }
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DJOSER = {
@@ -174,11 +178,11 @@ DOMAIN = 'localhost:3001'
 #         'NAME': 'tadbir',
 #         'USER': 'tadbir',
 #         'PASSWORD': 'tadbir',
-#         'HOST': 'localhost',
+#         'HOST': '192.168.0.88',
 #         'PORT': '3306',
 #     }
 # }
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Django's default auth backend
-    'guardian.backends.ObjectPermissionBackend',
+    # 'guardian.backends.ObjectPermissionBackend',
 ]

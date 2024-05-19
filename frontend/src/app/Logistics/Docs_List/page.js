@@ -36,15 +36,26 @@ const App = () => {
             </>
         }
     }, {
-        title: 'نوع ارائه', dataIndex: 'type', key: 'type', render: (bool) => bool ? "کالا" : "خدمات",
-    }, {
-        title: 'نوع پرداخت', dataIndex: 'Payment_type', key: 'Payment_type', render: (bool) => bool ? "مستقیم" : "",
+        title: 'نوع ارائه', dataIndex: 'type', key: 'type',
+        filters: [
+            {
+                text: 'کالا',
+                value: true,
+            },
+            {
+                text: "خدمات",
+                value: false,
+            },
+        ],
+        onFilter: (value, record) => record.type === value,
+        render: (bool) => bool ? "کالا" : "خدمات",
     }, {
         title: 'کد ملی/ شناسه\n', dataIndex: 'seller_id', key: 'seller_id',
     }, {
         title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller',
     }, , {
         title: 'قیمت', dataIndex: 'price', key: 'price',
+        sorter: (a, b) => a.price - b.price,
     }, , {
         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
             let today = new Date(date);

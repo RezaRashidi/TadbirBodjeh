@@ -1,9 +1,10 @@
 "use client";
 import {AuthActions} from "@/app/auth/utils";
 import {api} from "@/app/fetcher";
+import {url} from "@/app/Server";
 import {UploadOutlined} from "@ant-design/icons";
 import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
-import {Button, Checkbox, Col, Form, Input, InputNumber, message, Radio, Row, Select, Upload,} from "antd";
+import {Button, Col, Form, Input, InputNumber, message, Radio, Row, Select, Upload,} from "antd";
 import dayjs from "dayjs";
 import React, {useEffect, useState} from "react";
 ///اخرین
@@ -12,6 +13,7 @@ import React, {useEffect, useState} from "react";
 const Logistics_Doc = (prop) => {
     const [form] = Form.useForm()
     const [fileList, setFileList] = useState([])
+    const [Fdoc_key, set_Fdoc_key] = useState(null)
     const {handleJWTRefresh, storeToken, getToken} = AuthActions();
     useJalaliLocaleListener();
     dayjs.calendar('jalali');
@@ -23,8 +25,10 @@ const Logistics_Doc = (prop) => {
     useEffect(() => {
         if (prop.Fdata) {
             prop.Fdata.filter((item) => {
-                if (item.id === prop.selectedid) {
 
+                if (item.id === prop.selectedid) {
+                    set_Fdoc_key(item.Fdoc_key)
+                    console.log(item.Fdoc_key)
                     console.log(item)
                     var x = item.uploads.map((file) => {
                         return {
@@ -47,7 +51,7 @@ const Logistics_Doc = (prop) => {
                         // date_doc: form.setFieldValue("date_doc", dayjs(new Date(item.date_doc))),
                         date_doc: dayjs(new Date(item.date_doc)),
                         Location: item.Location,
-                        Payment_type: item.Payment_type,
+
                         descr: item.descr,
                         files: item.uploads
                     })
@@ -76,7 +80,7 @@ const Logistics_Doc = (prop) => {
                 item.seller_id = data.seller_id
                 item.date_doc = data.date_doc
                 item.Location = data.Location
-                item.Payment_type = data.Payment_type
+
                 item.descr = data.descr
                 item.uploads = data.uploads
             }
@@ -103,7 +107,7 @@ const Logistics_Doc = (prop) => {
             "seller_id": values.seller_id,
             "date_doc": values.date_doc,
             "Location": values.Location,
-            "Payment_type": values.Payment_type,
+
             "descr": values.descr,
             // "F_conf": false,
             // "measure": "",
@@ -131,7 +135,7 @@ const Logistics_Doc = (prop) => {
         request.then(data => {
             message.success("مدارک با موفقیت ثبت شد")
             prop.selectedid && prop.modal(false)
-            !prop.selectedid && form.resetFields();
+            !prop.selectedid && form.resetFields() || setFileList([]);
         })
             .catch(error => {
                 message.error("خطا در ثبت مدارک")
@@ -152,7 +156,7 @@ const Logistics_Doc = (prop) => {
     };
     const propsUpload = {
         name: "files",
-        action: "http://localhost:8000/api/logistics-uploads/",
+        action: url + "/api/logistics-uploads/",
         headers: {
             // authorization: "authorization-text",
             authorization: `Bearer ${getToken("access")}`,
@@ -214,7 +218,7 @@ const Logistics_Doc = (prop) => {
                 Width: "100%",
             }}
             initialValues={{
-                Payment_type: true,
+
                 type: true,
                 date_doc: form_date,
 
@@ -231,7 +235,7 @@ const Logistics_Doc = (prop) => {
                         label="نام کالا/خدمات"
                         rules={[
                             {
-                                // required: true,
+                                required: true,
                                 message: "نام خدمات یا کلا را وارد نمایید",
                             },
                         ]}
@@ -252,16 +256,7 @@ const Logistics_Doc = (prop) => {
                         </Radio.Group>
                     </Form.Item>
                 </Col>
-                <Col span={6}>
-                    <Form.Item
-                        name="Payment_type"
-                        label="نوع پرداخت"
-                        valuePropName="checked"
-                        labelCol={{span: 8}}
-                        wrapperCol={{span: 16}}>
-                        <Checkbox>پرداخت مستقیم</Checkbox>
-                    </Form.Item>
-                </Col>
+
             </Row>
             <Row gutter={50}>
                 <Col span={12}>
@@ -289,10 +284,9 @@ const Logistics_Doc = (prop) => {
                         ]}
                     >
                         <InputNumber
-                            //  formatter={(value) => ` ﷼${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            addonBefore={"﷼"}
-                            // prefix="﷼"
-                            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                            addonAfter={"﷼"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => value?.replace(/\$\s?|(,*)/g, '')}
                             style={{width: "100%"}}
                         />
                     </Form.Item>
@@ -412,7 +406,7 @@ const Logistics_Doc = (prop) => {
                     offset: 8,
                 }}
             >
-                <Button type="primary" htmlType="submit">
+                <Button disabled={Fdoc_key !== null} type="primary" htmlType="submit">
                     {prop.Fdata ? "ویرایش مدرک" : "ایجاد مدرک"}
 
                 </Button>

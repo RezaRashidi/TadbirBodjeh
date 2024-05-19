@@ -3,41 +3,39 @@ import logging
 
 import django.contrib.auth.mixins
 import django.core.exceptions
+import django.db.models
 import django.http
-import guardian.shortcuts
-import rest_framework.permissions
+import django.shortcuts
+import django.utils.dateparse
 import rest_framework.views
 import rest_framework_simplejwt.exceptions
 import rest_framework_simplejwt.tokens
 from django.db.models import Q
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework import viewsets
+from rest_framework import permissions, viewsets, status
 from rest_framework.response import Response
-from rest_framework_guardian import filters
 
-from .models import Financial, Logistics, LogisticsUploads
+from .models import Financial, Logistics, LogisticsUploads, PettyCash
 from .serializers import (
     FinancialSerializer,
     LogisticsSerializer,
-    LogisticsUploadsSerializer, LogisticsSerializerlist,
+    LogisticsUploadsSerializer, LogisticsSerializerlist, pettyCashSerializer,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class UserIsOwnerOrAdmin(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
+# class UserIsOwnerOrAdmin(permissions.BasePermission):
+#     def has_permission(self, request, view):
+#         return request.user and request.user.is_authenticated
+#
+#     def check_object_permission(self, user, obj):
+#         return user and user.is_authenticated and (user.is_staff or obj == user)
+#
+#     def has_object_permission(self, request, view, obj):
+#         return self.check_object_permission(request.user, obj)
 
-    def check_object_permission(self, user, obj):
-        return user and user.is_authenticated and (user.is_staff or obj == user)
 
-    def has_object_permission(self, request, view, obj):
-        return self.check_object_permission(request.user, obj)
-
-
-class CustomObjectPermissions(permissions.DjangoObjectPermissions):
+class CustomObjectPermissions(permissions.DjangoModelPermissions):
     """
     Similar to `DjangoObjectPermissions`, but adding 'view' permissions.
     """
@@ -55,26 +53,148 @@ class CustomObjectPermissions(permissions.DjangoObjectPermissions):
 class FinancialViewSet(viewsets.ModelViewSet):
     queryset = Financial.objects.all().reverse().order_by('id')
     serializer_class = FinancialSerializer
+    # user_filter_backends = [filters.ObjectPermissionsFilter]
     permission_classes = [CustomObjectPermissions]
-    filter_backends = [filters.ObjectPermissionsFilter]
+
+    # def filter_queryset(self, queryset):
+    #     if self.request.user.is_staff:  # Check if the user is an admin user
+    #         for backend in list(self.filter_backends):
+    #             queryset = backend().filter_queryset(self.request, queryset, self)
+    #         return queryset
+    #     else:
+    #         for backend in self.user_filter_backends:
+    #             queryset = backend().filter_queryset(self.request, queryset, self)
+    #         return queryset
 
     def perform_create(self, serializer):
-        instance = serializer.save()
-        guardian.shortcuts.assign_perm('view_financial', self.request.user, instance)
+        # get sum of prices of all  related logstics
+        instance = serializer.save(created_by=self.request.user)
+
+    #     guardian.shortcuts.assign_perm('view_financial', self.request.user, instance)
+    #     guardian.shortcuts.assign_perm('change_financial', self.request.user, instance)
+    #     guardian.shortcuts.assign_perm('delete_financial', self.request.user, instance)
+    def get_queryset(self):
+        queryset = self.queryset
+        if self.request.user.is_staff:
+            return queryset
+        return queryset.filter(created_by=self.request.user)
+
+    # def get_object(self):
+    #     obj = django.shortcuts.get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
+    #
+    #     if self.request.user.is_staff or (obj.created_by == self.request.user):
+    #         return obj
+    #     else:
+    #         self.permission_denied(
+    #             self.request,
+    #             message="You do not have permission to perform this action.",
+    #             code="404"
+    #         )
+    #     return obj
+
+
+class pettyCashViewSet(viewsets.ModelViewSet):
+    queryset = PettyCash.objects.all().reverse().order_by('id')
+    serializer_class = pettyCashSerializer
+    # user_filter_backends = [filters.ObjectPermissionsFilter]
+    permission_classes = [CustomObjectPermissions]
+
+    def perform_create(self, serializer):
+        instance = serializer.save(created_by=self.request.user)
+
+    def get_queryset(self):
+        queryset = self.queryset
+        if self.request.user.is_staff:
+            return queryset
+        return queryset.filter(created_by=self.request.user)
+
+
+# create  view that report all PettyCash and Financial between two date in query params by date_doc filed
+class pettyCashReport(rest_framework.views.APIView):
+    def post(self, request, format=None):
+        start_date_str = request.data.get('start_date', None)
+        end_date_str = request.data.get('end_date', None)
+
+        if start_date_str and end_date_str:
+            start_date = django.utils.dateparse.parse_datetime(start_date_str)
+            end_date = django.utils.dateparse.parse_datetime(end_date_str)
+            if request.user.is_staff:
+                petty_cash_objects = PettyCash.objects.filter(date_doc__range=[start_date, end_date])
+                financial_objects = Financial.objects.filter(date_doc__range=[start_date, end_date])
+            else:
+                petty_cash_objects = PettyCash.objects.filter(date_doc__range=[start_date, end_date],
+                                                              created_by=request.user)
+                financial_objects = Financial.objects.filter(date_doc__range=[start_date, end_date],
+                                                             created_by=request.user)
+            petty_cash_total_price = petty_cash_objects.aggregate(django.db.models.Sum('price'))['price__sum']
+            grouped_by_payment_type = [True, False]
+            results = []
+            for group in grouped_by_payment_type:
+                financial_objects_payment_type = financial_objects.filter(Payment_type=group)
+                grouped_by_fin_state = financial_objects_payment_type.values('fin_state').annotate(
+                    total_price=django.db.models.Sum('logistics__price'))
+                results.append({
+                    'Payment_type': group,
+                    'fin_state_groups': list(grouped_by_fin_state)
+                })
+            # petty_cash_serializer = pettyCashSerializer(petty_cash_objects, many=True)
+            # financial_serializer = FinancialSerializer(financial_objects, many=True)
+            return Response({
+                'petty_cash': petty_cash_total_price,
+                'aggregated_financials': list(results)
+            })
+
+        return Response({"error": "start_date and end_date are required in the request body"}, status=400)
+
+
+# return user group name and id
+class cheekGroupOfUser(rest_framework.views.APIView):
+    def get(self, request, format=None):
+        user = request.user
+        group = user.groups.first()
+        if group:
+            return Response(group.name)
+        else:
+            return Response('None')
 
 
 class LogisticsViewSet(viewsets.ModelViewSet):
-    permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+    permission_classes = [CustomObjectPermissions]
 
     def get_queryset(self):
         Fdoc_key = self.request.query_params.get('Fdoc_key', None)
         get_nulls = self.request.query_params.get('get_nulls', None)
         if get_nulls is not None:
-            return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id')
+            if self.request.user.is_staff:
+                return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id')
+            return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id').filter(
+                created_by=self.request.user)
         elif Fdoc_key is not None:
-            return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).reverse().order_by('id')
+            if self.request.user.is_staff:
+                return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).reverse().order_by('id')
+            return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).reverse().order_by('id').filter(
+                created_by=self.request.user)
         else:
-            return Logistics.objects.all().reverse().order_by('id')
+            if self.request.user.is_staff:
+                return Logistics.objects.all().reverse().order_by('id')
+            return Logistics.objects.all().reverse().order_by('id').filter(created_by=self.request.user)
+
+    # def filter_queryset(self, queryset):
+    #     if self.request.user.is_staff:  # Check if the user is an admin user
+    #         for backend in list(self.filter_backends):
+    #             queryset = backend().filter_queryset(self.request, queryset, self)
+    #         return queryset
+    #     else:
+    #         for backend in self.user_filter_backends:
+    #             queryset = backend().filter_queryset(self.request, queryset, self)
+    #         return queryset
+
+    def perform_create(self, serializer):
+        instance = serializer.save(created_by=self.request.user)
+
+    #     guardian.shortcuts.assign_perm('view_logistics', self.request.user, instance)
+    #     guardian.shortcuts.assign_perm('change_logistics', self.request.user, instance)
+    #     guardian.shortcuts.assign_perm('delete_logistics', self.request.user, instance)
 
     # def list(self, request, *args, **kwargs):
     #     logger.warning('Request method: %s', request.user)
@@ -87,24 +207,15 @@ class LogisticsViewSet(viewsets.ModelViewSet):
         return LogisticsSerializer
 
 
-# class LogisticsViewSetList(viewsets.ModelViewSet):
-#     queryset = Logistics.objects.all().reverse().order_by('id')
-#     serializer_class = LogisticsSerializerlist
-#     filter_backends = [filters.SearchFilter]
-#     search_fields = ['name']
-
-
-# def create(self, request, *args, **kwargs):
-#     serializer = self.get_serializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class LogisticsUploadsViewSet(viewsets.ModelViewSet):
     queryset = LogisticsUploads.objects.all()
     serializer_class = LogisticsUploadsSerializer
+    permission_classes = [permissions.DjangoModelPermissions]
+
+    # user_filter_backends = [filters.ObjectPermissionsFilter]
+
+    def perform_create(self, serializer):
+        instance = serializer.save(created_by=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
         upload = self.get_object()
@@ -137,3 +248,15 @@ def index(request):
     now = datetime.datetime.now()
     html = "<html><body>It is now %s.</body></html>" % now
     return django.http.HttpResponse(html, status=403)
+
+# class LogisticsViewSetList(viewsets.ModelViewSet):
+#     queryset = Logistics.objects.all().reverse().order_by('id')
+#     serializer_class = LogisticsSerializerlist
+#     filter_backends = [filters.SearchFilter]
+#     search_fields = ['name']
+# def create(self, request, *args, **kwargs):
+#     serializer = self.get_serializer(data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,14 +1,13 @@
-import Login from "@/app/components/Login";
+import Dashbord from "@/app/dashboard/page";
 
 export default function Home() {
   return (
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      // <main className="flex min-h-screen flex-col items-center justify-between p-24">
 
 
-          <main>
-              <Login/>
-          </main>
+      <Dashbord/>
 
-      </main>
+
+      // </main>
   );
 }

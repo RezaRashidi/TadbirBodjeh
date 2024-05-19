@@ -5,7 +5,7 @@ import {AuthActions} from "@/app/auth/utils";
 import {useRouter} from "next/navigation";
 import {useEffect, useState} from "react";
 
-export default function Home() {
+export default function Dashbord() {
     const router = useRouter();
     let [user, set_user] = useState<any>()
     // const {data: user} = useSWR("/auth/users/me", fetcher);
@@ -14,14 +14,18 @@ export default function Home() {
             console.log(data)
             set_user(data)
         })
+        fetcher("/group").then((data) => {
+            console.log(data)
+
+        })
     }, [])
-    const {logout, removeTokens} = AuthActions();
+
 
     const handleLogout = () => {
+        const {logout, removeTokens} = AuthActions();
         logout()
             .res(() => {
                 removeTokens();
-
                 router.push("/");
             })
             .catch(() => {
@@ -29,7 +33,6 @@ export default function Home() {
                 router.push("/");
             });
     };
-
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
             <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 text-center">

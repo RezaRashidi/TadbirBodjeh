@@ -10,5 +10,12 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/backend/db.sqlite3</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="server-MySQL" uuid="c4b72efe-b5e6-4a13-be94-b57fa76c3aa5">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://192.168.0.88:3306/tadbir</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

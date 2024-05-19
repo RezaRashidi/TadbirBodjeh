@@ -1,4 +1,5 @@
 @media print {
+
     /* Whatever */
     .row:nth-child(odd) {
         print-color-adjust: exact;

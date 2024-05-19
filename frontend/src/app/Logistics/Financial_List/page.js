@@ -1,88 +1,96 @@
 "use client";
 import {api} from "@/app/fetcher";
 import Financial_docs from "@/app/Logistics/Financial_docs/page";
-import Fin_print from "@/app/Logistics/Print/page";
+import Fin_print, {numberWithCommas} from "@/app/Logistics/Print/page";
 import {PrinterOutlined} from "@ant-design/icons";
 import {Button, Modal, Table} from "antd";
 import React, {useEffect, useState} from "react";
 import ReactToPrint from "react-to-print";
 
-const App = (props) => {
-    const [data, setData] = useState();
-    const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedid, setselectedid] = useState(0);
-    const [tableParams, setTableParams] = useState({
-        pagination: {
-            current: 1,
-            pageSize: 10,
-        },
-    });
-    const [printRefs, setPrintRefs] = useState({});
+const fin_state = {
+    "در دست اقدام": 0,
+    "در حال بررسی": 1,
+    "تایید": 2,
 
-    const handleModalChange = (newState) => {
-        setIsModalOpen(newState);
-    };
+}
+
+
+const App = (props) => {
+        const [data, setData] = useState();
+        const [loading, setLoading] = useState(true);
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [selectedid, setselectedid] = useState(0);
+        const [tableParams, setTableParams] = useState({
+            pagination: {
+                current: 1,
+                pageSize: 10,
+            },
+        });
+        const [printRefs, setPrintRefs] = useState({});
+
+        const handleModalChange = (newState) => {
+            setIsModalOpen(newState);
+        };
 
 
 // Usage
 
-    const showModal = (value) => {
-        // console.log(  ...data.filter((item) => item.id === value.id).flat())
-        setselectedid(value.id)
-        setIsModalOpen(true);
-    };
-    const handleOk = () => {
-        setIsModalOpen(false);
-    };
-    const handleCancel = () => {
-        setIsModalOpen(false);
-    };
-    const fetchData = () => {
+        const showModal = (value) => {
+            // console.log(  ...data.filter((item) => item.id === value.id).flat())
+            setselectedid(value.id)
+            setIsModalOpen(true);
+        };
+        const handleOk = () => {
+            setIsModalOpen(false);
+        };
+        const handleCancel = () => {
+            setIsModalOpen(false);
+        };
+        const fetchData = () => {
 
-        api().url(`/api/financial/?page=${tableParams.pagination.current}`).get().json().then((res) => {
-            let newdata = res.results.map(
-                (item) => ({"key": item.id, ...item})
-            )
-            newdata.map((item) => {
-                printRefs[item.id] = React.createRef();
+            api().url(`/api/financial/?page=${tableParams.pagination.current}`).get().json().then((res) => {
+                let newdata = res.results.map(
+                    (item) => ({"key": item.id, ...item})
+                )
+                newdata.map((item) => {
+                    printRefs[item.id] = React.createRef();
+                });
+                console.log(newdata);
+                setData(newdata);
+                setLoading(false);
+                setTableParams({
+                    ...tableParams,
+                    pagination: {
+                        ...tableParams.pagination,
+                        total: res.count,
+                    },
+                });
             });
-            console.log(newdata);
-            setData(newdata);
-            setLoading(false);
-            setTableParams({
-                ...tableParams,
-                pagination: {
-                    ...tableParams.pagination,
-                    total: res.count,
-                },
-            });
-        });
 
 
-        // setLoading(true);
-        // fetch(`http://localhost:8000/api/financial/?page=${tableParams.pagination.current}`)
-        //     .then((res) => res.json())
-        //     .then((res) => {
-        //         // console.log(res);
-        //         let newdata = res.results.map(
-        //             (item) => ({"key": item.id, ...item})
-        //         )
-        //         newdata.map((item) => {
-        //             printRefs[item.id] = React.createRef();
-        //         });
-        //         console.log(newdata);
-        //         setData(newdata);
-        //         setLoading(false);
-        //         setTableParams({
-        //             ...tableParams,
-        //             pagination: {
-        //                 ...tableParams.pagination,
-        //                 total: res.count,
-        //             },
-        //         });
-        //     });
-    };
+            // setLoading(true);
+            // fetch(`http://localhost:8000/api/financial/?page=${tableParams.pagination.current}`)
+            //     .then((res) => res.json())
+            //     .then((res) => {
+            //         // console.log(res);
+            //         let newdata = res.results.map(
+            //             (item) => ({"key": item.id, ...item})
+            //         )
+            //         newdata.map((item) => {
+            //             printRefs[item.id] = React.createRef();
+            //         });
+            //         console.log(newdata);
+            //         setData(newdata);
+            //         setLoading(false);
+            //         setTableParams({
+            //             ...tableParams,
+            //             pagination: {
+            //                 ...tableParams.pagination,
+            //                 total: res.count,
+            //             },
+            //         });
+            //     });
+        };
         useEffect(() => {
             fetchData();
             // console.log("useEffect");
@@ -104,8 +112,29 @@ const App = (props) => {
             {
                 title: 'نوع هزینه',
                 dataIndex: 'CostType',
-                key: 'type',
-                render: (bool) => bool ? "کالا" : "خدمات",
+                key: 'CostType',
+                filters: [{value: 'جاری', text: 'جاری'}, {value: 'عمرانی', text: 'عمرانی'}, {
+                    value: "متفرقه",
+                    text: "متفرقه"
+                }, {value: "تجهیزات", text: "تجهیزات"}, {value: "خارج از شمول", text: "خارج از شمول"}],
+                onFilter: (value, record) => record.CostType == value,
+                render: (text) => text,
+            }, {
+                title: 'نوع پرداخت',
+                dataIndex: 'Payment_type',
+                key: 'Payment_type',
+                filters: [
+                    {
+                        text: 'مستقیم',
+                        value: true,
+                    },
+                    {
+                        text: "تنخواه",
+                        value: false,
+                    },
+                ],
+                onFilter: (value, record) => record.Payment_type === value,
+                render: (bool) => bool ? "مستقیم" : "تنخواه",
             },
             {
                 title: 'تاریخ',
@@ -118,11 +147,47 @@ const App = (props) => {
                 }
             },
             {
+                title: 'مبلغ',
+                sorter: (a, b) => a.total_logistics_price - b.total_logistics_price,
+                dataIndex: 'total_logistics_price',
+                key: 'total_logistics_price',
+                render: (x) => {
+                    return numberWithCommas(x)
+                }
+            },
+            {
                 title: 'وضعیت',
-                dataIndex: 'F_conf',
-                key: 'F_conf',
+                dataIndex: 'fin_state',
+                key: 'fin_state',
+                sorter: (a, b) => a.fin_state - b.fin_state,
+                filters: [
+                    {
+                        text: 'در دست اقدام',
+                        value: 0,
+                    },
+                    {
+                        text: "در حال بررسی",
+                        value: 1,
+                    },
+                    {
+                        text: "تایید",
+                        value: 2,
+                    },
+                ],
+                onFilter: (value, record) => record.fin_state === value,
                 // eslint-disable-next-line react/jsx-key
-                render: (bool) => bool ? "تایید" : "تایید نشده",
+                // render: (fin_state) => bool ? "تایید" : "تایید نشده",
+                render: (state) => {
+                    // console.log(state)
+                    if (state === 0) {
+                        return "در دست اقدام"
+                    } else if (state === 1) {
+                        return "در حال بررسی"
+                    } else if (state === 2) {
+                        return "تایید نهایی"
+                    }
+
+                }
             }, {
                 title: "چاپ", key: 'print', render: (record) => {
                     // if (!printRefs[record.id]) {

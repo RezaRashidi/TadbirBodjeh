@@ -8,8 +8,9 @@ import Num2persian from 'num2persian';
 import React, {useEffect, useState} from "react";
 import "@/styles/table.css";
 
-function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+export function numberWithCommas(x) {
+
+    return x !== null ? x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : 0
 }
 
 function convertToPersianNumber(number) {
@@ -30,45 +31,74 @@ function Fin_print(props, ref) {
     });
     let Price_ir = numberWithCommas(convertToPersianNumber(Price))
     useEffect(() => {
-
-        api().url(`/api/logistics/?Fdoc_key=${id}`).get().json().then((res) => {
-            console.log(res);
-            let newdata = res.results.map(
-                (item) => ({"key": item.id, ...item})
-            )
-            set_Log_list([...newdata])
-        })
-
-
-        // fetch(`http://localhost:8000/api/logistics/?Fdoc_key=${id}`)
-        //     .then((res) => res.json())
-        //     .then((res) => {
-        //         console.log(res);
-        //         let newdata = res.results.map(
-        //             (item) => ({"key": item.id, ...item})
-        //         )
-        //         set_Log_list([...newdata])
-        //     })
-
-        if (props.record) {
-
-            set_fin(props.record);
-        } else {
-            api().url(`/api/financial/${id}`).get().json().then((res) => {
-                set_fin(res)
-            })
+            //     let nextURL = null
+            //
+            // do {
+            //     if (nextURL !== null) {
+            //         api().url(nextURL, true).get().json().then((res) => {
+            //             console.log(res);
+            //             nextURL = res.results.next
+            //             let newdata = res.results.map(
+            //                 (item) => ({"key": item.id, ...item})
+            //             )
+            //             set_Log_list([...newdata])
+            //         })}
+            //     else
+            //         {
+            //             api().url(`/api/logistics/?Fdoc_key=${id}`).get().json().then((res) => {
+            //                 // console.log(res);
+            //                 nextURL = res.next
+            //                 console.log(nextURL)
+            //                 let newdata = res.results.map(
+            //                     (item) => ({"key": item.id, ...item})
+            //                 )
+            //                 set_Log_list([...newdata])
+            //             })
+            //         }
+            //     }while (nextURL !== null)
 
 
-            // fetch(`http://localhost:8000/api/financial/${id}`)
-            //     .then((res) => res.json())
-            //     .then((res) => {
-            //         // console.log(res);
-            //         set_fin(res)
-            //     })
+            let nextURL = `/api/logistics/?Fdoc_key=${id}`;
+            let url = false
+
+            async function fetchLogisticsData() {
+                let newdata = []
+                while (nextURL) {
+                    const res = await api().url(nextURL, url).get().json();
+
+                    if (res.next !== null) {
+                        url = true
+                    }
+                    nextURL = res.next;
+                    newdata.push(...res.results.map((item) => ({"key": item.id, ...item})));
+
+                }
+
+
+                return newdata
+            }
+
+
+            fetchLogisticsData().then(r => {
+                set_Log_list(r)
+                // console.log(r);
+            });
+
+
+            if (props.record) {
+
+                set_fin(props.record);
+            } else {
+                api().url(`/api/financial/${id}`).get().json().then((res) => {
+                    set_fin(res)
+                })
+
+
+            }
         }
-
-
-    }, [])
+        ,
+        []
+    )
     //props.record.updated
     const columns = [{
         title: '#',
@@ -80,7 +110,11 @@ function Fin_print(props, ref) {
     }, {
         title: 'نام کالا/خدمات\n', dataIndex: 'name', key: 'name', align: "center"
     }, {
-        title: 'نوع ارائه', dataIndex: 'type', key: 'type', render: (bool) => bool ? "کالا" : "خدمات", align: "center",
+        title: 'نوع ارائه',
+        dataIndex: 'type',
+        key: 'type',
+        render: (bool) => bool ? "کالا" : "خدمات",
+        align: "center",
     }, {
         title: 'کدملی/شناسه', dataIndex: 'seller_id', key: 'seller_id', align: "center",
     }, {
@@ -108,8 +142,8 @@ function Fin_print(props, ref) {
         token: {
             fontFamily: "Yekan",
             Table: {
-                cellFontSize: 10,
-                padding: "10px",
+                cellFontSize: 9,
+                padding: "2px",
 
                 borderColor: "black"
                 /* here is your component tokens */
@@ -117,7 +151,7 @@ function Fin_print(props, ref) {
 
         }
     }}>
-        <div ref={ref} className={"p-5 yekan"} dir="rtl">
+        <div ref={ref} className={" yekan"} dir="rtl">
 
             <header>
                 <Row gutter={50}>
@@ -158,10 +192,21 @@ function Fin_print(props, ref) {
                 </Row>
             </header>
 
-            <article className={"py-8"}>
-                <Table className={"text-xs"} columns={columns} dataSource={Log_list} bordered
-                       pagination={{position: ["none"]}}
+            <article className={"pb-4 "}>
+                <Table className={"text-s"} columns={columns} dataSource={Log_list} bordered
+                       pagination={false}
                        rowClassName={'row'}
+                    // theme={{
+                    //     token: {
+                    //         fontFamily: "Yekan",
+                    //         Table: {
+                    //             cellFontSize: 1,
+                    //             padding: "2px",
+                    //             borderColor: "black"
+                    //             /* here is your component tokens */
+                    //         }
+                    //     }
+                    // }}
                        summary={(pageData) => {
 
 
@@ -181,7 +226,7 @@ function Fin_print(props, ref) {
                            </>);
                        }}/>
             </article>
-            <footer>
+            <footer className={"nazanin"}>
                 <div>
                     <p>مدیر محترم منابع انسانی، اداری و پشتیبانی:</p>
                     <p> احتراماً ریز هزینه به مبلغ {Price_ir} ریال جهت دستور پرداخت به حضور تقدیم می گردد.</p>
@@ -195,7 +240,8 @@ function Fin_print(props, ref) {
                 </div>
                 <div>
                     <p>مدیر محترم امور مالی:</p>
-                    <p> به استناد ماده ۱۲،۳۱و ۳۲ آئين نامه مالی و معاملاتی دانشگاه، مبلغ اسناد هزینه پیوستی از محل
+                    <p> به استناد ماده ۱۲،۳۱و ۳۲ آئين نامه مالی و معاملاتی دانشگاه، مبلغ اسناد هزینه پیوستی از
+                        محل
                         اعتبارات
                         پرداخت گردد </p>
                     <p className={"text-left"}>معاون اداری، عمرانی و مالی</p>
