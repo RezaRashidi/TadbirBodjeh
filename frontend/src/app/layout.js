@@ -1,3 +1,4 @@
+"use client"
 import Menur from "@/app/components/menu/menu";
 import {AntdRegistry} from '@ant-design/nextjs-registry';
 import {ConfigProvider} from "antd";
@@ -32,12 +33,13 @@ const yekan = localFont({
     ]
 
 })
-export const metadata = {
+const Metadata = {
     title: "تدبیر بودجه", description: "پروژه تدبیر بودجه  دانشگاه هنر اسلامی تبریز",
 };
 
-export default function RootLayout({children}) {
-    // console.log("myFont.classNames")
+export default function RootLayout({children, metadata = Metadata}) {
+
+
     return (
 
         <html lang="en" dir="rtl">
@@ -58,6 +60,7 @@ export default function RootLayout({children}) {
                                 className={"p-5"}
                             />
                         </div>
+
                         <Menur className={"p-10"}/>
                     </div>
                     <div className={`basis-10/12 bg-white py-10 px-16 yekan`}>{children}</div>

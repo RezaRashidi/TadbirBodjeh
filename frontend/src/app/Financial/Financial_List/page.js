@@ -80,6 +80,7 @@ const App = () => {
             render: (text, record) =>
                 <a onClick={() => showModal(record)}>{text}</a>
         },
+
         {
             title: 'نوع هزینه',
             dataIndex: 'CostType',
@@ -101,7 +102,15 @@ const App = () => {
             key: 'F_conf',
             // eslint-disable-next-line react/jsx-key
             render: (bool) => bool ? "تایید" : "تایید نشده",
-        }, {
+        },
+        {
+            title: 'سازنده',
+            dataIndex: 'user',
+            key: 'user',
+            // eslint-disable-next-line react/jsx-key
+        },
+
+        {
             title: "چاپ", key: 'print', render: (record) => {
                 // if (!printRefs[record.id]) {
                 //     setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));

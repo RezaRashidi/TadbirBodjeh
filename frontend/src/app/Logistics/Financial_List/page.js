@@ -1,6 +1,7 @@
 "use client";
 import {api} from "@/app/fetcher";
 import Financial_docs from "@/app/Logistics/Financial_docs/page";
+import Fin_detail from "@/app/Logistics/Financial_List/detail";
 import Fin_print, {numberWithCommas} from "@/app/Logistics/Print/page";
 import {PrinterOutlined} from "@ant-design/icons";
 import {Button, Modal, Table} from "antd";
@@ -141,9 +142,13 @@ const App = (props) => {
                 dataIndex: 'date_doc',
                 key: 'date_doc',
                 render: (date) => {
-                    let today = new Date(date);
-                    let dateq = new Intl.DateTimeFormat('fa-IR').format(today);
-                    return dateq
+
+                    return new Intl.DateTimeFormat('fa-IR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    }).format(new Date(date));
+
                 }
             },
             {
@@ -188,7 +193,14 @@ const App = (props) => {
                     }
 
                 }
-            }, {
+            },
+            {
+                title: 'سازنده',
+                dataIndex: 'user',
+                key: 'user',
+                // eslint-disable-next-line react/jsx-key
+            },
+            {
                 title: "چاپ", key: 'print', render: (record) => {
                     // if (!printRefs[record.id]) {
                     //     setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));
@@ -205,7 +217,11 @@ const App = (props) => {
                                             margin: 0 !important;
                                             padding: 0 !important;
                                             overflow: hidden;
+
                                           }
+                                             .no-wrap {
+                                                white-space: nowrap;
+                                            }
 
                                         }"
                             trigger={() => <Button icon={<PrinterOutlined/>}>پرینت</Button>}
@@ -236,6 +252,10 @@ const App = (props) => {
 
 
                 <Table columns={columns} dataSource={data} loading={loading} pagination={tableParams.pagination}
+                       expandable={{
+                           expandedRowRender: (record) => <Fin_detail key={record.updated} record={record}/>,
+
+                       }}
                        onChange={handleTableChange}/>
 
             </>

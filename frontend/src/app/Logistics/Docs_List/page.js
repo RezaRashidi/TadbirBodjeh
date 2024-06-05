@@ -8,6 +8,7 @@ const App = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [updatedata, setupdatedata] = useState(false);
     const [data, setData] = useState([]);
+    const [location, setlocation] = useState([]);
     const [selectedid, setselectedid] = useState(0);
     const [loading, setLoading] = useState(false);
     const [tableParams, setTableParams] = useState({
@@ -29,6 +30,11 @@ const App = () => {
         setIsModalOpen(false);
     };
     const columns = [{
+        title: 'شماره',
+        dataIndex: 'id',
+        key: 'id',
+    }, {
+
         title: 'نام کالا/خدمات\n', dataIndex: 'name', key: 'name', render: (text, record) => {
             // setselectedid(record.id)
             return <>
@@ -58,15 +64,25 @@ const App = () => {
         sorter: (a, b) => a.price - b.price,
     }, , {
         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
-            let today = new Date(date);
-            let dateq = new Intl.DateTimeFormat('fa-IR').format(today);
-            return dateq
+            return new Intl.DateTimeFormat('fa-IR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(new Date(date));
         }
-    }, {
-        title: 'مدارک', dataIndex: 'uploads', key: 'uploads', // eslint-disable-next-line react/jsx-key
-        render: (u) => u ? u.map((upload) => (
-            <div key={upload.id}><a href={upload.file}>{upload.name}</a></div>)) : null,
-    },];
+    },
+
+        {
+            title: 'سازنده',
+            dataIndex: 'user',
+            key: 'user',
+            // eslint-disable-next-line react/jsx-key
+        },
+        {
+            title: 'مدارک', dataIndex: 'uploads', key: 'uploads', // eslint-disable-next-line react/jsx-key
+            render: (u) => u ? u.map((upload) => (
+                <div key={upload.id}><a href={upload.file}>{upload.name}</a></div>)) : null,
+        },];
     const handleTableChange = (pagination, filters, sorter) => {
         setupdatedata(!updatedata)
         setTableParams({
@@ -77,8 +93,10 @@ const App = () => {
     const fetchData = () => {
         setLoading(true);
         api().url(`/api/logistics/?page=${tableParams.pagination.current}`).get().json().then((res) => {
+            console.log(res);
             let newdata = res.results.map((item) => ({"key": item.id, ...item}))
             setData(newdata);
+            setlocation(res.sub_units)
             setLoading(false);
             setTableParams({
                 ...tableParams, pagination: {
@@ -113,7 +131,7 @@ const App = () => {
                onOk={handleOk} width={"75%"} onCancel={handleCancel} footer={null} zIndex={100}>
 
 
-            <Logistics_Doc Fdata={data} selectedid={selectedid} modal={handleModalChange}/>
+            <Logistics_Doc Fdata={data} selectedid={selectedid} modal={handleModalChange} location={location}/>
 
         </Modal>
         <Table columns={columns} dataSource={data} pagination={tableParams.pagination}

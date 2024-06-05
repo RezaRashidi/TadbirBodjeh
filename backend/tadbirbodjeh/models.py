@@ -19,7 +19,7 @@ class LogisticsUploads(models.Model):
     #     Logistics, related_name="files", on_delete=models.CASCADE
     # )
 
-    def _str_(self) -> str:
+    def __str__(self) -> str:
         return self.name
 
 
@@ -33,7 +33,7 @@ class PettyCash(models.Model):
     F_conf = models.BooleanField(default=False, blank=True)
     descr = models.TextField(blank=True)
 
-    def _str_(self) -> str:
+    def __str__(self) -> str:
         return self.name
 
 
@@ -47,7 +47,7 @@ class Logistics(models.Model):
     seller = models.CharField(max_length=255, blank=True)
     seller_id = models.CharField(max_length=255, blank=True)
     date_doc = models.DateTimeField(blank=True)
-    Location = models.CharField(max_length=255, blank=True)
+    Location = models.ForeignKey("sub_unit", on_delete=models.SET_NULL, related_name='Logistics', null=True)
     descr = models.TextField(blank=True)
     F_conf = models.BooleanField(default=False, blank=True)
     created = models.DateTimeField(auto_now_add=True, blank=True)
@@ -59,12 +59,12 @@ class Logistics(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='Logistics', null=True)
 
     # upload_ids= models.CharField(max_length=255, null=True, blank=True)
-    def _str_(self) -> str:
+    def __str__(self) -> str:
         return self.name
 
 
 class Financial(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, default="بدون نام")
     date_doc = models.DateTimeField(blank=True, null=True)
     CostType = models.CharField(max_length=255, blank=True, null=True)
     descr = models.TextField(blank=True, null=True)
@@ -81,5 +81,82 @@ class Financial(models.Model):
     # price = models.FloatField(blank=True, null=True)
     # logistics = models.ManyToManyField(Logistics, blank=True)
 
-    def _str_(self) -> str:
+    def __str__(self):
+        return self.name
+
+
+class credit(models.Model):
+    code = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    year = models.CharField(max_length=255, blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True)
+    descr = models.TextField(blank=True)
+    price_public = models.FloatField(blank=True, null=True)
+    price_pubic = models.FloatField(blank=True, null=True)
+    price_pubic_transfer = models.FloatField(blank=True, null=True)
+    price_exclusive = models.FloatField(blank=True, null=True)
+    price_exclusiveـtransfer = models.FloatField(blank=True, null=True)
+    price_other = models.FloatField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class budget_chapter(models.Model):
+    code = models.IntegerField(blank=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    year = models.CharField(max_length=255, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+
+class budget_section(models.Model):
+    code = models.IntegerField(blank=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    budget_chapter = models.ForeignKey(budget_chapter, on_delete=models.SET_NULL, related_name='budget_section',
+                                       null=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class budget_row(models.Model):
+    code = models.IntegerField(blank=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    budget_section = models.ForeignKey(budget_section, on_delete=models.SET_NULL, related_name='budget_row', null=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class organization(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class unit(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True, null=True)
+    organization = models.ForeignKey(organization, on_delete=models.SET_NULL, related_name='unit', null=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class sub_unit(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True, null=True)
+    unit = models.ForeignKey(unit, on_delete=models.SET_NULL, related_name='sub_unit', null=True)
+
+    def __str__(self) -> str:
         return self.name

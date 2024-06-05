@@ -47,7 +47,7 @@ body {
 }
 
 .nazanin {
-    font-family: 'nazanin';
+    font-family: 'nazanin' !important;
 }
 @layer utilities {
   .text-balance {

@@ -1,12 +1,14 @@
 import datetime
 import logging
 
+import django.contrib.auth.decorators
 import django.contrib.auth.mixins
 import django.core.exceptions
 import django.db.models
 import django.http
 import django.shortcuts
 import django.utils.dateparse
+import rest_framework.pagination
 import rest_framework.views
 import rest_framework_simplejwt.exceptions
 import rest_framework_simplejwt.tokens
@@ -14,14 +16,28 @@ from django.db.models import Q
 from rest_framework import permissions, viewsets, status
 from rest_framework.response import Response
 
-from .models import Financial, Logistics, LogisticsUploads, PettyCash
+from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, sub_unit
 from .serializers import (
     FinancialSerializer,
     LogisticsSerializer,
-    LogisticsUploadsSerializer, LogisticsSerializerlist, pettyCashSerializer,
+    LogisticsUploadsSerializer, LogisticsSerializerlist, pettyCashSerializer, CreditSerializer, sub_unitSerializer,
 )
 
 logger = logging.getLogger(__name__)
+
+
+class LogisticsCustomPagination(rest_framework.pagination.PageNumberPagination):
+    sub_units = sub_unit.objects.all()
+    serialized_sub_units = sub_unitSerializer(sub_units, many=True).data
+
+    def get_paginated_response(self, data):
+        return Response({
+            'count': self.page.paginator.count,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'results': data,
+            'sub_units': self.serialized_sub_units,  # Add your sub_units data here
+        })
 
 
 # class UserIsOwnerOrAdmin(permissions.BasePermission):
@@ -148,18 +164,11 @@ class pettyCashReport(rest_framework.views.APIView):
 
 
 # return user group name and id
-class cheekGroupOfUser(rest_framework.views.APIView):
-    def get(self, request, format=None):
-        user = request.user
-        group = user.groups.first()
-        if group:
-            return Response(group.name)
-        else:
-            return Response('None')
 
 
 class LogisticsViewSet(viewsets.ModelViewSet):
     permission_classes = [CustomObjectPermissions]
+    pagination_class = LogisticsCustomPagination
 
     def get_queryset(self):
         Fdoc_key = self.request.query_params.get('Fdoc_key', None)
@@ -242,6 +251,43 @@ class LogoutView(rest_framework.views.APIView):
             return Response(status=status.HTTP_200_OK)
         except (django.core.exceptions.ObjectDoesNotExist, rest_framework_simplejwt.exceptions.TokenError):
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreditViewSet(viewsets.ModelViewSet):
+    queryset = credit.objects.all()
+    serializer_class = CreditSerializer
+
+
+class units(viewsets.ModelViewSet):
+    queryset = sub_unit.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = sub_unitSerializer
+    pagination_class = None
+
+
+class get_user_info(rest_framework.views.APIView):
+    permission_classes = [rest_framework.permissions.IsAuthenticated]
+
+    def get(self, request, format=None):
+        user = request.user
+        return django.http.JsonResponse({
+            'username': user.username,
+            'email': user.email,
+            'name': user.first_name + ' ' + user.last_name,
+            # add any other user fields you are interested in
+        })
+
+
+class cheekGroupOfUser(rest_framework.views.APIView):
+    permission_classes = [rest_framework.permissions.IsAuthenticated]
+
+    def get(self, request, format=None):
+        user = request.user
+        group = user.groups.first()
+        if group:
+            return Response(group.name)
+        else:
+            return Response('None')
 
 
 def index(request):

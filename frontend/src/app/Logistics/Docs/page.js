@@ -7,7 +7,6 @@ import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} f
 import {Button, Col, Form, Input, InputNumber, message, Radio, Row, Select, Upload,} from "antd";
 import dayjs from "dayjs";
 import React, {useEffect, useState} from "react";
-///اخرین
 
 
 const Logistics_Doc = (prop) => {
@@ -15,6 +14,7 @@ const Logistics_Doc = (prop) => {
     const [fileList, setFileList] = useState([])
     const [Fdoc_key, set_Fdoc_key] = useState(null)
     const {handleJWTRefresh, storeToken, getToken} = AuthActions();
+    const [location, setlocation] = useState([]);
     useJalaliLocaleListener();
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
@@ -50,11 +50,12 @@ const Logistics_Doc = (prop) => {
                         seller_id: item.seller_id,
                         // date_doc: form.setFieldValue("date_doc", dayjs(new Date(item.date_doc))),
                         date_doc: dayjs(new Date(item.date_doc)),
-                        Location: item.Location,
+                        Location: item.Location.id,
 
                         descr: item.descr,
                         files: item.uploads
                     })
+                    setlocation(prop.location)
 
                     setFileList(x)
                     // set_form_date(new Date(item.date_doc).toISOString())
@@ -64,13 +65,19 @@ const Logistics_Doc = (prop) => {
 
                 }
             })
+        } else {
+
+            api().url("/api/units").get().json().then(r => setlocation(r))
         }
     }, [prop.Fdata, prop.selectedid]);
 
     // console.log(prop)
+    const filterOption = (input, option) =>
+        (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
 //write fun that get the changed data from the form and update prop.Fdata with new data
     function updateData(data) {
+
         prop.Fdata.filter((item) => {
             if (item.id === prop.selectedid) {
                 item.name = data.name
@@ -80,7 +87,6 @@ const Logistics_Doc = (prop) => {
                 item.seller_id = data.seller_id
                 item.date_doc = data.date_doc
                 item.Location = data.Location
-
                 item.descr = data.descr
                 item.uploads = data.uploads
             }
@@ -274,28 +280,6 @@ const Logistics_Doc = (prop) => {
                 </Col>
                 <Col span={12}>
                     <Form.Item
-                        name="price"
-                        label="قیمت"
-                        rules={[
-                            {
-                                type: "number",
-                                min: 0,
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                            addonAfter={"﷼"}
-                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => value?.replace(/\$\s?|(,*)/g, '')}
-                            style={{width: "100%"}}
-                        />
-                    </Form.Item>
-                </Col>
-            </Row>
-
-            <Row gutter={50}>
-                <Col span={12}>
-                    <Form.Item
                         colon={false}
                         name="seller"
                         // label="ارائه دهنده"
@@ -311,6 +295,42 @@ const Logistics_Doc = (prop) => {
                     >
                         <Input placeholder=" فروشگاه/شرکت/شخص"/>
                     </Form.Item>
+                </Col>
+            </Row>
+
+            <Row gutter={50}>
+                <Col span={6}>
+                    <Form.Item
+                        name="price"
+                        label="قیمت"
+                        rules={[
+                            {
+                                type: "number",
+                                min: 0,
+                            },
+                        ]}
+                    >
+                        <InputNumber
+                            addonAfter={"﷼"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+
+
+                            }
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
+
+
                 </Col>
                 <Col span={6}>
                     <Form.Item name="date_doc" label="تاریخ">
@@ -330,53 +350,23 @@ const Logistics_Doc = (prop) => {
 
                     </Form.Item>
                 </Col>
-                <Col span={6}>
+                <Col span={12}>
                     <Form.Item name="Location" label="محل هزینه">
                         <Select
                             showSearch
+                            filterOption={filterOption}
                             placeholder=" انتخاب محل هزینه"
                             // optionFilterProp="children"
                             // onChange={onChange}
                             // onSearch={onSearch}
                             // filterOption={filterOption}
-                            options={[
-                                {value: 'حوزه ریاست',},
-                                {value: 'مدیریت طرح و برنامه اسلامی شدن، نظارت و ارزیابی',},
-                                {value: "اداره حراست"},
-                                {value: "دفتر ریاست، روابط عمومی و بین الملل"},
-                                {value: "گروه امور شاهد و ایثارگر"},
-                                {value: "دبیرخانه هیات اجرایی جذب"},
-                                {value: " اداره امور حقوقی و قراردادها"},
-                                {value: "مدیریت توسعه فناوري اطلاعات، امنیت و هوشمندسازی"},
-                                {value: "حوزه معاونت آموزشی"},
-                                {value: "مدیریت امور آموزشی و تحصیلات تکمیلی"},
-                                {value: "اداره آموزش‌هاي آزاد و مجازی"},
-                                {value: "گروه هدایت استعدادهای درخشان"},
-                                {value: "اداره خلاقیت هنری و امور نمایشگاهی کشورهای اسلامی"},
-                                {value: "حوزه معاونت اداري، عمرانی و مالی"},
-                                {value: "مدیریت منابع انسانی، اداري و پشتیبانی"},
-                                {value: "مدیریت فنی، نظارت بر امور عمرانی، استحکام بخشی و مرمت"},
-                                {value: "مدیریت امور مالی"},
-                                {value: "اداره بودجه و تشکیلات"},
-                                {value: "حوزه معاونت پژوهش، کارآفرینی و فناوری"},
-                                {value: " مدیریت امور پژوهشی"},
-                                {value: "مدیریت کارآفرینی، و فناوری‌های نرم و ارتباط با جامعه"},
-                                {value: "کتابخانه مرکزي، مرکز اسناد و آثار"},
-                                {value: " اداره آزمایشگاه مرکزی"},
-                                {value: "مدیریت امور فرهنگی و اجتماعی"},
-                                {value: " مدیریت امور دانشجویی"},
-                                {value: " اداره تربیت بدنی"},
-                                {value: " اداره مشاوره، سلامت و سبک زندگی دانشجویان و امور زنان و خانواده"},
-                                {value: "دانشکده ها"},
-                                {value: " دانشکده مهندسی معماري و شهرسازي"},
-                                {value: "دانشکده هنرهای کاربردی"},
-                                {value: " دانشکده فرش"},
-                                {value: " دانشکده هنرهاي تجسمی"},
-                                {value: " دانشکده طراحی"},
-                                {value: "دانشکده چند رسانه اي"},
-                                {value: "دانشکده هنرهاي اسلامی"},
-                                {value: " آموزشکده فرش هریس"},
-                            ]}
+                            options={
+
+                                location.map((item) => {
+                                    return {label: item.name, value: item.id}
+                                })}
+
+
                         />
 
                     </Form.Item>
@@ -410,8 +400,13 @@ const Logistics_Doc = (prop) => {
                     {prop.Fdata ? "ویرایش مدرک" : "ایجاد مدرک"}
 
                 </Button>
+                {prop.Fdata &&
+                    <Button isabled={Fdoc_key !== null} type="primary" danger className={"!mr-20"}>
+                        حذف مدرک
+                    </Button>}
             </Form.Item>
         </Form>
-    );
+    )
+        ;
 };
 export default Logistics_Doc;

@@ -1,6 +1,8 @@
 import wretch, {Wretch, WretchError} from "wretch";
 import {AuthActions} from "@/app/auth/utils";
 import {url} from "@/app/Server"; // Extract necessary functions from the AuthActions utility.
+import Cookies from "js-cookie";
+
 const {handleJWTRefresh, storeToken, getToken} = AuthActions();
 /**
  * Configures the API with authentication and automatic token refresh on 401 responses.
@@ -24,12 +26,19 @@ export const api = () => {
                     return request
                         .auth(`Bearer ${access}`)
                         .fetch()
+
                         .unauthorized(() => {
+                            Cookies.set("login", String(0));
                             // Rethrow the error if unauthorized after token refresh.
                             window.location.replace("/Login");
                         })
-                        .json();
+                        .json(() => {
+
+                            Cookies.set("login", String(1));
+                        });
                 } catch (err) {
+                    Cookies.set("login", String(0));
+
                     window.location.replace("/Login");
                 }
             })

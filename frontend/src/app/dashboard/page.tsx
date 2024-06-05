@@ -10,7 +10,7 @@ export default function Dashbord() {
     let [user, set_user] = useState<any>()
     // const {data: user} = useSWR("/auth/users/me", fetcher);
     useEffect(() => {
-        fetcher("/auth/users/me").then((data) => {
+        fetcher("/get_user_info").then((data) => {
             console.log(data)
             set_user(data)
         })
@@ -36,11 +36,10 @@ export default function Dashbord() {
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
             <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 text-center">
-                <h1 className="text-2xl font-bold mb-4">Hi, {user?.username}!</h1>
-                <p className="mb-4">Your account details:</p>
+                <h1 className="text-2xl font-bold mb-4">درود, {user?.name}!</h1>
+                <p className="mb-4"> مشخصات حساب کاربری:</p>
                 <ul className="mb-4">
-                    <li>Username: {user?.username}</li>
-                    <li>Email: {user?.email}</li>
+                    <li>username: {user?.username}</li>
                 </ul>
                 <button
                     onClick={handleLogout}

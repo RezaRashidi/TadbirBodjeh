@@ -22,7 +22,7 @@ import tadbirbodjeh.views
 from tadbirbodjeh.views import (
     FinancialViewSet,
     LogisticsViewSet,
-    LogisticsUploadsViewSet, LogoutView, pettyCashViewSet, pettyCashReport
+    LogisticsUploadsViewSet, LogoutView, pettyCashViewSet, pettyCashReport, get_user_info, units
 )
 
 router = routers.DefaultRouter()
@@ -30,6 +30,7 @@ router.register(r"logistics", LogisticsViewSet, basename="logistics")
 router.register(r"financial", FinancialViewSet)
 router.register(r"logistics-uploads", LogisticsUploadsViewSet)
 router.register(r"pettycash", pettyCashViewSet)
+router.register(r"units", units)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
@@ -39,5 +40,6 @@ urlpatterns = [
     path("reza/", tadbirbodjeh.views.index),
     path("group/", tadbirbodjeh.views.cheekGroupOfUser.as_view()),
     path("api/pettycashreport/", pettyCashReport.as_view(), name='ActiveReports'),
+    path('get_user_info/', get_user_info.as_view(), name='get_user_info'),
     # path("accounts/", include("django.contrib.auth.urls")),
 ]

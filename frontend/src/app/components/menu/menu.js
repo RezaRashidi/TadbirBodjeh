@@ -2,8 +2,9 @@
 import {AuthActions} from "@/app/auth/utils";
 import {AppstoreOutlined, CalculatorOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
 import {Menu} from 'antd';
-import {useRouter} from "next/navigation";
-import React from 'react';
+import Cookies from "js-cookie";
+import {usePathname, useRouter} from "next/navigation";
+import React, {useEffect, useState} from 'react';
 
 function getItem(label, key, icon, children, type) {
     return {
@@ -65,7 +66,15 @@ const items = [
         <SettingOutlined/>, [getItem('داشبورد', '17'), getItem('تنطیمات', '15'), getItem('خروچ', '16')]),
 ];
 const Menur = () => {
-    const router = useRouter()
+    const router = useRouter();
+    const nextRouter = usePathname();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    useEffect(() => {
+
+        setIsLoggedIn(Cookies.get("login") === "1");
+
+    }, [nextRouter]);
+
     const onClick = (e) => {
 
         if (e.key === 'l1') router.push('/Logistics/Docs');
@@ -80,6 +89,8 @@ const Menur = () => {
 
         console.log('click ', e);
     };
+
+    if (isLoggedIn) {
     return (
         <Menu
             onClick={onClick}
@@ -93,5 +104,9 @@ const Menur = () => {
             items={items}
         />
     );
+    } else {
+        return null;
+    }
+
 };
 export default Menur;

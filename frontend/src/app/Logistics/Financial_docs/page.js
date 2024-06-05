@@ -1,7 +1,7 @@
 "use client";
 import {api} from "@/app/fetcher";
 import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
-import {Button, Checkbox, Col, Form, Input, message, Row, Select} from "antd";
+import {Button, Checkbox, Col, Form, Input, InputNumber, message, Row, Select} from "antd";
 import dayjs from "dayjs";
 import React, {useEffect, useRef, useState} from "react";
 
@@ -100,6 +100,7 @@ const Financial_docs = (prop) => {
                 if (item.id === prop.selectedid) {
                     // console.log(item)
                     set_fin_state(item.fin_state)
+                    let taxValue = isNaN(parseInt(item.tax)) ? 0 : parseInt(item.tax);
                     // console.log(item.Payment_type)
                     form.setFieldsValue({
                         name: item.name,
@@ -107,7 +108,7 @@ const Financial_docs = (prop) => {
                         CostType: item.CostType,
                         descr: item.descr,
                         Payment_type: item.Payment_type,
-                        tax: item.tax,
+                        tax: taxValue,
                     })
 
                     let nextURL = `/api/logistics/?Fdoc_key=${item.id}`;
@@ -166,7 +167,7 @@ const Financial_docs = (prop) => {
                 item.CostType = data.CostType;
                 item.descr = data.descr;
                 item.logistics = data.logistics;
-                item.tax = data.tax;
+                item.tax = parseInt(data.tax);
                 item.updated = data.updated
                 item.Payment_type = data.Payment_type
                 item.total_logistics_price = data.total_logistics_price
@@ -214,8 +215,12 @@ const Financial_docs = (prop) => {
 
         }).then(() => {
             //cheek  log_price nan?
-
-            let log_price = form.getFieldValue("logistics").reduce((acc, item) => acc + item.title, 0)
+            let logisticsValue = form.getFieldValue("logistics");
+            let log_price = 0;
+            if (logisticsValue) {
+                log_price = logisticsValue.reduce((acc, item) => acc + item.title, 0);
+            }
+            // let log_price = form.getFieldValue("logistics").reduce((acc, item) => acc + item.title, 0)
             prop.selectedid && updateData({
                 ...values,
                 updated: dayjs(new Date()),
@@ -335,10 +340,25 @@ const Financial_docs = (prop) => {
                     label="کد رهگیری مالیاتی"
                     rules={[{
                         // required: true,
-                        message: "کد رهگیری را وارد نمایید",
+
+                        type: "number",
+                        min: 0,
+
+                        // message: "کد رهگیری را وارد نمایید",
                     },]}
                 >
-                    <Input/>
+                    <InputNumber
+                        style={{width: "100%"}}
+                        parser={value => {
+                            const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                            const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                            let newValue = value;
+                            for (let i = 0; i < 10; i++) {
+                                newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                            }
+                            return newValue;
+                        }}
+                    />
                 </Form.Item>
             </Col>
             <Col span={12}>
