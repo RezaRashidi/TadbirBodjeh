@@ -29,6 +29,11 @@ const App = () => {
     const handleCancel = () => {
         setIsModalOpen(false);
     };
+    const remove_item = (id) => {
+        setData(
+            data.filter((item) => item.id !== id)
+        )
+    }
     const columns = [{
         title: 'شماره',
         dataIndex: 'id',
@@ -79,6 +84,12 @@ const App = () => {
             // eslint-disable-next-line react/jsx-key
         },
         {
+            title: 'سند',
+            dataIndex: 'Fdoc_key',
+            key: 'Fdoc_key',
+            // eslint-disable-next-line react/jsx-key
+        },
+        {
             title: 'مدارک', dataIndex: 'uploads', key: 'uploads', // eslint-disable-next-line react/jsx-key
             render: (u) => u ? u.map((upload) => (
                 <div key={upload.id}><a href={upload.file}>{upload.name}</a></div>)) : null,
@@ -105,22 +116,7 @@ const App = () => {
                 },
             });
         });
-        // fetch(`http://localhost:8000/api/logistics/?page=${tableParams.pagination.current}`)
-        //     .then((res) => res.json())
-        //     .then((res) => {
-        //         // console.log(res);
-        //
-        //         let newdata = res.results.map((item) => ({"key": item.id, ...item}))
-        //         // console.log(newdata);
-        //         setData(newdata);
-        //         setLoading(false);
-        //         setTableParams({
-        //             ...tableParams, pagination: {
-        //                 ...tableParams.pagination, total: res.count, // 200 is mock data, you should read it from server
-        //                 // total: data.totalCount,
-        //             },
-        //         });
-        //     });
+
     };
     useEffect(() => {
         fetchData();
@@ -131,7 +127,8 @@ const App = () => {
                onOk={handleOk} width={"75%"} onCancel={handleCancel} footer={null} zIndex={100}>
 
 
-            <Logistics_Doc Fdata={data} selectedid={selectedid} modal={handleModalChange} location={location}/>
+            <Logistics_Doc Fdata={data} selectedid={selectedid} modal={handleModalChange} remove={remove_item}
+                           location={location}/>
 
         </Modal>
         <Table columns={columns} dataSource={data} pagination={tableParams.pagination}

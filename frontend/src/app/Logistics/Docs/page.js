@@ -15,6 +15,7 @@ const Logistics_Doc = (prop) => {
     const [Fdoc_key, set_Fdoc_key] = useState(null)
     const {handleJWTRefresh, storeToken, getToken} = AuthActions();
     const [location, setlocation] = useState([]);
+    const [id, set_id] = useState(0)
     useJalaliLocaleListener();
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
@@ -30,6 +31,7 @@ const Logistics_Doc = (prop) => {
                     set_Fdoc_key(item.Fdoc_key)
                     console.log(item.Fdoc_key)
                     console.log(item)
+                    set_id(item.id)
                     var x = item.uploads.map((file) => {
                         return {
                             uid: file,
@@ -50,7 +52,7 @@ const Logistics_Doc = (prop) => {
                         seller_id: item.seller_id,
                         // date_doc: form.setFieldValue("date_doc", dayjs(new Date(item.date_doc))),
                         date_doc: dayjs(new Date(item.date_doc)),
-                        Location: item.Location.id,
+                        Location: item.Location == null ? "" : item.Location.id,
 
                         descr: item.descr,
                         files: item.uploads
@@ -68,9 +70,20 @@ const Logistics_Doc = (prop) => {
         } else {
 
             api().url("/api/units").get().json().then(r => setlocation(r))
+
         }
     }, [prop.Fdata, prop.selectedid]);
+    const delete_doc = () => {
 
+        api().url("/api/logistics/" + id).delete().res(r => {
+
+                prop.remove(prop.selectedid)
+                prop.modal(false)
+            }
+        ).then(r => {
+            console.log(r)
+        })
+    }
     // console.log(prop)
     const filterOption = (input, option) =>
         (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
@@ -330,7 +343,6 @@ const Logistics_Doc = (prop) => {
                         />
                     </Form.Item>
 
-
                 </Col>
                 <Col span={6}>
                     <Form.Item name="date_doc" label="تاریخ">
@@ -346,12 +358,14 @@ const Logistics_Doc = (prop) => {
                             }
                             }
                         />
-
-
                     </Form.Item>
                 </Col>
                 <Col span={12}>
-                    <Form.Item name="Location" label="محل هزینه">
+                    <Form.Item name="Location" label="محل هزینه" rules={[
+                        {
+                            required: true
+                        },
+                    ]}>
                         <Select
                             showSearch
                             filterOption={filterOption}
@@ -401,7 +415,9 @@ const Logistics_Doc = (prop) => {
 
                 </Button>
                 {prop.Fdata &&
-                    <Button isabled={Fdoc_key !== null} type="primary" danger className={"!mr-20"}>
+                    <Button disabled={Fdoc_key !== null} isabled={Fdoc_key !== null} type="primary" danger
+                            className={"!mr-20"}
+                            onClick={delete_doc}>
                         حذف مدرک
                     </Button>}
             </Form.Item>

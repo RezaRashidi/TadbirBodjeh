@@ -69,7 +69,10 @@ class LogisticsSerializerlist(serializers.ModelSerializer):
     #     return sub_unitSerializer(sub_units, many=True).data
 
     def get_user(self, obj):
-        return obj.created_by.first_name + ' ' + obj.created_by.last_name
+        if obj.created_by is not None:
+            return obj.created_by.first_name + ' ' + obj.created_by.last_name
+        else:
+            return 'Unknown User'
 
     class Meta:
         model = Logistics

@@ -19,8 +19,6 @@ function convertToPersianNumber(number) {
 
     return number.toLocaleString('fa-IR');
 }
-
-// print function that show financial report that include table of logistic document with header and footer
 function Fin_print(props, ref) {
     const [Log_list, set_Log_list] = useState([], (x) => convertToPersianNumber(x));
     const [fin, set_fin] = useState({});
@@ -50,32 +48,6 @@ function Fin_print(props, ref) {
     }
     let Price_ir = numberWithCommas(convertToPersianNumber(Price))
     useEffect(() => {
-            //     let nextURL = null
-            //
-            // do {
-            //     if (nextURL !== null) {
-            //         api().url(nextURL, true).get().json().then((res) => {
-            //             console.log(res);
-            //             nextURL = res.results.next
-            //             let newdata = res.results.map(
-            //                 (item) => ({"key": item.id, ...item})
-            //             )
-            //             set_Log_list([...newdata])
-            //         })}
-            //     else
-            //         {
-            //             api().url(`/api/logistics/?Fdoc_key=${id}`).get().json().then((res) => {
-            //                 // console.log(res);
-            //                 nextURL = res.next
-            //                 console.log(nextURL)
-            //                 let newdata = res.results.map(
-            //                     (item) => ({"key": item.id, ...item})
-            //                 )
-            //                 set_Log_list([...newdata])
-            //             })
-            //         }
-            //     }while (nextURL !== null)
-
 
             let nextURL = `/api/logistics/?Fdoc_key=${id}`;
             let url = false
@@ -90,29 +62,21 @@ function Fin_print(props, ref) {
                     }
                     nextURL = res.next;
                     newdata.push(...res.results.map((item) => ({"key": item.id, ...item})));
-
                 }
-
-
                 return newdata
             }
-
 
             fetchLogisticsData().then(r => {
                 set_Log_list(r)
                 // console.log(r);
             });
 
-
             if (props.record) {
-
                 set_fin(props.record);
             } else {
                 api().url(`/api/financial/${id}`).get().json().then((res) => {
                     set_fin(res)
                 })
-
-
             }
         }
         ,
@@ -141,9 +105,8 @@ function Fin_print(props, ref) {
         render: (data) => data.name
     }, {
         title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller', align: "center",
-    }, {
-        title: 'توضیحات', dataIndex: 'descr', key: 'descr', align: "center",
-    }, {
+    },
+        {
         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
             return new Intl.DateTimeFormat('fa-IR', {
                 year: 'numeric',
@@ -151,14 +114,21 @@ function Fin_print(props, ref) {
                 day: '2-digit'
             }).format(new Date(date));
         }, align: "center",
-    }, {
+        },
+
+
+        {
         title: 'قیمت',
         dataIndex: 'price',
         key: 'price',
         render: (price) => convertToPersianNumber(price),
         align: "center",
-    }
+        },
 
+
+        {
+            title: 'توضیحات', dataIndex: 'descr', key: 'descr', align: "center",
+        },
 
     ];
 
@@ -257,7 +227,7 @@ function Fin_print(props, ref) {
             </article>
             <footer className={"nazanin"}>
                 <table>
-
+                    <tbody>
                     <tr>
                         <td>
                             <p>مدیر محترم منابع انسانی، اداری و پشتیبانی:</p>
@@ -294,10 +264,8 @@ function Fin_print(props, ref) {
                             <p className={"text-center"}> معاون اداری، عمرانی و مالی </p>
                         </td>
                     </tr>
-
+                    </tbody>
                 </table>
-
-
 
 
             </footer>

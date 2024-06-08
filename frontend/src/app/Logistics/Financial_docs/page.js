@@ -12,19 +12,21 @@ function RezaSelect(props) {
     useEffect(() => {
         api().url(`/api/logistics/?get_nulls=0&?page=${pagenumber.current}`).get().json().then((res) => {
             next.correct = res.next
-            setlist(res.results.map((item) => ({"value": item.id, "label": item.name, "key": item.id})))
+            setlist(res.results.map((item) => ({
+                "value": item.id,
+                "label": item.id + " - " + item.name,
+                "key": item.id + " - " + item.name
+            })))
         })
 
-        // fetch(`http://localhost:8000/api/logistics/?get_nulls=0&?page=${pagenumber.current}`)
-        //     .then((res) => res.json())
-        //     .then((res) => {
-        //         next.correct = res.next
-        //         setlist(res.results.map((item) => ({"value": item.id, "label": item.name, "key": item.id})))
-        //     })
     }, [props.data])
     const onSearch = (value) => {
-        api().url(`/api/logistics/?get_nulls=0?search=${value}`).get().json().then((res) => {
-            setlist(res.results.map((item) => ({"value": item.id, "label": item.name, "key": item.id})))
+        api().url(`/api/logistics/?get_nulls=0&search=${value}`).get().json().then((res) => {
+            setlist(res.results.map((item) => ({
+                "value": item.id,
+                "label": item.id + " - " + item.name,
+                "key": item.id + " - " + item.name
+            })))
         })
 
         // fetch(`http://localhost:8000/api/logistics/?get_nulls=0?search=${value}`)
@@ -56,6 +58,7 @@ function RezaSelect(props) {
         }
     }
     const Deselect = ({value}) => {
+            console.log(value)
             props.fin_state == 0 && api().url(`/api/logistics/${value}/`).patch({"Fdoc_key": null}).json().then((res) => {
 
             })
@@ -130,7 +133,11 @@ const Financial_docs = (prop) => {
                     fetchLogisticsData().then(r => {
 
                         form.setFieldsValue({
-                            logistics: r.map((item) => ({"value": item.id, "label": item.name, "title": item.price}))
+                            logistics: r.map((item) => ({
+                                "value": item.id,
+                                "label": item.id + " - " + item.name,
+                                "title": item.price
+                            }))
                         })
 
                         // console.log(r);
@@ -209,6 +216,7 @@ const Financial_docs = (prop) => {
         request.then(response => {
             values.logistics ? values.logistics.forEach((item) => {
                 // console.log({"Fdoc_key": response.id})
+                console.log(item)
                 api().url(`/api/logistics/${item.value}/`).patch({"Fdoc_key": response.id}).json().then((res) => {
                 })
             }) : null
@@ -230,33 +238,7 @@ const Financial_docs = (prop) => {
             prop.selectedid && prop.modal(false)
             !prop.selectedid && form.resetFields();
         })
-        // request.then(response => {
-        //     // console.log()
-        //     if (response.ok) {
-        //         response.json().then((response) => {
-        //             values.logistics.forEach((item) => {
-        //                 // console.log({"Fdoc_key": response.id})
-        //                 fetch(`http://localhost:8000/api/logistics/${item.value}/`, {
-        //                     method: "PATCH", headers: {
-        //                         'Content-Type': 'application/json;charset=utf-8'
-        //                     }, body: JSON.stringify({"Fdoc_key": response.id}),
-        //                 })
-        //                 //.then((response) => console.log(response.json()))
-        //             })
-        //         }).then(() => {
-        //             if (response.ok) {
-        //                 prop.selectedid && updateData({...values, updated: dayjs(new Date())})
-        //                 message.success("سند با موفقیت ثبت شد")
-        //                 prop.selectedid && prop.modal(false)
-        //                 !prop.selectedid && form.resetFields();
-        //             } else {
-        //                 message.error("خطا در ثبت سند")
-        //             }
-        //         })
-        //         // form.resetFields();
-        //     }
-        // })
-        // request.then((response, reject) => response.json().then((value) => console.log(value)))
+
     };
 
     return (<Form

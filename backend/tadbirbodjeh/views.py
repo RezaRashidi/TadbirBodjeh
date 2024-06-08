@@ -173,15 +173,23 @@ class LogisticsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         Fdoc_key = self.request.query_params.get('Fdoc_key', None)
         get_nulls = self.request.query_params.get('get_nulls', None)
+        search = self.request.query_params.get('search', None)
         if get_nulls is not None:
+            if search is not None:
+                if self.request.user.is_staff:
+                    return Logistics.objects.filter(Fdoc_key__isnull=True).filter(
+                        Q(name__icontains=search) | Q(id__icontains=search)).reverse().order_by('id')
+                return Logistics.objects.filter(Fdoc_key__isnull=True).filter(
+                    Q(name__icontains=search) | Q(id__icontains=search)).reverse().order_by('id').filter(
+                    created_by=self.request.user)
             if self.request.user.is_staff:
                 return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id')
             return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id').filter(
                 created_by=self.request.user)
         elif Fdoc_key is not None:
             if self.request.user.is_staff:
-                return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).reverse().order_by('id')
-            return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).reverse().order_by('id').filter(
+                return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).order_by('id')
+            return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).order_by('id').filter(
                 created_by=self.request.user)
         else:
             if self.request.user.is_staff:
@@ -209,6 +217,13 @@ class LogisticsViewSet(viewsets.ModelViewSet):
     #     logger.warning('Request method: %s', request.user)
     #     logger.warning('Request path: %s', request.user.is_authenticated)
     #     return super().list(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.Fdoc_key:
+            return Response({"error": "This object is related to a financial document"}, status=400)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':

@@ -41,5 +41,6 @@ urlpatterns = [
     path("group/", tadbirbodjeh.views.cheekGroupOfUser.as_view()),
     path("api/pettycashreport/", pettyCashReport.as_view(), name='ActiveReports'),
     path('get_user_info/', get_user_info.as_view(), name='get_user_info'),
+    path('api-auth/', include('rest_framework.urls')),  # Include Django REST Framework URLs
     # path("accounts/", include("django.contrib.auth.urls")),
 ]
