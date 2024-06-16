@@ -11,6 +11,7 @@ function RezaSelect(props) {
     const pagenumber = useRef(1);
     useEffect(() => {
         api().url(`/api/logistics/?get_nulls=0&?page=${pagenumber.current}`).get().json().then((res) => {
+            console.log(res.results)
             next.correct = res.next
             setlist(res.results.map((item) => ({
                 "value": item.id,
@@ -36,11 +37,18 @@ function RezaSelect(props) {
         //     })
     };
     const onPopupScroll = () => {
+        console.log(next.correct)
+
         if (next.correct !== null) {
-            api(next.correct, true).json((res) => {
+            api().url(next.correct, true).get().json((res) => {
                 next.correct = res.next
-                let result = res.results.map((item) => ({"value": item.id, "label": item.name}))
+                let result = res.results.map((item) => ({
+                    "value": item.id,
+                    "label": item.id + " - " + item.name,
+                    "key": item.id + " - " + item.name
+                }))
                 setlist([...list, ...result])
+            }).then(r => {
             })
 
             // fetch(next.correct)
@@ -90,7 +98,9 @@ function RezaSelect(props) {
         />);
 }
 
-const Financial_docs = (prop) => {
+const
+
+    Financial_docs = (prop) => {
     const [form] = Form.useForm();
     useJalaliLocaleListener();
     dayjs.calendar('jalali');

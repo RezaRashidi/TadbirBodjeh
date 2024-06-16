@@ -28,6 +28,8 @@ const getToken = (type: string) => {
 const removeTokens = () => {
     Cookies.remove("accessToken");
     Cookies.remove("refreshToken");
+    Cookies.remove("username");
+
 };
 
 /**

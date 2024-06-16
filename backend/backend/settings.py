@@ -149,9 +149,10 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
+
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         # 'rest_framework.permissions.IsAuthenticated',
@@ -173,7 +174,22 @@ DJOSER = {
 }
 SITE_NAME = "تدبیر بودجه"
 DOMAIN = 'localhost:3001'
-
+#####################
+#####################
+###local database
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'tadbir',
+        'USER': 'tadbir',
+        'PASSWORD': 'tadbir',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+    }
+}
+#####################
+#####################
+###server database
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',

@@ -35,7 +35,6 @@ const Login = () => {
         login(data.username, data.password)
             .json((json) => {
                 Cookies.set("login", String(1));
-                console.log(json);
                 storeToken(json.access, "access");
                 storeToken(json.refresh, "refresh");
 

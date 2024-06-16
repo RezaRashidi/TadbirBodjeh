@@ -22,6 +22,7 @@ function convertToPersianNumber(number) {
 function Fin_print(props, ref) {
     const [Log_list, set_Log_list] = useState([], (x) => convertToPersianNumber(x));
     const [fin, set_fin] = useState({});
+    const username = props.record ? props.record.user_group == "Logistics-other" ? "" : props.record.user : ''
     const {Text} = Typography;
     let id = props.record ? props.record.id : 41;
     // console.log("props");
@@ -101,7 +102,7 @@ function Fin_print(props, ref) {
     }, {
         title: 'کدملی/شناسه', dataIndex: 'seller_id', key: 'seller_id', align: "center",
     }, {
-        title: 'محل هزینه', dataIndex: 'Location', key: 'Location', align: "center",
+        title: 'محل هزینه', dataIndex: 'Location', key: 'Location', align: "center", width: 100,
         render: (data) => data.name
     }, {
         title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller', align: "center",
@@ -121,7 +122,7 @@ function Fin_print(props, ref) {
         title: 'قیمت',
         dataIndex: 'price',
         key: 'price',
-        render: (price) => convertToPersianNumber(price),
+            render: (price) => <span className={"text-sm"}>{convertToPersianNumber(price)}</span>,
         align: "center",
         },
 
@@ -192,9 +193,10 @@ function Fin_print(props, ref) {
             </header>
 
             <article className={"pb-4 "}>
-                <Table className={"text-s"} columns={columns} dataSource={Log_list} bordered
+                <Table className={"text-s "} columns={columns} dataSource={Log_list} bordered
                        pagination={false}
                        rowClassName={'row'}
+                    // size="small"
                     // theme={{
                     //     token: {
                     //         fontFamily: "Yekan",
@@ -231,10 +233,11 @@ function Fin_print(props, ref) {
                     <tr>
                         <td>
                             <p>مدیر محترم منابع انسانی، اداری و پشتیبانی:</p>
-                            <p> احتراماً ریز هزینه به مبلغ {Price_ir} ریال جهت دستور پرداخت به حضور تقدیم می گردد.</p>
+                            <p> احتراماً ضمن تایید، ریز هزینه به مبلغ {Price_ir} ریال جهت صدور دستور پرداخت به حضور
+                                ارسال می گردد.</p>
                         </td>
                         <td className={"py-5"}>
-                            <p className={"text-center"}>{props.record ? props.record.user : ''}</p>
+                            <p className={"text-center"}>{username}</p>
                             <p className={"text-center"}> کارپرداز </p>
                         </td>
                     </tr>
@@ -242,22 +245,20 @@ function Fin_print(props, ref) {
                     <tr className={""}>
                         <td>
                             <p>معاون محترم اداری، عمرانی و مالی:</p>
-                            <p> احتراماً ریز هزینه به مبلغ {Price_ir} ریال جهت مورد تایید می باشد خواهشمند است دستور
+                            <p> احتراماً؛ خواهشمند است دستور
                                 فرمایید اقدام لازم جهت دستور پرداخت مبذول گردد.</p>
                         </td>
                         <td className={"no-wrap py-5 "}>
-                            <p className={"text-center"}> رضا بابایی</p>
+                            <p className={"text-center"}> رضا بابائی</p>
                             <p className={"text-center no-wrap"}> مدیر منابع انسانی، اداری و پشتیبانی </p>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             <p>مدیر محترم امور مالی:</p>
-                            <p> به استناد ماده ۱۲،۳۱و ۳۲ آئين نامه مالی و معاملاتی دانشگاه، مبلغ اسناد هزینه پیوستی
-                                از
-                                محل
-                                اعتبارات
-                                پرداخت گردد </p>
+                            <p> به استناد ماده ۳۱،۱۲و۳۲ آئين نامه مالی و معاملاتی دانشگاه هنر اسلامی تبریز، اسناد هزینه
+                                پیوستی به مبلغ فوق از محل اعتبارات دانشگاه جهت پرداخت مطابق ضوابط و مقررات اقدام
+                                گردد. </p>
                         </td>
                         <td className={"py-5"}>
                             <p className={"text-center"}> آزیتا بلالی اسکویی</p>

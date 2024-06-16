@@ -4,6 +4,7 @@ import {fetcher} from "@/app/fetcher";
 import {AuthActions} from "@/app/auth/utils";
 import {useRouter} from "next/navigation";
 import {useEffect, useState} from "react";
+import Cookies from "js-cookie";
 
 export default function Dashbord() {
     const router = useRouter();
@@ -13,6 +14,7 @@ export default function Dashbord() {
         fetcher("/get_user_info").then((data) => {
             console.log(data)
             set_user(data)
+            Cookies.set("username", data.name);
         })
         fetcher("/group").then((data) => {
             console.log(data)

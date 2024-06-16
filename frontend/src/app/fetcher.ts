@@ -29,6 +29,7 @@ export const api = () => {
 
                         .unauthorized(() => {
                             Cookies.set("login", String(0));
+                            AuthActions().removeTokens();
                             // Rethrow the error if unauthorized after token refresh.
                             window.location.replace("/Login");
                         })
@@ -38,7 +39,7 @@ export const api = () => {
                         });
                 } catch (err) {
                     Cookies.set("login", String(0));
-
+                    AuthActions().removeTokens();
                     window.location.replace("/Login");
                 }
             })

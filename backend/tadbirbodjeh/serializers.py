@@ -14,9 +14,22 @@ class sub_unitSerializer(serializers.ModelSerializer):
 class FinancialSerializer(serializers.ModelSerializer):
     total_logistics_price = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
+    user_group = serializers.SerializerMethodField()
+
+    def get_user_group(self, obj):
+        if obj.created_by is None:
+            return 'Unknown'
+        else:
+            group = obj.created_by.groups.first().name
+            if group is None:
+                return 'Unknown'
+            else:
+                return group
 
     def get_user(self, obj):
-        return obj.created_by.first_name + ' ' + obj.created_by.last_name
+        first_name = obj.created_by.first_name if obj.created_by and obj.created_by.first_name else ''
+        last_name = obj.created_by.last_name if obj.created_by and obj.created_by.last_name else ''
+        return f"{first_name} {last_name}".strip()
 
     def get_total_logistics_price(self, obj):
         return obj.logistics.aggregate(django.db.models.Sum('price'))['price__sum'] or 0
