@@ -29,6 +29,8 @@ const removeTokens = () => {
     Cookies.remove("accessToken");
     Cookies.remove("refreshToken");
     Cookies.remove("username");
+    Cookies.remove("group");
+
 
 };
 
@@ -42,6 +44,7 @@ const removeTokens = () => {
 const register = (email: string, username: string, password: string) => {
     return api.post({email, username, password}, "/auth/users/");
 };
+
 
 /**
  * Logs in a user and stores access and refresh tokens.
@@ -115,5 +118,6 @@ export const AuthActions = () => {
         getToken,
         logout,
         removeTokens,
+
     };
 };

@@ -6,6 +6,7 @@ import {Button, Form, Input, message} from 'antd';
 import {useRouter} from "next/navigation";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import {getGroup} from "@/app/fetcher";
 
 type FormData = {
     email: string;
@@ -37,7 +38,12 @@ const Login = () => {
                 Cookies.set("login", String(1));
                 storeToken(json.access, "access");
                 storeToken(json.refresh, "refresh");
-
+                //force to rerender layout page
+                router.refresh();
+                getGroup().then((value) => {
+                    Cookies.set("group", value.toString());
+                    console.log(value)
+                })
                 router.push("dashboard");
             })
             .catch((err) => {

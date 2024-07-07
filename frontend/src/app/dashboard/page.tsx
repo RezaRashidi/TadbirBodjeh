@@ -3,23 +3,30 @@
 import {fetcher} from "@/app/fetcher";
 import {AuthActions} from "@/app/auth/utils";
 import {useRouter} from "next/navigation";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import Cookies from "js-cookie";
+import {useRefreshLayout} from "@/app/layout";
+
+
+interface DashboardProps {
+    refresh: () => void;
+}
 
 export default function Dashbord() {
     const router = useRouter();
     let [user, set_user] = useState<any>()
+    const refreshLayout = useRefreshLayout(); // Use the context hook
     // const {data: user} = useSWR("/auth/users/me", fetcher);
     useEffect(() => {
+
         fetcher("/get_user_info").then((data) => {
-            console.log(data)
+            // Call the refreshLayout function
+            //console.log(data)
             set_user(data)
             Cookies.set("username", data.name);
+            refreshLayout();
         })
-        fetcher("/group").then((data) => {
-            console.log(data)
 
-        })
     }, [])
 
 

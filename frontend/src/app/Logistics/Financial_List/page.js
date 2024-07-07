@@ -3,17 +3,17 @@ import {api} from "@/app/fetcher";
 import Financial_docs from "@/app/Logistics/Financial_docs/page";
 import Fin_detail from "@/app/Logistics/Financial_List/detail";
 import Fin_print, {numberWithCommas} from "@/app/Logistics/Print/page";
-import {PrinterOutlined} from "@ant-design/icons";
-import {Button, Modal, Table} from "antd";
+import {CalculatorOutlined, PrinterOutlined,} from "@ant-design/icons";
+import {Button, Modal, Radio, Table} from "antd";
 import React, {useEffect, useState} from "react";
 import ReactToPrint from "react-to-print";
 
-const fin_state = {
-    "در دست اقدام": 0,
-    "در حال بررسی": 1,
-    "تایید": 2,
-
-}
+// const fin_state = {
+//     "در دست اقدام": 0,
+//     "در حال بررسی": 1,
+//     "تایید": 2,
+//
+// }
 
 
 const App = (props) => {
@@ -21,6 +21,7 @@ const App = (props) => {
         const [loading, setLoading] = useState(true);
         const [isModalOpen, setIsModalOpen] = useState(false);
         const [selectedid, setselectedid] = useState(0);
+        const [fin_state, set_fin_state] = useState(0);
         const [tableParams, setTableParams] = useState({
             pagination: {
                 current: 1,
@@ -32,9 +33,27 @@ const App = (props) => {
         const handleModalChange = (newState) => {
             setIsModalOpen(newState);
         };
-
-
+        const onchangestate = (e, record) => {
+            api().url(`/api/financial/${record.id}/`).patch({
+                "fin_state": 1
+            }).json().then((res) => {
+                // console.log(res);
+                fetchData();
+            })
+        }
+        // console.log(data)
 // Usage
+        function update_fin(id) {
+            let xit = data.filter((item) => {
+                if (item.id === id) {
+                    item.updated = Date.now()
+                }
+                return item;
+            })
+
+            setData(xit)
+
+        }
 
         const showModal = (value) => {
             // console.log(  ...data.filter((item) => item.id === value.id).flat())
@@ -49,14 +68,14 @@ const App = (props) => {
         };
         const fetchData = () => {
 
-            api().url(`/api/financial/?page=${tableParams.pagination.current}`).get().json().then((res) => {
+            api().url(`/api/financial/?page=${tableParams.pagination.current}&fin_state=${fin_state}`).get().json().then((res) => {
                 let newdata = res.results.map(
                     (item) => ({"key": item.id, ...item})
                 )
                 newdata.map((item) => {
                     printRefs[item.id] = React.createRef();
                 });
-                console.log(newdata);
+                // console.log(newdata);
                 setData(newdata);
                 setLoading(false);
                 setTableParams({
@@ -95,7 +114,7 @@ const App = (props) => {
         useEffect(() => {
             fetchData();
             // console.log("useEffect");
-        }, [JSON.stringify(tableParams)]);
+        }, [JSON.stringify(tableParams), fin_state]);
         const columns = [
             {
                 title: 'شماره سند',
@@ -160,40 +179,40 @@ const App = (props) => {
                     return numberWithCommas(x)
                 }
             },
-            {
-                title: 'وضعیت',
-                dataIndex: 'fin_state',
-                key: 'fin_state',
-                sorter: (a, b) => a.fin_state - b.fin_state,
-                filters: [
-                    {
-                        text: 'در دست اقدام',
-                        value: 0,
-                    },
-                    {
-                        text: "در حال بررسی",
-                        value: 1,
-                    },
-                    {
-                        text: "تایید",
-                        value: 2,
-                    },
-                ],
-                onFilter: (value, record) => record.fin_state === value,
-                // eslint-disable-next-line react/jsx-key
-                // render: (fin_state) => bool ? "تایید" : "تایید نشده",
-                render: (state) => {
-                    // console.log(state)
-                    if (state === 0) {
-                        return "در دست اقدام"
-                    } else if (state === 1) {
-                        return "در حال بررسی"
-                    } else if (state === 2) {
-                        return "تایید نهایی"
-                    }
-
-                }
-            },
+            // {
+            //     title: 'وضعیت',
+            //     dataIndex: 'fin_state',
+            //     key: 'fin_state',
+            //     sorter: (a, b) => a.fin_state - b.fin_state,
+            //     filters: [
+            //         {
+            //             text: 'در دست اقدام',
+            //             value: 0,
+            //         },
+            //         {
+            //             text: "در حال بررسی",
+            //             value: 1,
+            //         },
+            //         {
+            //             text: "تایید",
+            //             value: 2,
+            //         },
+            //     ],
+            //     onFilter: (value, record) => record.fin_state === value,
+            //     // eslint-disable-next-line react/jsx-key
+            //     // render: (fin_state) => bool ? "تایید" : "تایید نشده",
+            //     render: (state) => {
+            //         // console.log(state)
+            //         if (state === 0) {
+            //             return "در دست اقدام"
+            //         } else if (state === 1) {
+            //             return "در حال بررسی"
+            //         } else if (state === 2) {
+            //             return "تایید نهایی"
+            //         }
+            //
+            //     }
+            // },
             {
                 title: 'سازنده',
                 dataIndex: 'user',
@@ -201,7 +220,7 @@ const App = (props) => {
                 // eslint-disable-next-line react/jsx-key
             },
             {
-                title: "چاپ", key: 'print', render: (record) => {
+                title: "چاپ", key: 'print', align: 'center', render: (record) => {
                     // if (!printRefs[record.id]) {
                     //     setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));
                     // }
@@ -229,6 +248,13 @@ const App = (props) => {
                         /></>
                 }
             }
+            , {
+                title: "ارسال به امور مالی", key: 'fin', align: 'center', hidden: fin_state !== 0, render: (record) => {
+                    return <Button onClick={(e) => {
+                        onchangestate(e, record)
+                    }} icon={<CalculatorOutlined/>}>ارسال</Button>
+                }
+            }
 
         ];
 
@@ -249,11 +275,17 @@ const App = (props) => {
 
                     <Financial_docs Fdata={data} selectedid={selectedid} modal={handleModalChange}/>
                 </Modal>
+                <Radio.Group onChange={(e) => set_fin_state(e.target.value)} defaultValue={fin_state}>
+                    <Radio.Button value={0}>در دست اقدام</Radio.Button>
+                    <Radio.Button value={1}>در حال بررسی</Radio.Button>
+                    <Radio.Button value={2}>تایید نهایی</Radio.Button>
 
+                </Radio.Group>
 
                 <Table columns={columns} dataSource={data} loading={loading} pagination={tableParams.pagination}
                        expandable={{
-                           expandedRowRender: (record) => <Fin_detail key={record.updated} record={record}/>,
+                           expandedRowRender: (record) => <Fin_detail key={record.updated} record={record}
+                                                                      change_data={update_fin}/>,
 
                        }}
                        onChange={handleTableChange}/>

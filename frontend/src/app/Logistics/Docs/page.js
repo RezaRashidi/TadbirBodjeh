@@ -21,7 +21,19 @@ const Logistics_Doc = (prop) => {
     dayjs.extend(jalaliPlugin);
     const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
 
+    let cheekbuttom = true
+    if (Fdoc_key !== null) {
+        if (
+            prop.fin_state !== undefined
+        ) {
+            // console.log(prop.fin_state)
+            cheekbuttom = prop.fin_state > 0
+        }
 
+
+    } else {
+        cheekbuttom = false
+    }
     // console.log(prop)
     useEffect(() => {
         if (prop.Fdata) {
@@ -29,8 +41,8 @@ const Logistics_Doc = (prop) => {
 
                 if (item.id === prop.selectedid) {
                     set_Fdoc_key(item.Fdoc_key)
-                    console.log(item.Fdoc_key)
-                    console.log(item)
+                    // console.log(item.Fdoc_key)
+                    // console.log(item)
                     set_id(item.id)
                     var x = item.uploads.map((file) => {
                         return {
@@ -55,7 +67,12 @@ const Logistics_Doc = (prop) => {
                         Location: item.Location == null ? "" : item.Location.id,
 
                         descr: item.descr,
-                        files: item.uploads
+                        files: item.uploads,
+                        vat: item.vat,
+                        bank_name: item.bank_name,
+                        account_number: item.account_number,
+                        account_name: item.account_name
+
                     })
                     setlocation(prop.location)
 
@@ -81,7 +98,7 @@ const Logistics_Doc = (prop) => {
                 prop.modal(false)
             }
         ).then(r => {
-            console.log(r)
+            // console.log(r)
         })
     }
     // console.log(prop)
@@ -102,8 +119,24 @@ const Logistics_Doc = (prop) => {
                 item.Location = data.Location
                 item.descr = data.descr
                 item.uploads = data.uploads
+                item.vat = data.vat
+                item.bank_name = data.bank_name
+                item.account_number = data.account_number
+                item.account_name = data.account_name
+
             }
         })
+    }
+
+    function update_fin() {
+
+        prop.update_fin.filter((item) => {
+            if (item.id === Fdoc_key) {
+                console.log(item.id)
+                item.updated = dayjs(new Date())
+            }
+        })
+        console.log(prop.update_fin)
     }
 
     const validateMessages = {
@@ -135,6 +168,11 @@ const Logistics_Doc = (prop) => {
             "uploads": fileList.map((file) => {
                 return file.response.id
             })
+            ,
+            "vat": values.vat,
+            "bank_name": values.bank_name,
+            "account_number": values.account_number,
+            "account_name": values.account_name
         }
         let new_jasondata = {...jsondata}
 
@@ -147,18 +185,20 @@ const Logistics_Doc = (prop) => {
         })
 
         prop.selectedid && updateData(new_jasondata)
-        console.log(new_jasondata);
+        // console.log(new_jasondata);
         const request = prop.selectedid ? api().url(`/api/logistics/${prop.selectedid}/`).put(jsondata).json() :
             api().url(`/api/logistics/`).post(jsondata).json()
 
         request.then(data => {
+            // update_fin()
+            // console.log(prop.update_fin.updated)
             message.success("مدارک با موفقیت ثبت شد")
             prop.selectedid && prop.modal(false)
             !prop.selectedid && form.resetFields() || setFileList([]);
         })
             .catch(error => {
                 message.error("خطا در ثبت مدارک")
-                console.log(error)
+                // console.log(error)
             })
         // request.res(response => {
         //     if (response.ok) {
@@ -276,74 +316,6 @@ const Logistics_Doc = (prop) => {
                     </Form.Item>
                 </Col>
 
-            </Row>
-            <Row gutter={50}>
-                <Col span={12}>
-                    <Form.Item
-                        name="seller_id"
-                        label="کد ملی/ شناسه"
-                        rules={[
-                            {
-                                type: "text",
-                            },
-                        ]}
-                    >
-                        <Input placeholder="شناسه فروشنده"/>
-                    </Form.Item>
-                </Col>
-                <Col span={12}>
-                    <Form.Item
-                        colon={false}
-                        name="seller"
-                        // label="ارائه دهنده"
-                        label={<p style={{paddingLeft: "1.5rem"}}>ارائه دهنده:</p>}
-                        //   labelCol={{span: 4}}
-                        // style={{paddingLeft: '1.5rem'}}
-
-                        rules={[
-                            {
-                                type: "text",
-                            },
-                        ]}
-                    >
-                        <Input placeholder=" فروشگاه/شرکت/شخص"/>
-                    </Form.Item>
-                </Col>
-            </Row>
-
-            <Row gutter={50}>
-                <Col span={6}>
-                    <Form.Item
-                        name="price"
-                        label="قیمت"
-                        rules={[
-                            {
-                                type: "number",
-                                min: 0,
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                            addonAfter={"﷼"}
-                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => {
-                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                                let newValue = value;
-                                for (let i = 0; i < 10; i++) {
-                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-                                }
-
-                                return newValue?.replace(/\$\s?|(,*)/g, '')
-                            }
-
-
-                            }
-                            style={{width: "100%"}}
-                        />
-                    </Form.Item>
-
-                </Col>
                 <Col span={6}>
                     <Form.Item name="date_doc" label="تاریخ">
 
@@ -358,6 +330,40 @@ const Logistics_Doc = (prop) => {
                             }
                             }
                         />
+                    </Form.Item>
+                </Col>
+
+            </Row>
+            <Row gutter={50}>
+                <Col span={6}>
+                    <Form.Item
+                        name="seller_id"
+                        label="کد ملی/ شناسه"
+                        rules={[
+                            {
+                                type: "text",
+                            },
+                        ]}
+                    >
+                        <Input placeholder="شناسه فروشنده"/>
+                    </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item
+                        colon={false}
+                        name="seller"
+                        // label="ارائه دهنده"
+                        label={<p style={{}}>ارائه دهنده:</p>}
+                        //   labelCol={{span: 4}}
+                        // style={{paddingLeft: '1.5rem'}}
+
+                        rules={[
+                            {
+                                type: "text",
+                            },
+                        ]}
+                    >
+                        <Input placeholder=" فروشگاه/شرکت/شخص"/>
                     </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -385,6 +391,163 @@ const Logistics_Doc = (prop) => {
 
                     </Form.Item>
                 </Col>
+            </Row>
+            <Row gutter={50}>
+                <Col span={6}>
+                    <Form.Item
+                        name="account_name"
+                        label="در وجه"
+                        rules={[
+                            {
+                                type: "text",
+                            },
+                        ]}
+                    >
+                        <Input placeholder="نام شخص"/>
+                    </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item name="bank_name" label="بانک" rules={[
+                        {
+                            required: false
+                        },
+                    ]}>
+                        <Select
+                            showSearch
+                            filterOption={filterOption}
+                            placeholder="انتخاب بانک"
+                            // optionFilterProp="children"
+                            // onChange={onChange}
+                            // onSearch={onSearch}
+                            // filterOption={filterOption}
+                            options={
+                                [
+                                    {label: "بانک ملی ایران", value: "بانک ملی ایران"},
+                                    {label: "بانک سپه", value: "بانک سپه"},
+                                    {label: "بانک صنعت و معدن", value: "بانک صنعت و معدن"},
+                                    {label: "بانک کشاورزی", value: "بانک کشاورزی"},
+                                    {label: "بانک مسکن", value: "بانک مسکن"},
+                                    {label: "بانک توسعه صادرات ایران", value: "بانک توسعه صادرات ایران"},
+                                    {label: "بانک توسعه تعاون", value: "بانک توسعه تعاون"},
+                                    {label: "پست بانک ایران", value: "پست بانک ایران"},
+                                    {label: "بانک اقتصاد نوین", value: "بانک اقتصاد نوین"},
+                                    {label: "بانک پارسیان", value: "بانک پارسیان"},
+                                    {label: "بانک کارآفرین", value: "بانک کارآفرین"},
+                                    {label: "بانک سامان", value: "بانک سامان"},
+                                    {label: "بانک سینا", value: "بانک سینا"},
+                                    {label: "بانک خاورمیانه", value: "بانک خاورمیانه"},
+                                    {label: "بانک شهر", value: "بانک شهر"},
+                                    {label: "بانک دی", value: "بانک دی"},
+                                    {label: "بانک صادرات ایران", value: "بانک صادرات ایران"},
+                                    {label: "بانک ملت", value: "بانک ملت"},
+                                    {label: "بانک تجارت", value: "بانک تجارت"},
+                                    {label: "بانک رفاه کارگران", value: "بانک رفاه کارگران"},
+                                    {label: "بانک حکمت ایرانیان", value: "بانک حکمت ایرانیان"},
+                                    {label: "بانک گردشگری", value: "بانک گردشگری"},
+                                    {label: "بانک ایران زمین", value: "بانک ایران زمین"},
+                                    {label: "بانک قوامین", value: "بانک قوامین"},
+                                    {label: "بانک انصار", value: "بانک انصار"},
+                                    {label: "بانک سرمایه", value: "بانک سرمایه"},
+                                    {label: "بانک پاسارگاد", value: "بانک پاسارگاد"},
+                                    {label: "بانک آینده", value: "بانک آینده"},
+                                    {label: "بانک مهر اقتصاد", value: "بانک مهر اقتصاد"},
+                                    {label: "بانک قرض‌الحسنه مهر ایران", value: "بانک قرض‌الحسنه مهر ایران"},
+                                    {label: "بانک قرض‌الحسنه رسالت", value: "بانک قرض‌الحسنه رسالت"}
+                                ]
+
+
+                            }
+
+
+                        />
+
+                    </Form.Item>
+                </Col>
+
+                <Col span={12}>
+                    <Form.Item
+                        name="account_number"
+                        label="شماره حساب"
+                        rules={[
+                            {
+                                type: "text",
+                            },
+                        ]}
+                    >
+                        <Input placeholder=""/>
+                    </Form.Item>
+                </Col>
+
+
+            </Row>
+            <Row gutter={50}>
+                <Col span={12}>
+                    <Form.Item
+                        name="price"
+                        label="قیمت"
+                        rules={[
+                            {
+                                required: true,
+                                type: "number",
+                                min: 0,
+                            },
+                        ]}
+                    >
+                        <InputNumber
+                            addonAfter={"﷼"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+
+
+                            }
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
+
+                </Col>
+                <Col span={12}>
+                    <Form.Item
+                        name="vat"
+                        label="ارزش افزوده"
+                        rules={[
+                            {
+                                required: true,
+                                type: "number",
+                                min: 0,
+                            },
+                        ]}
+                    >
+                        <InputNumber
+                            addonAfter={"﷼"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+
+
+                            }
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
+
+                </Col>
+
 
             </Row>
             <Row>
@@ -393,7 +556,7 @@ const Logistics_Doc = (prop) => {
                         name="descr"
                         label="توضیحات"
                         labelCol={{span: 2}}
-                        wrapperCol={{span: 15}}
+                        wrapperCol={{span: 22}}
                     >
                         <Input.TextArea/>
                     </Form.Item>
@@ -410,7 +573,8 @@ const Logistics_Doc = (prop) => {
                     offset: 8,
                 }}
             >
-                <Button disabled={Fdoc_key !== null} type="primary" htmlType="submit">
+                <Button disabled={cheekbuttom} type="primary"
+                        htmlType="submit">
                     {prop.Fdata ? "ویرایش مدرک" : "ایجاد مدرک"}
 
                 </Button>
@@ -418,7 +582,8 @@ const Logistics_Doc = (prop) => {
                     <Button disabled={Fdoc_key !== null} isabled={Fdoc_key !== null} type="primary" danger
                             className={"!mr-20"}
                             onClick={delete_doc}>
-                        حذف مدرک
+
+                    حذف مدرک
                     </Button>}
             </Form.Item>
         </Form>

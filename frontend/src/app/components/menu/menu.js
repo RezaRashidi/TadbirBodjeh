@@ -1,10 +1,9 @@
 'use client'
 import {AuthActions} from "@/app/auth/utils";
-import {AppstoreOutlined, CalculatorOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
+import {CalculatorOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
 import {Menu} from 'antd';
-import Cookies from "js-cookie";
 import {usePathname, useRouter} from "next/navigation";
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 
 function getItem(label, key, icon, children, type) {
     return {
@@ -29,51 +28,68 @@ const handleLogout = (x) => {
         });
 };
 
-const items = [
-    getItem('تدارکات', 'sub1', <DiffOutlined/>, [
-        getItem('ایجاد مدارک', 'l1'),
-        getItem('لیست مدارک', 'l2'),
-        getItem('ایجاد سند', 'l3'),
-        getItem('لیست اسناد', 'l4'),
-        getItem('تنخواه گردان', null, null, [
-            getItem('ثبت تنخواه', 'l6'),
-            getItem('لیست تنخواه', 'l7'),
-            getItem('گزارش تنخواه', 'l8')]),
 
-    ]), {
-        type: 'divider',
-    },
-    getItem('امورمالی', 'sub2', <CalculatorOutlined/>, [
-        getItem('لیست اسناد تازه', '5'),
-        getItem('صدور اسناد مالی', '6'),
-        getItem('لیست اسناد مالی', '7'),
-    ]),
-    {
-        type: 'divider',
-    },
-    getItem('بودجه ریزی', 'sub4', <AppstoreOutlined/>, [
-        getItem('فرم 5', '9'),
-        getItem('مراکز هزینه', '12'),
-        getItem('بودجه‌ریزی مبتنی برعملکرد', null, null, [getItem('برنامه ها', '10'),
-            getItem('سنجه ها', '11'),
-            getItem('فعالیت ها و ریز فعالیت ها', '13'),
-            getItem('محرکه هزینه', '14')]),
-    ]),
-    {
-        type: 'divider',
-    },
-    getItem('حساب کاربری', 'grp',
-        <SettingOutlined/>, [getItem('داشبورد', '17'), getItem('تنطیمات', '15'), getItem('خروچ', '16')]),
-];
-const Menur = () => {
+const Menur = ({group}) => {
     const router = useRouter();
     const nextRouter = usePathname();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    useEffect(() => {
 
-        setIsLoggedIn(Cookies.get("login") === "1");
 
-    }, [nextRouter]);
+    // useEffect(() => {
+    //
+    // }, [nextRouter]);
+    //
+
+
+    const items = [
+        // getItem('بودجه ریزی', 'sub3', <AppstoreOutlined/>, [
+        //     getItem('فرم 5', '9'),
+        //     getItem('مراکز هزینه', '12'),
+        //     getItem('بودجه‌ریزی مبتنی برعملکرد', null, null, [getItem('برنامه ها', '10'),
+        //         getItem('سنجه ها', '11'),
+        //         getItem('فعالیت ها و ریز فعالیت ها', '13'),
+        //         getItem('محرکه هزینه', '14')]),
+        // ]),
+        // {
+        //     type: 'divider',
+        // },
+        getItem('حساب کاربری', 'grp',
+            <SettingOutlined/>, [getItem('داشبورد', '17'), getItem('تنطیمات', '15'), getItem('خروچ', '16')]),
+    ];
+    const logistic = [
+
+        getItem('تدارکات', 'sub1', <DiffOutlined/>, [
+            getItem('ایجاد مدارک', 'l1'),
+            getItem('لیست مدارک', 'l2'),
+            getItem('ایجاد سند', 'l3'),
+            getItem('لیست اسناد', 'l4'),
+            getItem('تنخواه گردان', null, null, [
+                getItem('ثبت تنخواه', 'l6'),
+                getItem('لیست تنخواه', 'l7'),
+                getItem('گزارش تنخواه', 'l8')]),
+
+        ]), {
+            type: 'divider',
+        },
+
+    ]
+    const financial = [
+        getItem('امورمالی', 'sub2', <CalculatorOutlined/>, [
+            getItem('لیست اسناد تازه', 'l10'),
+            getItem('صدور اسناد مالی', 'l11'),
+            getItem('لیست اسناد مالی', 'l12'),
+        ]),
+        {
+            type: 'divider',
+        },
+
+    ]
+
+    if (group && group.toString().startsWith("logistics")) {
+        items.unshift(...logistic)
+    } else if (group && group.toString().startsWith("financial")) {
+        items.unshift(...financial)
+    }
+
 
     const onClick = (e) => {
 
@@ -85,12 +101,13 @@ const Menur = () => {
         if (e.key === 'l7') router.push('/Logistics/Tankhah/list');
         if (e.key === 'l8') router.push('/Logistics/Tankhah/report');
         if (e.key === '17') router.push('/dashboard');
+        if (e.key === 'l12') router.push('/Financial/Financial_List');
         if (e.key === '16') handleLogout(router);
 
         console.log('click ', e);
     };
 
-    if (isLoggedIn) {
+
     return (
         <Menu
             onClick={onClick}
@@ -99,14 +116,12 @@ const Menur = () => {
                 direction: "rtl"
             }}
             defaultSelectedKeys={['1']}
-            defaultOpenKeys={['sub1']}
+            defaultOpenKeys={['sub1', 'sub2', 'sub3']}
             mode="inline"
             items={items}
         />
     );
-    } else {
-        return null;
-    }
+
 
 };
 export default Menur;

@@ -54,10 +54,14 @@ class Logistics(models.Model):
     updated = models.DateTimeField(auto_now=True, blank=True)
     measure = models.CharField(max_length=255, null=True, blank=True)
     CostDriver = models.CharField(max_length=255, null=True, blank=True)
-    # filed for array of upload id for each file
     uploads = models.ManyToManyField(LogisticsUploads, blank=True)
+    vat = models.FloatField(blank=True, null=True)
+    account_number = models.CharField(max_length=255, null=True, blank=True)
+    account_name = models.CharField(max_length=255, null=True, blank=True)
+    bank_name = models.CharField(max_length=255, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='Logistics', null=True)
 
+    # filed for array of upload id for each file
     # upload_ids= models.CharField(max_length=255, null=True, blank=True)
     def __str__(self) -> str:
         return self.name

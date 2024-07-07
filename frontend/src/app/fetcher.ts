@@ -45,7 +45,9 @@ export const api = () => {
             })
     );
 };
-
+export const getGroup = () => {
+    return api().get("/group/").json();
+}
 /**
  * Fetches data from the specified URL, automatically handling authentication and token refresh.
  * @returns {Promise<any>} The promise resolving to the fetched data.

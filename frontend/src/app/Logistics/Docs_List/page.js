@@ -4,7 +4,7 @@ import Logistics_Doc from "@/app/Logistics/Docs/page";
 import {Modal, Table} from "antd";
 import React, {useEffect, useState} from "react";
 
-const App = () => {
+const App = ({}) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [updatedata, setupdatedata] = useState(false);
     const [data, setData] = useState([]);

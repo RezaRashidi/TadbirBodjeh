@@ -90,10 +90,55 @@ class FinancialViewSet(viewsets.ModelViewSet):
     #     guardian.shortcuts.assign_perm('change_financial', self.request.user, instance)
     #     guardian.shortcuts.assign_perm('delete_financial', self.request.user, instance)
     def get_queryset(self):
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
+        fin_state = self.request.query_params.get('fin_state', None)
         queryset = self.queryset
-        if self.request.user.is_staff:
+        if fin_state is not None:
+            queryset = queryset.filter(fin_state=fin_state)
+
+        if self.request.user.is_staff or any(name.startswith("financial") for name in group_names):
             return queryset
         return queryset.filter(created_by=self.request.user)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
+
+        # Check if any group name starts with "Financial"
+        if any(name.startswith("financial") for name in group_names):
+            # Only allow updating the fin_state field
+            if 'fin_state' in request.data:
+                if instance.fin_state == 3:
+                    return Response({"error": "cant changed from state final."},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                instance.fin_state = request.data['fin_state']
+                instance.save()
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+            else:
+                return Response({"error": "Only fin_state field can be updated in financial."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        elif (name.startswith("logistics") for name in group_names):
+            # allow updating the fin_state field only from 1.0 to 2
+            if 'fin_state' in request.data:
+                if instance.fin_state == 0 and request.data['fin_state'] == 1:
+                    instance.fin_state = request.data['fin_state']
+                    instance.save()
+                    serializer = self.get_serializer(instance)
+                    return Response(serializer.data)
+                else:
+                    return Response({"error": "Only fin_state field can be updated form 0 to 1 in logistics."},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            else:
+                # save it with the same data
+                return self.partial_update(request, *args, **kwargs)
+
+        else:
+            return Response({"error": "You do not have permission to perform this action."},
+                            status=status.HTTP_403_FORBIDDEN)
 
     # def get_object(self):
     #     obj = django.shortcuts.get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])

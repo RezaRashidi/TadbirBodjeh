@@ -1,191 +1,178 @@
 "use client";
 import {api} from "@/app/fetcher";
-import {jalaliPlugin} from "@realmodule/antd-jalali";
-import {ConfigProvider, Table, Typography} from "antd";
-import fa_IR from "antd/lib/locale/fa_IR";
-import dayjs from "dayjs";
-import Num2persian from 'num2persian';
+import Logistics_Doc from "@/app/Logistics/Docs/page";
+import {Modal, Table} from "antd";
 import React, {useEffect, useState} from "react";
 import "@/styles/table.css";
 
-export function numberWithCommas(x) {
+export async function async_FetchLogisticsData(id) {
+    let nextURL = `/api/logistics/?Fdoc_key=${id}`;
+    let url = false
+    let newdata = {}
+    while (nextURL) {
+        const res = await api().url(nextURL, url).get().json();
 
-    return x !== null ? x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : 0
-}
+        if (res.next !== null) {
+            url = true
+        }
+        nextURL = res.next;
 
-function convertToPersianNumber(number) {
+        if (newdata.results) {
+            newdata.results.push(...res.results);
+        } else {
+            newdata = res
+        }
 
-    return number.toLocaleString('fa-IR');
+    }
+    // console.log(newdata)
+    return newdata
 }
 
 // print function that show financial report that include table of logistic document with header and footer
 export default function Fin_detail(props) {
-    const [Log_list, set_Log_list] = useState([], (x) => convertToPersianNumber(x));
-    const [fin, set_fin] = useState({});
-    const {Text} = Typography;
+
     let id = props.record ? props.record.id : 41;
-    // console.log("props");
-    // console.log(props.record.id);
-    let Price = 0;
-    Log_list.forEach(({price,}) => {
-        Price += price;
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [updatedata, setupdatedata] = useState(false);
+    const [data, setData] = useState([]);
+    const [location, setlocation] = useState([]);
+    const [selectedid, setselectedid] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [tableParams, setTableParams] = useState({
+        pagination: {
+            current: 1, pageSize: 10,
+        },
     });
-    dayjs.calendar('jalali');
-    dayjs.extend(jalaliPlugin);
-    dayjs.locale('fa');
-    const farsinum = value => {
-        if (value === null || value === undefined) {
-            return 0
-        }
 
-        const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-        const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-        let newValue = value;
-        for (let i = 0; i < 10; i++) {
-            newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-        }
-        return newValue;
+
+    const handleModalChange = (newState) => {
+
+        setIsModalOpen(newState);
+        props.change_data(props.record.id)
+    };
+    const showModal = (value) => {
+        setselectedid(value.id)
+        setIsModalOpen(true);
+    };
+    const handleOk = () => {
+        setIsModalOpen(false);
+    };
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+    const remove_item = (id) => {
+        setData(
+            data.filter((item) => item.id !== id)
+        )
     }
-    let Price_ir = numberWithCommas(convertToPersianNumber(Price))
-    useEffect(() => {
-
-
-            let nextURL = `/api/logistics/?Fdoc_key=${id}`;
-            let url = false
-
-            async function fetchLogisticsData() {
-                let newdata = []
-                while (nextURL) {
-                    const res = await api().url(nextURL, url).get().json();
-
-                    if (res.next !== null) {
-                        url = true
-                    }
-                    nextURL = res.next;
-                    newdata.push(...res.results.map((item) => ({"key": item.id, ...item})));
-
-                }
-
-
-                return newdata
-            }
-
-
-            fetchLogisticsData().then(r => {
-                set_Log_list(r)
-                // console.log(r);
-            });
-
-
-            if (props.record) {
-
-                set_fin(props.record);
-            } else {
-                api().url(`/api/financial/${id}`).get().json().then((res) => {
-                    set_fin(res)
-                })
-
-
-            }
-        }
-        ,
-        []
-    )
-    //props.record.updated
     const columns = [{
-        title: '#',
-        dataIndex: 'index',
-        key: 'index',
-        width: "5px",
-        align: "center",
-        render: (text, record, index) => index + 1
+        title: 'شماره',
+        dataIndex: 'id',
+        key: 'id',
     }, {
-        title: 'نام کالا/خدمات\n', dataIndex: 'name', key: 'name', align: "center"
+
+        title: 'نام کالا/خدمات\n', dataIndex: 'name', key: 'name', render: (text, record) => {
+            // setselectedid(record.id)
+            return <>
+                <a onClick={() => showModal(record)}>{text}</a>
+            </>
+        }
     }, {
-        title: 'نوع ارائه',
-        dataIndex: 'type',
-        key: 'type',
+        title: 'نوع ارائه', dataIndex: 'type', key: 'type',
+        filters: [
+            {
+                text: 'کالا',
+                value: true,
+            },
+            {
+                text: "خدمات",
+                value: false,
+            },
+        ],
+        onFilter: (value, record) => record.type === value,
         render: (bool) => bool ? "کالا" : "خدمات",
-        align: "center",
     }, {
-        title: 'کدملی/شناسه', dataIndex: 'seller_id', key: 'seller_id', align: "center",
+        title: 'کد ملی/ شناسه\n', dataIndex: 'seller_id', key: 'seller_id',
     }, {
-        title: 'محل هزینه', dataIndex: 'Location', key: 'Location', align: "center",
-        render: (data) => data.name
-    }, {
-        title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller', align: "center",
-    }, {
-        title: 'توضیحات', dataIndex: 'descr', key: 'descr', align: "center",
-    }, {
+        title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller',
+    }, , {
+        title: 'قیمت', dataIndex: 'price', key: 'price',
+        sorter: (a, b) => a.price - b.price,
+    }, , {
         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
             return new Intl.DateTimeFormat('fa-IR', {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit'
             }).format(new Date(date));
-        }, align: "center",
-    }, {
-        title: 'قیمت',
-        dataIndex: 'price',
-        key: 'price',
-        render: (price) => convertToPersianNumber(price),
-        align: "center",
+        }
+    },
+
+        // {
+        //     title: 'سازنده',
+        //     dataIndex: 'user',
+        //     key: 'user',
+        //     // eslint-disable-next-line react/jsx-key
+        // },
+        // {
+        //     title: 'سند',
+        //     dataIndex: 'Fdoc_key',
+        //     key: 'Fdoc_key',
+        //     // eslint-disable-next-line react/jsx-key
+        // },
+        {
+            title: 'مدارک', dataIndex: 'uploads', key: 'uploads', // eslint-disable-next-line react/jsx-key
+            render: (u) => u ? u.map((upload) => (
+                <div key={upload.id}><a href={upload.file}>{upload.name}</a></div>)) : null,
+        },];
+    const handleTableChange = (pagination, filters, sorter) => {
+        setupdatedata(!updatedata)
+        setTableParams({
+            pagination, filters, ...sorter,
+        })
     }
 
+    const fetchData = () => {
+        setLoading(true);
 
-    ];
+        async_FetchLogisticsData(id).then(res => {
+            // console.log(res)
+            let newdata = res.results.map((item) => ({"key": item.id, ...item}))
+            setData(newdata);
+            setlocation(res.sub_units)
+            setLoading(false);
+            // setTableParams({
+            //     ...tableParams, pagination: {
+            //         ...tableParams.pagination, total: res.count, // 200 is mock data, you should read it from server
+            //         // total: data.totalCount,
+            //     },
+            // });
+        });
 
-    return <ConfigProvider locale={fa_IR} direction="rtl" theme={{
-        token: {
-            fontFamily: "Yekan",
-            Table: {
-                cellFontSize: 9,
-                padding: "2px",
+        // api().url(`/api/logistics/?page=${tableParams.pagination.current}`).get().json().then((res) => {
+        //     console.log(res);
+        //     let newdata = res.results.map((item) => ({"key": item.id, ...item}))
+        //     setData(newdata);
+        //     setlocation(res.sub_units)
 
-                borderColor: "black"
-                /* here is your component tokens */
-            }
+        // });
 
-        }
-    }}>
-        <div className={" yekan"} dir="rtl">
+    };
+    useEffect(() => {
+        fetchData();
+    }, [updatedata]);
 
-
-            <article className={"pb-4 "}>
-                <Table className={"text-s"} columns={columns} dataSource={Log_list} bordered
-                       pagination={false}
-                       rowClassName={'row'}
-                    // theme={{
-                    //     token: {
-                    //         fontFamily: "Yekan",
-                    //         Table: {
-                    //             cellFontSize: 1,
-                    //             padding: "2px",
-                    //             borderColor: "black"
-                    //             /* here is your component tokens */
-                    //         }
-                    //     }
-                    // }}
-                       summary={(pageData) => {
+    return (<>
+        <Modal title="ویرایش مدارک" style={{marginLeft: "-15%"}} centered open={isModalOpen}
+               onOk={handleOk} width={"75%"} onCancel={handleCancel} footer={null} zIndex={100}>
 
 
-                           return (<>
-                               <Table.Summary.Row>
-                                   <Table.Summary.Cell index={0} colSpan={2} align={'center'}>جمع
-                                       کل</Table.Summary.Cell>
-                                   <Table.Summary.Cell index={1} colSpan={5} align={"center"}>
-                                       <Text type="">مبلغ کل به حروف : {Num2persian(Price)} ریال </Text>
-                                   </Table.Summary.Cell>
-                                   <Table.Summary.Cell index={2} colSpan={2} align={"center"}>
-                                       <Text type="">{Price_ir} ریال</Text>
-                                   </Table.Summary.Cell>
+            <Logistics_Doc Fdata={data} selectedid={selectedid} modal={handleModalChange} remove={remove_item}
+                           location={location} fin_state={props.record.fin_state} update_fin={props.Fdata}/>
 
-                               </Table.Summary.Row>
-
-                           </>);
-                       }}/>
-            </article>
-
-        </div>
-    </ConfigProvider>
+        </Modal>
+        <Table columns={columns} dataSource={data}
+               loading={loading} onChange={handleTableChange} pagination={false}/>
+    </>)
 }

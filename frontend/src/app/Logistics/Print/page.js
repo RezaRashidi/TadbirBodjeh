@@ -19,6 +19,22 @@ function convertToPersianNumber(number) {
 
     return number.toLocaleString('fa-IR');
 }
+
+export async function asyncFetchLogisticsData(id) {
+    let nextURL = `/api/logistics/?Fdoc_key=${id}`;
+    let url = false
+    let newdata = []
+    while (nextURL) {
+        const res = await api().url(nextURL, url).get().json();
+
+        if (res.next !== null) {
+            url = true
+        }
+        nextURL = res.next;
+        newdata.push(...res.results.map((item) => ({"key": item.id, ...item})));
+    }
+    return newdata
+}
 function Fin_print(props, ref) {
     const [Log_list, set_Log_list] = useState([], (x) => convertToPersianNumber(x));
     const [fin, set_fin] = useState({});
@@ -34,6 +50,8 @@ function Fin_print(props, ref) {
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
     dayjs.locale('fa');
+
+
     const farsinum = value => {
         if (value === null || value === undefined) {
             return 0
@@ -50,24 +68,8 @@ function Fin_print(props, ref) {
     let Price_ir = numberWithCommas(convertToPersianNumber(Price))
     useEffect(() => {
 
-            let nextURL = `/api/logistics/?Fdoc_key=${id}`;
-            let url = false
 
-            async function fetchLogisticsData() {
-                let newdata = []
-                while (nextURL) {
-                    const res = await api().url(nextURL, url).get().json();
-
-                    if (res.next !== null) {
-                        url = true
-                    }
-                    nextURL = res.next;
-                    newdata.push(...res.results.map((item) => ({"key": item.id, ...item})));
-                }
-                return newdata
-            }
-
-            fetchLogisticsData().then(r => {
+            asyncFetchLogisticsData(id).then(r => {
                 set_Log_list(r)
                 // console.log(r);
             });
@@ -108,22 +110,22 @@ function Fin_print(props, ref) {
         title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller', align: "center",
     },
         {
-        title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
-            return new Intl.DateTimeFormat('fa-IR', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            }).format(new Date(date));
-        }, align: "center",
+            title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
+                return new Intl.DateTimeFormat('fa-IR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).format(new Date(date));
+            }, align: "center",
         },
 
 
         {
-        title: 'قیمت',
-        dataIndex: 'price',
-        key: 'price',
+            title: 'قیمت',
+            dataIndex: 'price',
+            key: 'price',
             render: (price) => <span className={"text-sm"}>{convertToPersianNumber(price)}</span>,
-        align: "center",
+            align: "center",
         },
 
 
