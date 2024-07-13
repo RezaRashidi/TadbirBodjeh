@@ -9,3 +9,9 @@ target/
 .ipynb_checkpoints
 /backend/uploads
 /backend/uploads/
+/backend/media/
+/.vscode/
+!/backend/.idea/dataSources/
+!/backend/.idea/inspectionProfiles/
+!/backend/.idea/runConfigurations/
+!/frontend/.idea/inspectionProfiles/
