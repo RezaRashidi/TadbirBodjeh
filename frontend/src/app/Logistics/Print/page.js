@@ -38,7 +38,7 @@ export async function asyncFetchLogisticsData(id) {
 function Fin_print(props, ref) {
     const [Log_list, set_Log_list] = useState([], (x) => convertToPersianNumber(x));
     const [fin, set_fin] = useState({});
-    const username = props.record ? props.record.user_group == "Logistics-other" ? "" : props.record.user : ''
+    const username = props.record ? props.record.user_group == "logistics-other" ? "" : props.record.user : ''
     const {Text} = Typography;
     let id = props.record ? props.record.id : 41;
     // console.log("props");
