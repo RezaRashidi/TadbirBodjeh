@@ -53,7 +53,10 @@ const Menur = ({group}) => {
         //     type: 'divider',
         // },
         getItem('حساب کاربری', 'grp',
-            <SettingOutlined/>, [getItem('داشبورد', '17'), getItem('تنطیمات', '15'), getItem('خروچ', '16')]),
+            <SettingOutlined/>, [getItem('داشبورد', '17'),
+                getItem('تغییر پسورد', '15'),
+                // getItem('تنطیمات', '15'),
+                getItem('خروچ', '16')]),
     ];
     const logistic = [
 
@@ -74,8 +77,8 @@ const Menur = ({group}) => {
     ]
     const financial = [
         getItem('امورمالی', 'sub2', <CalculatorOutlined/>, [
-            getItem('لیست اسناد تازه', 'l10'),
-            getItem('صدور اسناد مالی', 'l11'),
+            // getItem('لیست اسناد تازه', 'l10'),
+            // getItem('صدور اسناد مالی', 'l11'),
             getItem('لیست اسناد مالی', 'l12'),
         ]),
         {
@@ -102,6 +105,7 @@ const Menur = ({group}) => {
         if (e.key === 'l8') router.push('/Logistics/Tankhah/report');
         if (e.key === '17') router.push('/dashboard');
         if (e.key === 'l12') router.push('/Financial/Financial_List');
+        if (e.key === '15') router.push('/password/reset-password');
         if (e.key === '16') handleLogout(router);
 
         console.log('click ', e);

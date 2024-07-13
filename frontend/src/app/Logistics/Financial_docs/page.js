@@ -11,7 +11,7 @@ function RezaSelect(props) {
     const next = useRef({});
     const pagenumber = useRef(1);
     useEffect(() => {
-        api().url(`/api/logistics/?get_nulls=0&?page=${pagenumber.current}`).get().json().then((res) => {
+        api().url(`/api/logistics/?get_nulls=true&?page=${pagenumber.current}`).get().json().then((res) => {
             console.log(res.results)
             next.correct = res.next
             setlist(res.results.map((item) => ({
@@ -24,7 +24,7 @@ function RezaSelect(props) {
 
     }, [props.data])
     const onSearch = (value) => {
-        api().url(`/api/logistics/?get_nulls=0&search=${value}`).get().json().then((res) => {
+        api().url(`/api/logistics/?get_nulls=true&search=${value}`).get().json().then((res) => {
             setlist(res.results.map((item) => ({
                 "value": item.id,
                 "label": item.id + " - " + item.name + " - " + item.price.toLocaleString(),
@@ -164,9 +164,24 @@ const
         }, [prop.Fdata, prop.selectedid]);
 
         //write fun that get the changed data from the form and update prop.Fdata with new data
-        // این چرا کار می کند؟
+
         function updateData(data) {
-            prop.Fdata.filter((item) => {
+            // این چرا کار می کند؟
+            // prop.Fdata.filter((item) => {
+            //     if (item.id === prop.selectedid) {
+            //         item.name = data.name;
+            //         item.date_doc = data.date_doc;
+            //         item.CostType = data.CostType;
+            //         item.descr = data.descr;
+            //         item.logistics = data.logistics;
+            //         item.tax = parseInt(data.tax);
+            //         item.updated = data.updated
+            //         item.Payment_type = data.Payment_type
+            //         item.total_logistics_price = data.total_logistics_price
+            //     }
+            // })
+
+            prop.Fdata.map((item) => {
                 if (item.id === prop.selectedid) {
                     item.name = data.name;
                     item.date_doc = data.date_doc;
@@ -176,7 +191,6 @@ const
                     item.tax = parseInt(data.tax);
                     item.updated = data.updated
                     item.Payment_type = data.Payment_type
-                    item.total_logistics_price = data.total_logistics_price
                 }
             })
         }

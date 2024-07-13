@@ -96,3 +96,11 @@ class CreditSerializer(serializers.ModelSerializer):
     class Meta:
         model = credit
         fields = '__all__'
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    """
+    Serializer for password change endpoints.
+    """
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)

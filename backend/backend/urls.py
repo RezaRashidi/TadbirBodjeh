@@ -18,10 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 
-import tadbirbodjeh.views
+import tadbirbodjeh
 from tadbirbodjeh.views import (
     FinancialViewSet,
     LogisticsViewSet,
+    PasswordResetView,
     LogisticsUploadsViewSet, LogoutView, pettyCashViewSet, pettyCashReport, get_user_info, units
 )
 
@@ -31,9 +32,11 @@ router.register(r"financial", FinancialViewSet)
 router.register(r"logistics-uploads", LogisticsUploadsViewSet)
 router.register(r"pettycash", pettyCashViewSet)
 router.register(r"units", units)
+# router.register(r"password-reset", PasswordResetView.as_view())
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
+    path("api/password-reset/", PasswordResetView.as_view()),
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
     path("auth/logout/", LogoutView.as_view()),

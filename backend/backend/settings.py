@@ -178,6 +178,7 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "auth/password/reset-password-confirmation/?uid={uid}&token={token}",
     "ACTIVATION_URL": "#/activate/{uid}/{token}",
     "SEND_ACTIVATION_EMAIL": False,
+    "PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND": False,
     "SERIALIZERS": {},
 }
 SITE_NAME = "تدبیر بودجه"

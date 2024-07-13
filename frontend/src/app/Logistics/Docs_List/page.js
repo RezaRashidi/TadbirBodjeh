@@ -1,7 +1,7 @@
 "use client";
 import {api} from "@/app/fetcher";
 import Logistics_Doc from "@/app/Logistics/Docs/page";
-import {Modal, Table} from "antd";
+import {Modal, Radio, Table} from "antd";
 import React, {useEffect, useState} from "react";
 
 const App = ({}) => {
@@ -11,11 +11,13 @@ const App = ({}) => {
     const [location, setlocation] = useState([]);
     const [selectedid, setselectedid] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [doc_state, set_doc_state] = useState("?get_nulls=true");
     const [tableParams, setTableParams] = useState({
         pagination: {
             current: 1, pageSize: 10,
         },
     });
+
     const handleModalChange = (newState) => {
         setIsModalOpen(newState);
     };
@@ -87,6 +89,7 @@ const App = ({}) => {
             title: 'سند',
             dataIndex: 'Fdoc_key',
             key: 'Fdoc_key',
+            hidden: "?get_nulls=true" === doc_state,
             // eslint-disable-next-line react/jsx-key
         },
         {
@@ -103,8 +106,12 @@ const App = ({}) => {
 
     const fetchData = () => {
         setLoading(true);
-        api().url(`/api/logistics/?page=${tableParams.pagination.current}`).get().json().then((res) => {
-            console.log(res);
+        // let fdoc=doc_state ? "?get_nulls=1&" : "?get_nulls=0&" //doc_state && "?get_nulls=0&"
+        console.log(
+            `      ${doc_state}?page=${tableParams.pagination.current}`
+        )
+        api().url(`/api/logistics/${doc_state}&page=${tableParams.pagination.current}`).get().json().then((res) => {
+            // console.log(res);
             let newdata = res.results.map((item) => ({"key": item.id, ...item}))
             setData(newdata);
             setlocation(res.sub_units)
@@ -119,8 +126,14 @@ const App = ({}) => {
 
     };
     useEffect(() => {
+        setTableParams({
+
+            pagination: {
+                current: 1,
+            },
+        });
         fetchData();
-    }, [updatedata]);
+    }, [updatedata, doc_state]);
 
     return (<>
         <Modal title="ویرایش مدارک" style={{marginLeft: "-15%"}} centered open={isModalOpen}
@@ -131,6 +144,21 @@ const App = ({}) => {
                            location={location}/>
 
         </Modal>
+        <Radio.Group onChange={(e) => {
+            setTableParams({
+                pagination: {
+                    current: 1,
+                    pageSize: 10,
+                },
+            });
+            set_doc_state(e.target.value)
+        }
+        } defaultValue={doc_state}>
+            <Radio.Button value={"?get_nulls=true"}>بدون سند</Radio.Button>
+            <Radio.Button value={"?get_nulls=false"}>با سند</Radio.Button>
+
+
+        </Radio.Group>
         <Table columns={columns} dataSource={data} pagination={tableParams.pagination}
                loading={loading} onChange={handleTableChange}/>
     </>)

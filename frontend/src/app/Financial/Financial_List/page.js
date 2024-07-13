@@ -270,7 +270,15 @@ const App = (props) => {
 
                     <Financial_docs Fdata={data} selectedid={selectedid} modal={handleModalChange}/>
                 </Modal>
-                <Radio.Group onChange={(e) => set_fin_state(e.target.value)} defaultValue={fin_state}>
+                <Radio.Group onChange={(e) => {
+                    setTableParams({
+                        pagination: {
+                            current: 1,
+                            pageSize: 10,
+                        },
+                    });
+                    set_fin_state(e.target.value)
+                }} defaultValue={fin_state}>
                     <Radio.Button value={1}>در حال بررسی</Radio.Button>
                     <Radio.Button value={2}>تایید شده</Radio.Button>
 

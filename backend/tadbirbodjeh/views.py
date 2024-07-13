@@ -1,14 +1,18 @@
 import datetime
 import logging
 
+import django.contrib.auth
 import django.contrib.auth.decorators
 import django.contrib.auth.mixins
+import django.contrib.auth.models
 import django.core.exceptions
 import django.db.models
 import django.http
 import django.shortcuts
 import django.utils.dateparse
+import rest_framework.generics
 import rest_framework.pagination
+import rest_framework.permissions
 import rest_framework.views
 import rest_framework_simplejwt.exceptions
 import rest_framework_simplejwt.tokens
@@ -21,6 +25,7 @@ from .serializers import (
     FinancialSerializer,
     LogisticsSerializer,
     LogisticsUploadsSerializer, LogisticsSerializerlist, pettyCashSerializer, CreditSerializer, sub_unitSerializer,
+    PasswordChangeSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -216,6 +221,8 @@ class LogisticsViewSet(viewsets.ModelViewSet):
     pagination_class = LogisticsCustomPagination
 
     def get_queryset(self):
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
         Fdoc_key = self.request.query_params.get('Fdoc_key', None)
         get_nulls = self.request.query_params.get('get_nulls', None)
         search = self.request.query_params.get('search', None)
@@ -227,17 +234,23 @@ class LogisticsViewSet(viewsets.ModelViewSet):
                 return Logistics.objects.filter(Fdoc_key__isnull=True).filter(
                     Q(name__icontains=search) | Q(id__icontains=search)).reverse().order_by('id').filter(
                     created_by=self.request.user)
-            if self.request.user.is_staff:
-                return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id')
-            return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id').filter(
-                created_by=self.request.user)
+            if get_nulls == 'true':
+                if self.request.user.is_staff:
+                    return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id')
+                return Logistics.objects.filter(Fdoc_key__isnull=True).reverse().order_by('id').filter(
+                    created_by=self.request.user)
+            elif get_nulls == 'false':
+                if self.request.user.is_staff:
+                    return Logistics.objects.filter(Fdoc_key__isnull=False).reverse().order_by('id')
+                return Logistics.objects.filter(Fdoc_key__isnull=False).reverse().order_by('id').filter(
+                    created_by=self.request.user)
         elif Fdoc_key is not None:
-            if self.request.user.is_staff:
+            if self.request.user.is_staff or any(name.startswith("financial") for name in group_names):
                 return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).order_by('id')
             return Logistics.objects.filter(Q(Fdoc_key__exact=Fdoc_key)).order_by('id').filter(
                 created_by=self.request.user)
         else:
-            if self.request.user.is_staff:
+            if self.request.user.is_staff or any(name.startswith("financial") for name in group_names):
                 return Logistics.objects.all().reverse().order_by('id')
             return Logistics.objects.all().reverse().order_by('id').filter(created_by=self.request.user)
 
@@ -355,6 +368,7 @@ def index(request):
     html = "<html><body>It is now %s.</body></html>" % now
     return django.http.HttpResponse(html, status=403)
 
+
 # class LogisticsViewSetList(viewsets.ModelViewSet):
 #     queryset = Logistics.objects.all().reverse().order_by('id')
 #     serializer_class = LogisticsSerializerlist
@@ -366,3 +380,32 @@ def index(request):
 #         serializer.save()
 #         return Response(serializer.data, status=status.HTTP_201_CREATED)
 #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PasswordResetView(rest_framework.generics.UpdateAPIView):
+    """
+    An endpoint for changing password.
+    """
+
+    serializer_class = PasswordChangeSerializer
+    model = django.contrib.auth.models.User
+    permission_classes = (rest_framework.permissions.IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+            # set_password also hashes the password that the user will get
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            django.contrib.auth.update_session_auth_hash(request, self.object)  # Important!
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

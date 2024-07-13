@@ -172,7 +172,7 @@ export default function Fin_detail(props) {
                            location={location} fin_state={props.record.fin_state} update_fin={props.Fdata}/>
 
         </Modal>
-        <Table columns={columns} dataSource={data}
+        <Table columns={columns} dataSource={data} bordered
                loading={loading} onChange={handleTableChange} pagination={false}/>
     </>)
 }

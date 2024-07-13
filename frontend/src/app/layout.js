@@ -67,7 +67,7 @@ export default function RootLayout({children, metadata = Metadata}) {
 
 
         //بعدا حذف شود
-        if (Cookies.get("login") === 1 && !Cookies.get("group")) {
+        if (Cookies.get("login") === "1" && !Cookies.get("group")) {
             getGroup().then((value) => {
                 Cookies.set("group", value.toString());
                 set_group(Cookies.get("group"));
