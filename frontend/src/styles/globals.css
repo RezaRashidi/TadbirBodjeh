@@ -3,25 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+    --foreground-rgb: 0, 0, 0;
+    --background-start-rgb: 214, 219, 220;
+    --background-end-rgb: 255, 255, 255;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+    :root {
+        --foreground-rgb: 255, 255, 255;
+        --background-start-rgb: 0, 0, 0;
+        --background-end-rgb: 0, 0, 0;
+    }
 }
 
 @font-face {
-  font-family: 'Yekan';
-  src: url('/Fonts/Yekan.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
+    font-family: 'Yekan';
+    src: url('/Fonts/Yekan.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -31,28 +31,29 @@
     font-style: normal;
     font-display: swap;
 }
+
 body {
-  font-family: 'Yekan';
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+    font-family: 'Yekan';
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
+            to bottom,
+            transparent,
+            rgb(var(--background-end-rgb))
+    ) rgb(var(--background-start-rgb));
 }
 
 .yekan {
-  font-family: 'Yekan';
+    font-family: 'Yekan';
 }
 
 .nazanin {
     font-family: 'nazanin' !important;
 }
+
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+    .text-balance {
+        text-wrap: balance;
+    }
 }
 
 .mytable {
@@ -69,4 +70,21 @@ body {
 tr td:nth-child(2) {
     /* Your styles here */
     text-align: center;
+}
+
+.ant-table-cell {
+    text-align: center !important;
+}
+
+.detail-table .ant-table-container {
+    border: 1px solid #afa3a3 !important;
+    border-collapse: collapse;
+    /*border-spacing: 0;*/
+    /*width: 100%;*/
+    /*    width: 100%;*/
+    /*table-layout: fixed;*/
+}
+
+.green-row {
+    background-color: rgba(248, 172, 9, 0.19) !important;
 }

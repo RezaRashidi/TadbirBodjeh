@@ -40,11 +40,29 @@ class FinancialSerializer(serializers.ModelSerializer):
         exclude = ['created_by']
 
 
-class pettyCashSerializer(serializers.ModelSerializer):
+class pettyCashCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PettyCash
-        # fields = '__all__'
-        exclude = ['created_by']
+        fields = '__all__'
+
+
+class pettyCashListSerializer(serializers.ModelSerializer):
+    forwhom = serializers.SerializerMethodField()
+
+    def get_forwhom(self, obj):
+        user = obj.forwhom
+        if user:
+            return {
+                'id': user.id,
+                'name': f"{user.first_name} {user.last_name}",
+            }
+        return None
+
+    # forhome
+    class Meta:
+        model = PettyCash
+        fields = '__all__'
+        # exclude = ['created_by']
 
 
 class LogisticsUploadsSerializer(serializers.ModelSerializer):

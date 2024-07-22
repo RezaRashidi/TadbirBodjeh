@@ -1,14 +1,14 @@
 "use client"
 import Menur from "@/app/components/menu/menu";
-import {getGroup} from "@/app/fetcher";
+import {api, fetcher, getGroup} from "@/app/fetcher";
 import {AntdRegistry} from '@ant-design/nextjs-registry';
-import {ConfigProvider} from "antd";
+import {ConfigProvider, message} from "antd";
 import fa_IR from "antd/lib/locale/fa_IR";
 import "@/styles/globals.css";
 import Cookies from "js-cookie";
 import localFont from 'next/font/local'
 import Image from 'next/image'
-import {usePathname} from "next/navigation";
+import {usePathname, useRouter} from "next/navigation";
 import React, {createContext, useContext, useEffect, useState} from "react";
 import arm from '../images/Arm.jpg'
 
@@ -55,6 +55,7 @@ export default function RootLayout({children, metadata = Metadata}) {
     const [group, set_group] = useState("")
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [key, setKey] = useState(0);
+    const router = useRouter();
 
     const refreshLayout = () => {
         setUsername(Cookies.get("username"));
@@ -73,6 +74,27 @@ export default function RootLayout({children, metadata = Metadata}) {
                 set_group(Cookies.get("group"));
             })
         }
+        //بعدا حذف شود
+        if (Cookies.get("login") === "1" && !Cookies.get("admin")) {
+            fetcher("/get_user_info").then((data) => {
+                Cookies.set("username", data.name);
+
+            })
+        }
+
+        const requestnull = api().url(`/api/pettycash/?get_nulls=true`).get().json().then(
+            (res) => {
+                console.log(res)
+                if (res.count > 0) {
+                    message.info("تنخواهی برای بررسی موجود است", 10)
+                    router.push('/Logistics/Tankhah/list');
+                }
+
+            }
+        )
+
+
+
         setIsLoggedIn(Cookies.get("login") === "1");
         set_group(Cookies.get("group"));
         //////////

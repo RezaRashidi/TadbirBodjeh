@@ -89,6 +89,7 @@ function RezaSelect(props) {
             placeholder="انتخاب مدارک"
             // showSearch={true}
             // value={value}
+            disabled={props.fin_state > 0}
             mode="multiple"
             filterOption={false}
             onSearch={onSearch}

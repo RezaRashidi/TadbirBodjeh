@@ -24,6 +24,7 @@ export default function Dashbord() {
             //console.log(data)
             set_user(data)
             Cookies.set("username", data.name);
+            Cookies.set("admin", data.admin)
             refreshLayout();
         })
 

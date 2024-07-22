@@ -1,6 +1,6 @@
 'use client'
 import {AuthActions} from "@/app/auth/utils";
-import {CalculatorOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
+import {BookOutlined, CalculatorOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
 import {Menu} from 'antd';
 import {usePathname, useRouter} from "next/navigation";
 import React from 'react';
@@ -65,12 +65,13 @@ const Menur = ({group}) => {
             getItem('لیست مدارک', 'l2'),
             getItem('ایجاد سند', 'l3'),
             getItem('لیست اسناد', 'l4'),
-            getItem('تنخواه گردان', null, null, [
+        ]),
+        getItem('تنخواه گردان', null, <BookOutlined/>, [
                 getItem('ثبت تنخواه', 'l6'),
                 getItem('لیست تنخواه', 'l7'),
                 getItem('گزارش تنخواه', 'l8')]),
 
-        ]), {
+        , {
             type: 'divider',
         },
 
@@ -84,6 +85,12 @@ const Menur = ({group}) => {
         {
             type: 'divider',
         },
+        getItem('تنخواه گردان', null, <BookOutlined/>, [
+            getItem('ثبت تنخواه', 'l6'),
+            getItem('لیست تنخواه', 'l7'),
+            getItem('گزارش تنخواه', 'l8')]),
+
+
 
     ]
 
@@ -108,7 +115,7 @@ const Menur = ({group}) => {
         if (e.key === '15') router.push('/password/reset-password');
         if (e.key === '16') handleLogout(router);
 
-        console.log('click ', e);
+        // console.log('click ', e);
     };
 
 

@@ -30,8 +30,11 @@ class PettyCash(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     price = models.FloatField(blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='pettycash', null=True)
-    F_conf = models.BooleanField(default=False, blank=True)
+    F_conf = models.BooleanField(blank=True, null=True)
+    L_conf = models.BooleanField(blank=True, null=True)
     descr = models.TextField(blank=True)
+    forwhom = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='pettycashowner', null=True)
+
 
     def __str__(self) -> str:
         return self.name

@@ -24,8 +24,8 @@ from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, s
 from .serializers import (
     FinancialSerializer,
     LogisticsSerializer,
-    LogisticsUploadsSerializer, LogisticsSerializerlist, pettyCashSerializer, CreditSerializer, sub_unitSerializer,
-    PasswordChangeSerializer,
+    LogisticsUploadsSerializer, LogisticsSerializerlist, CreditSerializer, sub_unitSerializer,
+    PasswordChangeSerializer, pettyCashListSerializer, pettyCashCreateSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -161,18 +161,83 @@ class FinancialViewSet(viewsets.ModelViewSet):
 
 class pettyCashViewSet(viewsets.ModelViewSet):
     queryset = PettyCash.objects.all().reverse().order_by('id')
-    serializer_class = pettyCashSerializer
     # user_filter_backends = [filters.ObjectPermissionsFilter]
     permission_classes = [CustomObjectPermissions]
 
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
+        if any(name.startswith("logistics") for name in group_names):
+            if 'L_conf' in request.data and len(request.data) == 1:
+
+                instance.L_conf = request.data['L_conf']
+                instance.save()
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+            else:
+                return Response({"error": "You do not have permission to perform this action."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        elif any(name.startswith("financial") for name in group_names):
+            if 'F_conf' in request.data and len(request.data) == 1:
+                instance.F_conf = request.data['F_conf']
+                instance.save()
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+            else:
+                return Response({"error": "You do not have permission to perform this action."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response({"error": "You do not have permission to perform this action."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
+        if instance.L_conf == True and instance.F_conf is None:
+            if any(name.startswith("logistics") for name in group_names):
+                return super().update(request, *args, **kwargs)
+            else:
+                return Response({"error": "You do not have permission to perform this action."},
+                                status=status.HTTP_403_FORBIDDEN)
+        elif instance.L_conf is None and instance.F_conf == True:
+            if any(name.startswith("financial") for name in group_names):
+                return super().update(request, *args, **kwargs)
+            else:
+                return Response({"error": "You do not have permission to perform this action."},
+                                status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response({"error": "You do not have permission to perform this action."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+    def get_serializer_class(self):
+        if self.action == 'create' or self.action == 'update':
+            return pettyCashCreateSerializer
+        return pettyCashListSerializer
+
     def perform_create(self, serializer):
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
+        if any(name.startswith("logistics") for name in group_names) and not self.request.user.is_staff:
+            instance = serializer.save(forwhom=self.request.user, created_by=self.request.user)
+            return
         instance = serializer.save(created_by=self.request.user)
 
     def get_queryset(self):
         queryset = self.queryset
-        if self.request.user.is_staff:
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
+        get_nulls = self.request.query_params.get('get_nulls', None)
+        if get_nulls is not None and any(name.startswith("logistics") for name in group_names):
+            queryset = queryset.filter(L_conf__isnull=True).filter(forwhom=self.request.user)
+        if get_nulls is not None and any(name.startswith("financial") for name in group_names):
+            queryset = queryset.filter(F_conf__isnull=True)
+        if self.request.user.is_staff or any(name.startswith("financial") for name in group_names):
             return queryset
-        return queryset.filter(created_by=self.request.user)
+        return queryset.filter(forwhom=self.request.user)
 
 
 # create  view that report all PettyCash and Financial between two date in query params by date_doc filed
@@ -180,18 +245,26 @@ class pettyCashReport(rest_framework.views.APIView):
     def post(self, request, format=None):
         start_date_str = request.data.get('start_date', None)
         end_date_str = request.data.get('end_date', None)
+        user_id = request.data.get('user', None)
+        print(user_id)
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
 
         if start_date_str and end_date_str:
             start_date = django.utils.dateparse.parse_datetime(start_date_str)
             end_date = django.utils.dateparse.parse_datetime(end_date_str)
-            if request.user.is_staff:
-                petty_cash_objects = PettyCash.objects.filter(date_doc__range=[start_date, end_date])
-                financial_objects = Financial.objects.filter(date_doc__range=[start_date, end_date])
+            if request.user.is_staff or any(name.startswith("financial") for name in group_names):
+                petty_cash_objects = PettyCash.objects.filter(date_doc__range=[start_date, end_date],
+                                                              forwhom__id=user_id, L_conf=True, F_conf=True)
+                financial_objects = Financial.objects.filter(date_doc__range=[start_date, end_date],
+                                                             created_by__id=user_id)
             else:
                 petty_cash_objects = PettyCash.objects.filter(date_doc__range=[start_date, end_date],
-                                                              created_by=request.user)
+                                                              forwhom=request.user, L_conf=True, F_conf=True)
                 financial_objects = Financial.objects.filter(date_doc__range=[start_date, end_date],
                                                              created_by=request.user)
+            # for x in petty_cash_objects:
+            #     print(x)
             petty_cash_total_price = petty_cash_objects.aggregate(django.db.models.Sum('price'))['price__sum']
             grouped_by_payment_type = [True, False]
             results = []
@@ -347,6 +420,7 @@ class get_user_info(rest_framework.views.APIView):
             'username': user.username,
             'email': user.email,
             'name': user.first_name + ' ' + user.last_name,
+            'admin': user.is_staff,
             # add any other user fields you are interested in
         })
 
@@ -361,6 +435,33 @@ class cheekGroupOfUser(rest_framework.views.APIView):
             return Response(group.name)
         else:
             return Response('None')
+
+
+class getAllLogisticUser(rest_framework.views.APIView):
+    permission_classes = [rest_framework.permissions.IsAuthenticated]
+
+    # get All  User of groupOfUser that starts with "Logistics"
+    def get(self, request, format=None):
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
+        if self.request.user.is_staff or any(name.startswith("financial") for name in group_names):
+            # Get all groups whose names start with "Logistics"
+            logistic_groups = django.contrib.auth.models.Group.objects.filter(name__startswith="logistics")
+
+            # Get all users belonging to these groups
+            logistic_users = django.contrib.auth.models.User.objects.filter(groups__in=logistic_groups).distinct()
+            # for user in logistic_users:
+            #     print(user.id)
+            user_data = [
+                {
+                    'id': user.id,
+                    'name': f"{user.first_name} {user.last_name}",
+                }
+                for user in logistic_users
+            ]
+            return Response(user_data, status=status.HTTP_200_OK)
+        else:
+            return Response("You are not authorized to view this data", status=status.HTTP_403_FORBIDDEN)
 
 
 def index(request):
