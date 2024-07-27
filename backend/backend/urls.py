@@ -23,7 +23,8 @@ from tadbirbodjeh.views import (
     FinancialViewSet,
     LogisticsViewSet,
     PasswordResetView,
-    LogisticsUploadsViewSet, LogoutView, pettyCashViewSet, pettyCashReport, get_user_info, units, getAllLogisticUser
+    LogisticsUploadsViewSet, LogoutView, pettyCashViewSet, pettyCashReport, get_user_info, units, getAllLogisticUser,
+    changeOwnerFinancial
 )
 
 router = routers.DefaultRouter()
@@ -38,6 +39,7 @@ urlpatterns = [
     path("api/", include(router.urls)),
     path("api/password-reset/", PasswordResetView.as_view()),
     path("api/getAllLogisticUser/", getAllLogisticUser.as_view()),
+    path("api/changeOwnerFinancial/", changeOwnerFinancial.as_view()),
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
     path("auth/logout/", LogoutView.as_view()),

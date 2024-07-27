@@ -235,6 +235,7 @@ export default function Tankhah(prop: { Fdata: any, selectedid: number, modal: a
         <Row gutter={50}>
 
         </Row>
+
         <Form.Item
             wrapperCol={{
                 // labelAlign: "left",

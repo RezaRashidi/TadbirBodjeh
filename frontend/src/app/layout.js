@@ -81,8 +81,8 @@ export default function RootLayout({children, metadata = Metadata}) {
 
             })
         }
-
-        const requestnull = api().url(`/api/pettycash/?get_nulls=true`).get().json().then(
+        if (Cookies.get("login") === "1") {
+            api().url(`/api/pettycash/?get_nulls=true`).get().json().then(
             (res) => {
                 console.log(res)
                 if (res.count > 0) {
@@ -92,6 +92,8 @@ export default function RootLayout({children, metadata = Metadata}) {
 
             }
         )
+        }
+
 
 
 

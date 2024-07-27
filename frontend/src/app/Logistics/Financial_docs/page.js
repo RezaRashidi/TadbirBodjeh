@@ -4,12 +4,14 @@ import {asyncFetchLogisticsData} from "@/app/Logistics/Print/page";
 import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
 import {Button, Checkbox, Col, Form, Input, InputNumber, message, Row, Select} from "antd";
 import dayjs from "dayjs";
+import Cookies from "js-cookie";
 import React, {useEffect, useRef, useState} from "react";
 
 function RezaSelect(props) {
     const [list, setlist] = useState({});
     const next = useRef({});
     const pagenumber = useRef(1);
+
     useEffect(() => {
         api().url(`/api/logistics/?get_nulls=true&?page=${pagenumber.current}`).get().json().then((res) => {
             console.log(res.results)
@@ -111,7 +113,14 @@ const
         dayjs.extend(jalaliPlugin);
         const [fin_state, set_fin_state] = useState(0)
         const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
+        const [users, set_users] = useState(undefined);
+        const show_user_selector = fin_state == 0 && Cookies.get("admin") == "true" && Cookies.get("group").startsWith("logistics") && prop.Fdata
         useEffect(() => {
+            if (show_user_selector)
+                api().url(`/api/getAllLogisticUser/`).get().json().then((res) => {
+                    // console.log(res)
+                    set_users(res)
+                })
             if (prop.Fdata) {
                 prop.Fdata.filter((item) => {
                     if (item.id === prop.selectedid) {
@@ -126,6 +135,7 @@ const
                             descr: item.descr,
                             Payment_type: item.Payment_type,
                             tax: taxValue,
+                            changeOwner: item.user
                         })
 
 
@@ -165,6 +175,25 @@ const
         }, [prop.Fdata, prop.selectedid]);
 
         //write fun that get the changed data from the form and update prop.Fdata with new data
+        const onchangestate = (new_user_id, new_user_name, fin_id) => {
+            api().url(`/api/changeOwnerFinancial/`).post({
+                "new_user_id": new_user_id,
+                "fin_id": fin_id
+
+            }).json().then((res) => {
+                message.success(" مالکیت سند با موفقیت تغییر یافت")
+                prop.Fdata.map((item) => {
+                    if (item.id === prop.selectedid) {
+                        item.user = new_user_name
+
+                    }
+                })
+                prop.modal(false)
+
+                // console.log(res);
+
+            })
+        }
 
         function updateData(data) {
             // این چرا کار می کند؟
@@ -367,6 +396,7 @@ const
                     </Form.Item>
                 </Col>
             </Row>
+
             <Form.Item
                 wrapperCol={{
                     // labelAlign: "left",
@@ -378,6 +408,49 @@ const
                     {prop.Fdata ? "ویرایش سند" : "ایجاد سند"}
                 </Button>
             </Form.Item>
+
+            <Row gutter={20}>
+                {show_user_selector &&
+                    <>
+                        <Col span={8}>
+                            <Form.Item
+                                name="changeOwner"
+                                label="تغییر مالکیت سند و مدارک آن"
+
+                                // labelCol={{span: 4}}
+                                // wrapperCol={{span: 16}}
+                            >
+                                <Select
+                                    labelInValue
+                                    // allowClear={true}
+                                    autoClearSearchValue={true}
+                                    placeholder="انتخاب کارپرداز"
+                                    // showSearch={true}
+                                    // value={value}
+
+                                    // notFoundContent={fetching ? <Spin size="small"/> : null}
+                                    options={users?.map((user) => ({value: user.id, label: user.name}))}
+
+                                />
+                            </Form.Item>
+                        </Col>
+
+                        <Col span={8}>
+                            <Button type="default" className={"!bg-cyan-600 !text-white"} onClick={() => {
+                                const new_user_id = form.getFieldValue("changeOwner")?.value;
+                                const new_user_name = form.getFieldValue("changeOwner")?.label;
+
+                                const fin_id = prop.selectedid;
+                                onchangestate(new_user_id, new_user_name, fin_id);
+                            }}>
+                                تغییر مالکیت
+                            </Button>
+                        </Col>
+
+                    </>
+                }
+
+            </Row>
         </Form>)
     }
 

@@ -437,6 +437,31 @@ class cheekGroupOfUser(rest_framework.views.APIView):
             return Response('None')
 
 
+##############################################
+class changeOwnerFinancial(rest_framework.views.APIView):
+    permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.IsAdminUser]
+
+    def post(self, request, format=None):
+        fin_id = request.data.get('fin_id', None)
+        new_user_id = request.data.get('new_user_id', None)
+        if fin_id and new_user_id:
+            f_doc = django.shortcuts.get_object_or_404(Financial, id=fin_id)
+            if f_doc.fin_state == 0:
+                f_doc.created_by_id = new_user_id
+                f_doc.save()
+                for logistics_entry in f_doc.logistics.all():
+                    logistics_entry.created_by_id = new_user_id
+                    logistics_entry.save()
+                return Response("success", status=200)
+            else:
+                return Response({"error": "fin_state"}, status=400)
+
+        else:
+            return Response({"error": "Invalid data"}, status=400)
+
+
+
+
 class getAllLogisticUser(rest_framework.views.APIView):
     permission_classes = [rest_framework.permissions.IsAuthenticated]
 
