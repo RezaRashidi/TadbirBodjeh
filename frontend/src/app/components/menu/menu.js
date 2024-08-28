@@ -1,6 +1,6 @@
 'use client'
 import {AuthActions} from "@/app/auth/utils";
-import {BookOutlined, CalculatorOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
+import {AppstoreOutlined, BookOutlined, CalculatorOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
 import {Menu} from 'antd';
 import {usePathname, useRouter} from "next/navigation";
 import React from 'react';
@@ -93,11 +93,25 @@ const Menur = ({group}) => {
 
 
     ]
+    const budget = [
+        getItem('بودجه ریزی', 'sub3', <AppstoreOutlined/>, [
+            getItem('برنامه', 'l100'),
+            getItem('فرم پنج', 'l101'),
+            getItem('مراکز هزینه', 'l102'),
+
+            // getItem('بودجه‌ریزی مبتنی برعملکرد', null, null, [getItem('برنامه ها', '10'),
+            //     getItem('سنجه ها', '11'),
+            //     getItem('فعالیت ها و ریز فعالیت ها','13'),
+            // ])
+        ])
+    ]
 
     if (group && group.toString().startsWith("logistics")) {
         items.unshift(...logistic)
     } else if (group && group.toString().startsWith("financial")) {
         items.unshift(...financial)
+    } else if (group && group.toString().startsWith("budget")) {
+        items.unshift(...budget)
     }
 
 
@@ -114,6 +128,9 @@ const Menur = ({group}) => {
         if (e.key === 'l12') router.push('/Financial/Financial_List');
         if (e.key === '15') router.push('/password/reset-password');
         if (e.key === '16') handleLogout(router);
+        if (e.key === 'l100') router.push('/budget/program');
+        if (e.key === 'l101') router.push('/budget/form5');
+        if (e.key === 'l102') router.push('/budget/costcenter');
 
         // console.log('click ', e);
     };

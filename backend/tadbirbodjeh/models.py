@@ -114,7 +114,9 @@ class budget_chapter(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     year = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+
+
+updated = models.DateTimeField(auto_now=True)
 
 
 class budget_section(models.Model):
@@ -122,6 +124,7 @@ class budget_section(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    year = models.CharField(max_length=255, blank=True, null=True)
     budget_chapter = models.ForeignKey(budget_chapter, on_delete=models.SET_NULL, related_name='budget_section',
                                        null=True)
 
@@ -134,6 +137,7 @@ class budget_row(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    year = models.CharField(max_length=255, blank=True, null=True)
     budget_section = models.ForeignKey(budget_section, on_delete=models.SET_NULL, related_name='budget_row', null=True)
 
     def __str__(self) -> str:
