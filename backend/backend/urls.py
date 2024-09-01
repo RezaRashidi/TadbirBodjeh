@@ -32,8 +32,10 @@ router.register(r"logistics", LogisticsViewSet, basename="logistics")
 router.register(r"financial", FinancialViewSet)
 router.register(r"logistics-uploads", LogisticsUploadsViewSet)
 router.register(r"pettycash", pettyCashViewSet)
+#################
 # برای‌ استفاده در ایجاد مدرک بدون پیجنشن
 router.register(r"units", units)
+################
 router.register(r"organization", OrganizationViewSet)
 router.register(r"unit", UnitViewSet)
 router.register(r"subUnit", SubUnitViewSet)

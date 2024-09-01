@@ -77,29 +77,6 @@ const App = (props) => {
                 });
             });
 
-
-            // setLoading(true);
-            // fetch(`http://localhost:8000/api/financial/?page=${tableParams.pagination.current}`)
-            //     .then((res) => res.json())
-            //     .then((res) => {
-            //         // console.log(res);
-            //         let newdata = res.results.map(
-            //             (item) => ({"key": item.id, ...item})
-            //         )
-            //         newdata.map((item) => {
-            //             printRefs[item.id] = React.createRef();
-            //         });
-            //         console.log(newdata);
-            //         setData(newdata);
-            //         setLoading(false);
-            //         setTableParams({
-            //             ...tableParams,
-            //             pagination: {
-            //                 ...tableParams.pagination,
-            //                 total: res.count,
-            //             },
-            //         });
-            //     });
         };
         useEffect(() => {
             fetchData();
