@@ -2,6 +2,8 @@ import django.contrib.auth.models
 import django.db.models
 from rest_framework import serializers
 
+from tadbirbodjeh.models import budget_chapter, budget_section, budget_row
+from tadbirbodjeh.models import organization, unit
 from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, sub_unit
 
 
@@ -122,3 +124,38 @@ class PasswordChangeSerializer(serializers.Serializer):
     """
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
+
+
+class organizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = organization
+        fields = '__all__'
+
+
+class unitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = unit
+        fields = '__all__'
+
+
+# class sub_unitSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = sub_unit
+#         fields = '__all__'
+
+class BudgetChapterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = budget_chapter
+        fields = '__all__'
+
+
+class BudgetSectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = budget_section
+        fields = '__all__'
+
+
+class BudgetRowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = budget_row
+        fields = '__all__'

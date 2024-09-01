@@ -81,7 +81,7 @@ export default function RootLayout({children, metadata = Metadata}) {
 
             })
         }
-        if (Cookies.get("login") === "1") {
+        if ((Cookies.get("login") === "1") && (Cookies.get("group") === "Logistics" || Cookies.get("group") === "Financial")) {
             api().url(`/api/pettycash/?get_nulls=true`).get().json().then(
             (res) => {
                 console.log(res)
@@ -93,10 +93,6 @@ export default function RootLayout({children, metadata = Metadata}) {
             }
         )
         }
-
-
-
-
         setIsLoggedIn(Cookies.get("login") === "1");
         set_group(Cookies.get("group"));
         //////////

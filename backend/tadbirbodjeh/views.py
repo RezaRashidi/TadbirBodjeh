@@ -18,8 +18,12 @@ import rest_framework_simplejwt.exceptions
 import rest_framework_simplejwt.tokens
 from django.db.models import Q
 from rest_framework import permissions, viewsets, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row
+from tadbirbodjeh.serializers import organizationSerializer, unitSerializer, BudgetRowSerializer, \
+    BudgetSectionSerializer, BudgetChapterSerializer
 from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, sub_unit
 from .serializers import (
     FinancialSerializer,
@@ -404,6 +408,7 @@ class CreditViewSet(viewsets.ModelViewSet):
     serializer_class = CreditSerializer
 
 
+# برای‌ استفاده در ایجاد مدرک بدون پیجنشن
 class units(viewsets.ModelViewSet):
     queryset = sub_unit.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -535,3 +540,41 @@ class PasswordResetView(rest_framework.generics.UpdateAPIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# write view for organization,unit,sub_unit model
+
+class OrganizationViewSet(viewsets.ModelViewSet):
+    queryset = organization.objects.all()
+    serializer_class = organizationSerializer
+    permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+
+class UnitViewSet(viewsets.ModelViewSet):
+    queryset = unit.objects.all()
+    serializer_class = unitSerializer
+    permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+
+class SubUnitViewSet(viewsets.ModelViewSet):
+    queryset = sub_unit.objects.all()
+    serializer_class = sub_unitSerializer
+    permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+
+class BudgetChapterViewSet(viewsets.ModelViewSet):
+    queryset = budget_chapter.objects.all()
+    serializer_class = BudgetChapterSerializer
+    permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+
+class BudgetSectionViewSet(viewsets.ModelViewSet):
+    queryset = budget_section.objects.all()
+    serializer_class = BudgetSectionSerializer
+    permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+
+class BudgetRowViewSet(viewsets.ModelViewSet):
+    queryset = budget_row.objects.all()
+    serializer_class = BudgetRowSerializer
+    permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]

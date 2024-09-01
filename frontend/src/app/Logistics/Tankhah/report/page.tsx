@@ -235,7 +235,7 @@ export default function Report() {
                             <tbody>
                             <tr className={" w-full table   border-collapse  !border-none border-collapse "}>
                                 <td>جمع</td>
-                                <td>{report && report.petty_cash ? numberWithCommas(report.petty_cash + getsum(report, true)) : 0}</td>
+                                <td>{report ? numberWithCommas(report.petty_cash + getsum(report, true)) : 0}</td>
                             </tr>
                             </tbody>
                         </table>
