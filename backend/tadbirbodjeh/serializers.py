@@ -10,7 +10,7 @@ from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, s
 class sub_unitSerializer(serializers.ModelSerializer):
     class Meta:
         model = sub_unit
-        fields = ['name', 'id']
+        fields = '__all__'
 
 
 class FinancialSerializer(serializers.ModelSerializer):
@@ -126,18 +126,19 @@ class PasswordChangeSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
 
 
-class organizationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = organization
-        fields = '__all__'
-
-
 class unitSerializer(serializers.ModelSerializer):
+    sub_unit = sub_unitSerializer(many=True, read_only=True)
     class Meta:
         model = unit
         fields = '__all__'
 
 
+class organizationSerializer(serializers.ModelSerializer):
+    unit = unitSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = organization
+        fields = '__all__'
 # class sub_unitSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = sub_unit

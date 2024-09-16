@@ -11,7 +11,7 @@ class fin_state(enum.Enum):
 
 
 class LogisticsUploads(models.Model):
-    file = models.FileField(upload_to="./uploads/")
+    file = models.FileField(upload_to="./uploads/", max_length=1000)
     name = models.CharField(max_length=255, blank=False)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='LogisticsUploads', null=True)
 
@@ -140,6 +140,17 @@ class budget_row(models.Model):
     year = models.CharField(max_length=255, blank=True, null=True)
     budget_section = models.ForeignKey(budget_section, on_delete=models.SET_NULL, related_name='budget_row', null=True)
 
+    def __str__(self) -> str:
+        return self.name
+
+
+class budget_sub_row(models.Model):
+    code = models.IntegerField(blank=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    year = models.CharField(max_length=255, blank=True, null=True)
+    budget_row = models.ForeignKey(budget_section, on_delete=models.SET_NULL, related_name='budget_sub_row', null=True)
     def __str__(self) -> str:
         return self.name
 

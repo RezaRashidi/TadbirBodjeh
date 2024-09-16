@@ -549,18 +549,36 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     serializer_class = organizationSerializer
     permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
 
+    def get_queryset(self):
+        queryset = organization.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        if no_pagination == 'true':
+            self.pagination_class = None
+        return queryset
 
 class UnitViewSet(viewsets.ModelViewSet):
     queryset = unit.objects.all()
     serializer_class = unitSerializer
     permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
 
+    def get_queryset(self):
+        queryset = unit.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        if no_pagination == 'true':
+            self.pagination_class = None
+        return queryset
 
 class SubUnitViewSet(viewsets.ModelViewSet):
     queryset = sub_unit.objects.all()
     serializer_class = sub_unitSerializer
     permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
 
+    def get_queryset(self):
+        queryset = sub_unit.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        if no_pagination == 'true':
+            self.pagination_class = None
+        return queryset
 
 class BudgetChapterViewSet(viewsets.ModelViewSet):
     queryset = budget_chapter.objects.all()

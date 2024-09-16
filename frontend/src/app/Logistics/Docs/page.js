@@ -86,7 +86,10 @@ const Logistics_Doc = (prop) => {
             })
         } else {
 
-            api().url("/api/units").get().json().then(r => setlocation(r))
+            api().url("/api/subUnit?no_pagination=true").get().json().then(r => {
+                console.log(r)
+                setlocation(r)
+            })
 
         }
     }, [prop.Fdata, prop.selectedid]);
@@ -583,7 +586,7 @@ const Logistics_Doc = (prop) => {
                             className={"!mr-20"}
                             onClick={delete_doc}>
 
-                    حذف مدرک
+                        حذف مدرک
                     </Button>}
             </Form.Item>
         </Form>
