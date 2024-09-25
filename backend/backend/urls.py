@@ -24,7 +24,7 @@ from tadbirbodjeh.views import (
     LogisticsViewSet,
     PasswordResetView,
     LogisticsUploadsViewSet, LogoutView, pettyCashViewSet, pettyCashReport, get_user_info, getAllLogisticUser,
-    changeOwnerFinancial, OrganizationViewSet, UnitViewSet, SubUnitViewSet, units
+    changeOwnerFinancial, OrganizationViewSet, UnitViewSet, SubUnitViewSet  # , units
 )
 
 router = routers.DefaultRouter()
@@ -34,14 +34,15 @@ router.register(r"logistics-uploads", LogisticsUploadsViewSet)
 router.register(r"pettycash", pettyCashViewSet)
 #################
 # برای‌ استفاده در ایجاد مدرک بدون پیجنشن
-router.register(r"units", units)
+# router.register(r"units", units)
 ################
 router.register(r"organization", OrganizationViewSet)
 router.register(r"unit", UnitViewSet)
 router.register(r"subUnit", SubUnitViewSet)
-router.register(r"budget_row", tadbirbodjeh.views.BudgetRowViewSet)
-router.register(r"budget_section", tadbirbodjeh.views.BudgetSectionViewSet)
 router.register(r"budget_chapter", tadbirbodjeh.views.BudgetChapterViewSet)
+router.register(r"budget_section", tadbirbodjeh.views.BudgetSectionViewSet)
+router.register(r"budget_row", tadbirbodjeh.views.BudgetRowViewSet)
+router.register(r"budget_sub_row", tadbirbodjeh.views.BudgetSubRowViewSet)
 
 
 # router.register(r"password-reset", PasswordResetView.as_view())

@@ -2,7 +2,7 @@ import django.contrib.auth.models
 import django.db.models
 from rest_framework import serializers
 
-from tadbirbodjeh.models import budget_chapter, budget_section, budget_row
+from tadbirbodjeh.models import budget_chapter, budget_section, budget_row, budget_sub_row
 from tadbirbodjeh.models import organization, unit
 from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, sub_unit
 
@@ -144,19 +144,27 @@ class organizationSerializer(serializers.ModelSerializer):
 #         model = sub_unit
 #         fields = '__all__'
 
-class BudgetChapterSerializer(serializers.ModelSerializer):
+class BudgetSubRowSerializer(serializers.ModelSerializer):
     class Meta:
-        model = budget_chapter
+        model = budget_sub_row
         fields = '__all__'
 
 
+class BudgetRowSerializer(serializers.ModelSerializer):
+    budget_sub_row = BudgetSubRowSerializer(many=True, read_only=True)
+    class Meta:
+        model = budget_row
+        fields = '__all__'
+
 class BudgetSectionSerializer(serializers.ModelSerializer):
+    budget_row = BudgetRowSerializer(many=True, read_only=True)
     class Meta:
         model = budget_section
         fields = '__all__'
 
 
-class BudgetRowSerializer(serializers.ModelSerializer):
+class BudgetChapterSerializer(serializers.ModelSerializer):
+    budget_section = BudgetSectionSerializer(many=True, read_only=True)
     class Meta:
-        model = budget_row
+        model = budget_chapter
         fields = '__all__'

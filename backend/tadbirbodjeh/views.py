@@ -21,9 +21,9 @@ from rest_framework import permissions, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row
+from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row, budget_sub_row
 from tadbirbodjeh.serializers import organizationSerializer, unitSerializer, BudgetRowSerializer, \
-    BudgetSectionSerializer, BudgetChapterSerializer
+    BudgetSectionSerializer, BudgetChapterSerializer, BudgetSubRowSerializer
 from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, sub_unit
 from .serializers import (
     FinancialSerializer,
@@ -409,11 +409,11 @@ class CreditViewSet(viewsets.ModelViewSet):
 
 
 # برای‌ استفاده در ایجاد مدرک بدون پیجنشن
-class units(viewsets.ModelViewSet):
-    queryset = sub_unit.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = sub_unitSerializer
-    pagination_class = None
+# class units(viewsets.ModelViewSet):
+#     queryset = sub_unit.objects.all()
+#     permission_classes = [permissions.IsAuthenticated]
+#     serializer_class = sub_unitSerializer
+#     pagination_class = None
 
 
 class get_user_info(rest_framework.views.APIView):
@@ -463,8 +463,6 @@ class changeOwnerFinancial(rest_framework.views.APIView):
 
         else:
             return Response({"error": "Invalid data"}, status=400)
-
-
 
 
 class getAllLogisticUser(rest_framework.views.APIView):
@@ -552,9 +550,16 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = organization.objects.all()
         no_pagination = self.request.query_params.get('no_pagination', None)
+        year = self.request.query_params.get('year', None)
+        if no_pagination == 'true' and year:
+            queryset = queryset.filter(year=year)
+            self.pagination_class = None
         if no_pagination == 'true':
             self.pagination_class = None
+        if year:
+            queryset = queryset.filter(year=year)
         return queryset
+
 
 class UnitViewSet(viewsets.ModelViewSet):
     queryset = unit.objects.all()
@@ -564,9 +569,16 @@ class UnitViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = unit.objects.all()
         no_pagination = self.request.query_params.get('no_pagination', None)
+        year = self.request.query_params.get('year', None)
+        if no_pagination == 'true' and year:
+            queryset = queryset.filter(year=year)
+            self.pagination_class = None
         if no_pagination == 'true':
             self.pagination_class = None
+        if year:
+            queryset = queryset.filter(year=year)
         return queryset
+
 
 class SubUnitViewSet(viewsets.ModelViewSet):
     queryset = sub_unit.objects.all()
@@ -576,8 +588,14 @@ class SubUnitViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = sub_unit.objects.all()
         no_pagination = self.request.query_params.get('no_pagination', None)
+        year = self.request.query_params.get('year', None)
+        if no_pagination == 'true' and year:
+            queryset = queryset.filter(year=year)
+            self.pagination_class = None
         if no_pagination == 'true':
             self.pagination_class = None
+        if year:
+            queryset = queryset.filter(year=year)
         return queryset
 
 class BudgetChapterViewSet(viewsets.ModelViewSet):
@@ -585,14 +603,72 @@ class BudgetChapterViewSet(viewsets.ModelViewSet):
     serializer_class = BudgetChapterSerializer
     permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
 
+    def get_queryset(self):
+        queryset = budget_chapter.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        year = self.request.query_params.get('year', None)
+        if no_pagination == 'true' and year:
+            queryset = queryset.filter(year=year)
+            self.pagination_class = None
+        if no_pagination == 'true':
+            self.pagination_class = None
+        if year:
+            queryset = queryset.filter(year=year)
+        return queryset
+
 
 class BudgetSectionViewSet(viewsets.ModelViewSet):
     queryset = budget_section.objects.all()
     serializer_class = BudgetSectionSerializer
     permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
 
+    def get_queryset(self):
+        queryset = budget_section.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        year = self.request.query_params.get('year', None)
+        if no_pagination == 'true' and year:
+            queryset = queryset.filter(year=year)
+            self.pagination_class = None
+        if no_pagination == 'true':
+            self.pagination_class = None
+        if year:
+            queryset = queryset.filter(year=year)
+        return queryset
+
 
 class BudgetRowViewSet(viewsets.ModelViewSet):
     queryset = budget_row.objects.all()
     serializer_class = BudgetRowSerializer
     permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+    def get_queryset(self):
+        queryset = budget_row.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        year = self.request.query_params.get('year', None)
+        if no_pagination == 'true' and year:
+            queryset = queryset.filter(year=year)
+            self.pagination_class = None
+        if no_pagination == 'true':
+            self.pagination_class = None
+        if year:
+            queryset = queryset.filter(year=year)
+        return queryset
+
+
+class BudgetSubRowViewSet(viewsets.ModelViewSet):
+    queryset = budget_sub_row.objects.all()
+    serializer_class = BudgetSubRowSerializer
+    permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+    def get_queryset(self):
+        queryset = budget_sub_row.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        year = self.request.query_params.get('year', None)
+        if no_pagination == 'true' and year:
+            queryset = queryset.filter(year=year)
+            self.pagination_class = None
+        if no_pagination == 'true':
+            self.pagination_class = None
+        if year:
+            queryset = queryset.filter(year=year)
+        return queryset

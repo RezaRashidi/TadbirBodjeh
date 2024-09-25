@@ -12,6 +12,7 @@ admin.site.register(tadbirbodjeh.models.sub_unit)
 admin.site.register(tadbirbodjeh.models.budget_chapter)
 admin.site.register(tadbirbodjeh.models.budget_section)
 admin.site.register(tadbirbodjeh.models.budget_row)
+admin.site.register(tadbirbodjeh.models.budget_sub_row)
 admin.site.register(tadbirbodjeh.models.credit)
 
 

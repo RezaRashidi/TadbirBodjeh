@@ -110,17 +110,17 @@ class credit(models.Model):
 
 
 class budget_chapter(models.Model):
-    code = models.IntegerField(blank=True)
+    code = models.IntegerField(blank=True, null=True, default=0)
+    fin_code = models.IntegerField(blank=True, null=True, default=0)
     name = models.CharField(max_length=255, blank=True, null=True)
     year = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
-
-
-updated = models.DateTimeField(auto_now=True)
+    updated = models.DateTimeField(auto_now=True)
 
 
 class budget_section(models.Model):
-    code = models.IntegerField(blank=True)
+    code = models.IntegerField(blank=True, null=True, default=0)
+    fin_code = models.IntegerField(blank=True, null=True, default=0)
     name = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -133,7 +133,8 @@ class budget_section(models.Model):
 
 
 class budget_row(models.Model):
-    code = models.IntegerField(blank=True)
+    code = models.IntegerField(blank=True, null=True, default=0)
+    fin_code = models.IntegerField(blank=True, null=True, default=0)
     name = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -145,18 +146,21 @@ class budget_row(models.Model):
 
 
 class budget_sub_row(models.Model):
-    code = models.IntegerField(blank=True)
+    code = models.IntegerField(blank=True, null=True, default=0)
+    fin_code = models.IntegerField(blank=True, null=True, default=0)
     name = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     year = models.CharField(max_length=255, blank=True, null=True)
-    budget_row = models.ForeignKey(budget_section, on_delete=models.SET_NULL, related_name='budget_sub_row', null=True)
+    budget_row = models.ForeignKey(budget_row, on_delete=models.SET_NULL, related_name='budget_sub_row', null=True)
     def __str__(self) -> str:
         return self.name
 
 
 class organization(models.Model):
+    code = models.IntegerField(blank=True, null=True, default=0)
     name = models.CharField(max_length=255, blank=True, null=True)
+    year = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True, null=True)
 
@@ -165,7 +169,9 @@ class organization(models.Model):
 
 
 class unit(models.Model):
+    code = models.IntegerField(blank=True, null=True, default=0)
     name = models.CharField(max_length=255, blank=True, null=True)
+    year = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True, null=True)
     organization = models.ForeignKey(organization, on_delete=models.SET_NULL, related_name='unit', null=True)
@@ -175,7 +181,10 @@ class unit(models.Model):
 
 
 class sub_unit(models.Model):
+
     name = models.CharField(max_length=255, blank=True, null=True)
+    code = models.IntegerField(blank=True, null=True, default=0)
+    year = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True, null=True)
     unit = models.ForeignKey(unit, on_delete=models.SET_NULL, related_name='sub_unit', null=True)
