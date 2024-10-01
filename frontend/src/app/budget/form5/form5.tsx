@@ -57,7 +57,6 @@ export default function Form5_doc({data, onOk, onCancel}: {
 
     };
     useEffect(() => {
-
         if (data?.type !== 0) {
             form.setFieldsValue({Location: data?.budget_chapter})
             let Year = dayjs(form_date).format("YYYY");

@@ -21,9 +21,9 @@ from rest_framework import permissions, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row, budget_sub_row
+from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row, budget_sub_row, program
 from tadbirbodjeh.serializers import organizationSerializer, unitSerializer, BudgetRowSerializer, \
-    BudgetSectionSerializer, BudgetChapterSerializer, BudgetSubRowSerializer
+    BudgetSectionSerializer, BudgetChapterSerializer, BudgetSubRowSerializer, programSerializer
 from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, sub_unit
 from .serializers import (
     FinancialSerializer,
@@ -598,6 +598,7 @@ class SubUnitViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(year=year)
         return queryset
 
+
 class BudgetChapterViewSet(viewsets.ModelViewSet):
     queryset = budget_chapter.objects.all()
     serializer_class = BudgetChapterSerializer
@@ -662,6 +663,25 @@ class BudgetSubRowViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = budget_sub_row.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        year = self.request.query_params.get('year', None)
+        if no_pagination == 'true' and year:
+            queryset = queryset.filter(year=year)
+            self.pagination_class = None
+        if no_pagination == 'true':
+            self.pagination_class = None
+        if year:
+            queryset = queryset.filter(year=year)
+        return queryset
+
+
+class programViewSet(viewsets.ModelViewSet):
+    queryset = program.objects.all()
+    serializer_class = programSerializer
+    permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+    def get_queryset(self):
+        queryset = program.objects.all()
         no_pagination = self.request.query_params.get('no_pagination', None)
         year = self.request.query_params.get('year', None)
         if no_pagination == 'true' and year:

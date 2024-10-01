@@ -2,7 +2,7 @@ import django.contrib.auth.models
 import django.db.models
 from rest_framework import serializers
 
-from tadbirbodjeh.models import budget_chapter, budget_section, budget_row, budget_sub_row
+from tadbirbodjeh.models import budget_chapter, budget_section, budget_row, budget_sub_row, program
 from tadbirbodjeh.models import organization, unit
 from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, sub_unit
 
@@ -167,4 +167,10 @@ class BudgetChapterSerializer(serializers.ModelSerializer):
     budget_section = BudgetSectionSerializer(many=True, read_only=True)
     class Meta:
         model = budget_chapter
+        fields = '__all__'
+
+
+class programSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = program
         fields = '__all__'

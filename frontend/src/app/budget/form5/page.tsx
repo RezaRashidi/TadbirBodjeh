@@ -53,7 +53,6 @@ export default function Program() {
     const handleUpdate = () => {
         setIsModalOpen(!isModalOpen);
         set_update(update + 1)
-        console.log(update + "fffffffffffffffffffffffffffffffffffffff")
     }
     const handleOk = () => {
         setIsModalOpen(false);

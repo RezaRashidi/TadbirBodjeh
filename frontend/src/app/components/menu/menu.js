@@ -98,6 +98,8 @@ const Menur = ({group}) => {
             getItem('برنامه', 'l100'),
             getItem('فرم پنج', 'l101'),
             getItem('مراکز هزینه', 'l102'),
+            getItem('روابط', 'l103'),
+
 
             // getItem('بودجه‌ریزی مبتنی برعملکرد', null, null, [getItem('برنامه ها', '10'),
             //     getItem('سنجه ها', '11'),
