@@ -105,7 +105,7 @@ function Fin_print(props, ref) {
         title: 'کدملی/شناسه', dataIndex: 'seller_id', key: 'seller_id', align: "center",
     }, {
         title: 'محل هزینه', dataIndex: 'Location', key: 'Location', align: "center", width: 100,
-        render: (data) => data.name
+        render: (data) => data?.name
     }, {
         title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller', align: "center",
     },

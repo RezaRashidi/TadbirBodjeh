@@ -133,6 +133,7 @@ const Menur = ({group}) => {
         if (e.key === 'l100') router.push('/budget/program');
         if (e.key === 'l101') router.push('/budget/form5');
         if (e.key === 'l102') router.push('/budget/costcenter');
+        if (e.key === 'l103') router.push('/budget/relation');
 
         // console.log('click ', e);
     };

@@ -11,7 +11,6 @@ import django.http
 import django.shortcuts
 import django.utils.dateparse
 import rest_framework.generics
-import rest_framework.pagination
 import rest_framework.permissions
 import rest_framework.views
 import rest_framework_simplejwt.exceptions
@@ -21,32 +20,35 @@ from rest_framework import permissions, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row, budget_sub_row, program
+from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row, budget_sub_row, program, \
+    relation
 from tadbirbodjeh.serializers import organizationSerializer, unitSerializer, BudgetRowSerializer, \
-    BudgetSectionSerializer, BudgetChapterSerializer, BudgetSubRowSerializer, programSerializer
-from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, sub_unit
+    BudgetSectionSerializer, BudgetChapterSerializer, BudgetSubRowSerializer, programSerializer, relationsSerializer, \
+    relationsCreateSerializer
+from .models import Financial, Logistics, LogisticsUploads, PettyCash, sub_unit
 from .serializers import (
     FinancialSerializer,
     LogisticsSerializer,
-    LogisticsUploadsSerializer, LogisticsSerializerlist, CreditSerializer, sub_unitSerializer,
+    LogisticsUploadsSerializer, LogisticsSerializerlist, sub_unitSerializer,
     PasswordChangeSerializer, pettyCashListSerializer, pettyCashCreateSerializer,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class LogisticsCustomPagination(rest_framework.pagination.PageNumberPagination):
-    sub_units = sub_unit.objects.all()
-    serialized_sub_units = sub_unitSerializer(sub_units, many=True).data
-
-    def get_paginated_response(self, data):
-        return Response({
-            'count': self.page.paginator.count,
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'results': data,
-            'sub_units': self.serialized_sub_units,  # Add your sub_units data here
-        })
+# حذف شود دیگر نیازی نیست
+# class LogisticsCustomPagination(rest_framework.pagination.PageNumberPagination):
+#     sub_units = sub_unit.objects.all()
+#     serialized_sub_units = sub_unitSerializer(sub_units, many=True).data
+#
+#     def get_paginated_response(self, data):
+#         return Response({
+#             'count': self.page.paginator.count,
+#             'next': self.get_next_link(),
+#             'previous': self.get_previous_link(),
+#             'results': data,
+#             'sub_units': self.serialized_sub_units,  # Add your sub_units data here
+#         })
 
 
 # class UserIsOwnerOrAdmin(permissions.BasePermission):
@@ -295,7 +297,8 @@ class pettyCashReport(rest_framework.views.APIView):
 
 class LogisticsViewSet(viewsets.ModelViewSet):
     permission_classes = [CustomObjectPermissions]
-    pagination_class = LogisticsCustomPagination
+
+    # pagination_class = LogisticsCustomPagination
 
     def get_queryset(self):
         user_groups = self.request.user.groups.all()
@@ -340,6 +343,31 @@ class LogisticsViewSet(viewsets.ModelViewSet):
     #         for backend in self.user_filter_backends:
     #             queryset = backend().filter_queryset(self.request, queryset, self)
     #         return queryset
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
+        if any(name.startswith("financial") for name in group_names) and instance.Fdoc_key.fin_state > 2:
+            return Response({"error": "You do not have permission to perform this action."},
+                            status=status.HTTP_403_FORBIDDEN)
+        if any(name.startswith("logistic") for name in group_names) and instance.Fdoc_key.fin_state > 1:
+            return Response({"error": "You do not have permission to perform this action."},
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().partial_update(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_groups = self.request.user.groups.all()
+        group_names = [group.name for group in user_groups]
+        print(instance.Fdoc_key.fin_state)
+        if any(name.startswith("financial") for name in group_names) and instance.Fdoc_key.fin_state > 2:
+            return Response({"error": "You do not have permission to perform this action."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        if any(name.startswith("logistic") for name in group_names) and instance.Fdoc_key.fin_state > 1:
+            return Response({"error": "You do not have permission to perform this action."},
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         instance = serializer.save(created_by=self.request.user)
@@ -403,9 +431,6 @@ class LogoutView(rest_framework.views.APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class CreditViewSet(viewsets.ModelViewSet):
-    queryset = credit.objects.all()
-    serializer_class = CreditSerializer
 
 
 # برای‌ استفاده در ایجاد مدرک بدون پیجنشن
@@ -691,4 +716,31 @@ class programViewSet(viewsets.ModelViewSet):
             self.pagination_class = None
         if year:
             queryset = queryset.filter(year=year)
+        return queryset
+
+
+class relationViewSet(viewsets.ModelViewSet):
+    queryset = relation.objects.all()
+    serializer_class = relationsSerializer
+    permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+    def get_serializer_class(self):
+        if self.action == 'create' or self.action == 'update':
+            return relationsCreateSerializer
+        return relationsSerializer
+
+    def get_queryset(self):
+        queryset = relation.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        sub_unit_id = self.request.query_params.get('sub_unit', None)
+        year = self.request.query_params.get('year', None)
+        if no_pagination == 'true' and year:
+            queryset = queryset.filter(year=year)
+            self.pagination_class = None
+        if no_pagination == 'true':
+            self.pagination_class = None
+        if year:
+            queryset = queryset.filter(year=year)
+        if sub_unit_id:
+            queryset = queryset.filter(sub_unit__in=sub_unit_id)
         return queryset

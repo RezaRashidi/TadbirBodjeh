@@ -6,6 +6,7 @@ import {UploadOutlined} from "@ant-design/icons";
 import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
 import {Button, Col, Form, Input, InputNumber, message, Radio, Row, Select, Upload,} from "antd";
 import dayjs from "dayjs";
+import Cookies from "js-cookie";
 import React, {useEffect, useState} from "react";
 
 
@@ -15,19 +16,26 @@ const Logistics_Doc = (prop) => {
     const [Fdoc_key, set_Fdoc_key] = useState(null)
     const {handleJWTRefresh, storeToken, getToken} = AuthActions();
     const [location, setlocation] = useState([]);
+    const [selected_location, set_selected_location] = useState([]);
+
     const [id, set_id] = useState(0)
     useJalaliLocaleListener();
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
     const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
+    const is_fin = Cookies.get("group") == "financial"
+    const [relation, set_relation] = useState([])
+    const [selected_relation, set_selected_relation] = useState(0)
 
     let cheekbuttom = true
     if (Fdoc_key !== null) {
-        if (
-            prop.fin_state !== undefined
-        ) {
+        if (prop.fin_state !== undefined) {
             // console.log(prop.fin_state)
             cheekbuttom = prop.fin_state > 0
+            if (prop.fin_state == 1 && is_fin) {
+                cheekbuttom = false
+            }
+
         }
 
 
@@ -36,13 +44,14 @@ const Logistics_Doc = (prop) => {
     }
     // console.log(prop)
     useEffect(() => {
+
         if (prop.Fdata) {
             prop.Fdata.filter((item) => {
 
                 if (item.id === prop.selectedid) {
                     set_Fdoc_key(item.Fdoc_key)
                     // console.log(item.Fdoc_key)
-                    // console.log(item)
+                    console.log(item)
                     set_id(item.id)
                     var x = item.uploads.map((file) => {
                         return {
@@ -56,6 +65,7 @@ const Logistics_Doc = (prop) => {
                             }
                         }
                     })
+                    set_selected_relation(item.budget_row)
                     form.setFieldsValue({
                         name: item.name,
                         type: item.type,
@@ -65,16 +75,26 @@ const Logistics_Doc = (prop) => {
                         // date_doc: form.setFieldValue("date_doc", dayjs(new Date(item.date_doc))),
                         date_doc: dayjs(new Date(item.date_doc)),
                         Location: item.Location == null ? "" : item.Location.id,
-
+                        budget_row: item.budget_row,
+                        program: item.program,
                         descr: item.descr,
                         files: item.uploads,
-                        vat: item.vat,
+                        vat: item.vat == null ? 0 : item.vat,
                         bank_name: item.bank_name,
                         account_number: item.account_number,
                         account_name: item.account_name
 
                     })
-                    setlocation(prop.location)
+                    item.Location !== null ? set_selected_location(item.Location.id) : ""
+
+                    let Year = dayjs(item.date_doc).format("YYYY");
+                    api().url("/api/subUnit?no_pagination=true" + `&year=${Year}`).get().json().then(r => {
+                        // console.log(r)
+                        setlocation(r)
+                    })
+
+
+                    // setlocation(prop.location)
 
                     setFileList(x)
                     // set_form_date(new Date(item.date_doc).toISOString())
@@ -85,14 +105,42 @@ const Logistics_Doc = (prop) => {
                 }
             })
         } else {
-
-            api().url("/api/subUnit?no_pagination=true").get().json().then(r => {
-                console.log(r)
+            let Year = form_date.format("YYYY");
+            api().url("/api/subUnit?no_pagination=true" + `&year=${Year}`).get().json().then(r => {
+                // console.log(r)
                 setlocation(r)
             })
 
         }
     }, [prop.Fdata, prop.selectedid]);
+
+    useEffect(() => {
+
+        let Year = form_date.format("YYYY");
+        api().url("/api/subUnit?no_pagination=true" + `&year=${Year}`).get().json().then(r => {
+            // console.log(r)
+            setlocation(r)
+        })
+
+    }, [form_date])
+
+    function loadRelation() {
+        if (selected_location !== null) {
+            console.log(selected_location)
+            api().url("/api/relation?no_pagination=true&sub_unit=" + selected_location).get().json().then(r => {
+                set_relation(r);
+                console.log(r)
+                // set_budget_row(r)
+            })
+            // console.log(relation)
+        }
+    }
+
+    useEffect(() => {
+        // if (is_fin && selected_location) {
+        loadRelation()
+
+    }, [selected_location])
     const delete_doc = () => {
 
         api().url("/api/logistics/" + id).delete().res(r => {
@@ -153,8 +201,9 @@ const Logistics_Doc = (prop) => {
         },
     };
     const onFinish = (values) => {
+
         // console.log(values);
-        const jsondata = {
+        let jsondata = {
             "name": values.name,
             "type": values.type,
             "price": typeof values.price !== 'undefined' ? values.price : 0,
@@ -177,6 +226,13 @@ const Logistics_Doc = (prop) => {
             "account_number": values.account_number,
             "account_name": values.account_name
         }
+        if (is_fin) {
+            jsondata = {
+                "Location": values.Location,
+                "budget_row": values.budget_row,
+                "program": values.program
+            }
+        }
         let new_jasondata = {...jsondata}
 
         new_jasondata.uploads = fileList.map((file) => {
@@ -196,12 +252,13 @@ const Logistics_Doc = (prop) => {
             // update_fin()
             // console.log(prop.update_fin.updated)
             message.success("مدارک با موفقیت ثبت شد")
+            prop.selectedid && updateData(data)
             prop.selectedid && prop.modal(false)
             !prop.selectedid && form.resetFields() || setFileList([]);
         })
             .catch(error => {
                 message.error("خطا در ثبت مدارک")
-                // console.log(error)
+                console.log(error)
             })
         // request.res(response => {
         //     if (response.ok) {
@@ -337,6 +394,7 @@ const Logistics_Doc = (prop) => {
                 </Col>
 
             </Row>
+
             <Row gutter={50}>
                 <Col span={6}>
                     <Form.Item
@@ -380,7 +438,14 @@ const Logistics_Doc = (prop) => {
                             filterOption={filterOption}
                             placeholder=" انتخاب محل هزینه"
                             // optionFilterProp="children"
-                            // onChange={onChange}
+                            onChange={value => {
+                                set_selected_location(value)
+                                form.setFieldsValue({
+                                    budget_row: undefined,
+                                    program: undefined
+                                });
+                            }
+                            }
                             // onSearch={onSearch}
                             // filterOption={filterOption}
                             options={
@@ -395,6 +460,61 @@ const Logistics_Doc = (prop) => {
                     </Form.Item>
                 </Col>
             </Row>
+            <Row gutter={50}>
+
+                <Col span={12}>
+                    <Form.Item name="budget_row" label="ردیف" hidden={!is_fin}>
+                        <Select
+                            showSearch
+                            filterOption={filterOption}
+                            placeholder=" انتخاب ردیف"
+                            // optionFilterProp="children"
+                            onChange={
+                                value => {
+                                    set_selected_relation(value)
+                                    form.setFieldsValue({
+                                        program: undefined
+                                    });
+                                }
+                            }
+                            // onSearch={onSearch}
+                            // filterOption={filterOption}
+                            options={
+                                relation
+                                    .filter(item => item.budget_row) // Ensure budget_row exists
+                                    .map(item => ({
+                                        label: item.budget_row.name,
+                                        value: item.budget_row.id
+                                    }))}
+                        />
+                    </Form.Item>
+                </Col>
+
+                <Col span={12}>
+                    <Form.Item name="program" label="برنامه" hidden={!is_fin}>
+                        <Select
+                            showSearch
+                            filterOption={filterOption}
+                            placeholder=" انتخاب برنامه"
+                            // optionFilterProp="children"
+                            // onChange={onChange}
+                            // onSearch={onSearch}
+                            // filterOption={filterOption}
+                            options={
+                                relation
+                                    .filter(item => item.budget_row.id === selected_relation)
+                                    .flatMap(item =>
+                                        item.programs.map(program => ({
+                                            label: program.name,
+                                            value: program.id
+                                        }))
+                                    )
+                            }
+                        />
+                    </Form.Item>
+                </Col>
+            </Row>
+
             <Row gutter={50}>
                 <Col span={6}>
                     <Form.Item
@@ -582,7 +702,7 @@ const Logistics_Doc = (prop) => {
 
                 </Button>
                 {prop.Fdata &&
-                    <Button disabled={Fdoc_key !== null} isabled={Fdoc_key !== null} type="primary" danger
+                    <Button disabled={Fdoc_key !== null} type="primary" danger
                             className={"!mr-20"}
                             onClick={delete_doc}>
 

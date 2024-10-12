@@ -46,12 +46,15 @@ export default function Fin_detail(props) {
         },
     });
 
-
+    console.log(props)
     const handleModalChange = (newState) => {
 
         setIsModalOpen(newState);
+        console.log(newState)
+        // console.log(typeof props.change_data)
+        // console.log(props.change_data)
         props.change_data(props.record.id)
-    };
+    }
     const showModal = (value) => {
         setselectedid(value.id)
         setIsModalOpen(true);
@@ -138,7 +141,7 @@ export default function Fin_detail(props) {
         setLoading(true);
 
         async_FetchLogisticsData(id).then(res => {
-            // console.log(res)
+            console.log(res)
             let newdata = res.results.map((item) => ({"key": item.id, ...item}))
             setData(newdata);
             setlocation(res.sub_units)
@@ -192,7 +195,7 @@ export default function Fin_detail(props) {
             }
         }}>
             <Table columns={columns} dataSource={data} bordered className={"detail-table"}
-               loading={loading} onChange={handleTableChange} pagination={false}/>
+                   loading={loading} onChange={handleTableChange} pagination={false}/>
         </ConfigProvider>
     </>)
 }

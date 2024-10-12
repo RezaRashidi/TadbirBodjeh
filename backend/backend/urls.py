@@ -45,6 +45,7 @@ router.register(r"budget_row", tadbirbodjeh.views.BudgetRowViewSet)
 router.register(r"budget_sub_row", tadbirbodjeh.views.BudgetSubRowViewSet)
 
 router.register(r"program", tadbirbodjeh.views.programViewSet)
+router.register(r"relation", tadbirbodjeh.views.relationViewSet)
 
 
 # router.register(r"password-reset", PasswordResetView.as_view())

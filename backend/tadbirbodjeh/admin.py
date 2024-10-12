@@ -13,7 +13,10 @@ admin.site.register(tadbirbodjeh.models.budget_chapter)
 admin.site.register(tadbirbodjeh.models.budget_section)
 admin.site.register(tadbirbodjeh.models.budget_row)
 admin.site.register(tadbirbodjeh.models.budget_sub_row)
-admin.site.register(tadbirbodjeh.models.credit)
+
+admin.site.register(tadbirbodjeh.models.program)
+admin.site.register(tadbirbodjeh.models.relation)
+
 
 
 class tadbirAdmin(admin.ModelAdmin):

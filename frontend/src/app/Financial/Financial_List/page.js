@@ -36,7 +36,15 @@ const App = (props) => {
 
 
 // Usage
-
+        function update_fin(id) {
+            let xit = data.filter((item) => {
+                if (item.id === id) {
+                    item.updated = Date.now()
+                }
+                return item;
+            })
+            setData(xit)
+        }
         const showModal = (value) => {
             // console.log(  ...data.filter((item) => item.id === value.id).flat())
             setselectedid(value.id)
@@ -263,7 +271,11 @@ const App = (props) => {
 
                 <Table columns={columns} dataSource={data} loading={loading} pagination={tableParams.pagination}
                        expandable={{
-                           expandedRowRender: (record) => <Fin_detail key={record.updated} record={record}/>,
+                           expandedRowRender: (record) => <Fin_detail key={record.updated} record={record}
+                                                                      change_data={(id) => {
+                                                                          update_fin(id);
+                                                                      }}
+                           />,
 
                        }}
                        onChange={handleTableChange}/>

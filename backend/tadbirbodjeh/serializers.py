@@ -2,9 +2,10 @@ import django.contrib.auth.models
 import django.db.models
 from rest_framework import serializers
 
+import tadbirbodjeh.models
 from tadbirbodjeh.models import budget_chapter, budget_section, budget_row, budget_sub_row, program
 from tadbirbodjeh.models import organization, unit
-from .models import Financial, Logistics, LogisticsUploads, PettyCash, credit, sub_unit
+from .models import Financial, Logistics, LogisticsUploads, PettyCash, sub_unit
 
 
 class sub_unitSerializer(serializers.ModelSerializer):
@@ -112,10 +113,7 @@ class LogisticsSerializerlist(serializers.ModelSerializer):
         exclude = ['created_by']
 
 
-class CreditSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = credit
-        fields = '__all__'
+
 
 
 class PasswordChangeSerializer(serializers.Serializer):
@@ -128,6 +126,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class unitSerializer(serializers.ModelSerializer):
     sub_unit = sub_unitSerializer(many=True, read_only=True)
+
     class Meta:
         model = unit
         fields = '__all__'
@@ -139,6 +138,8 @@ class organizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = organization
         fields = '__all__'
+
+
 # class sub_unitSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = sub_unit
@@ -152,12 +153,15 @@ class BudgetSubRowSerializer(serializers.ModelSerializer):
 
 class BudgetRowSerializer(serializers.ModelSerializer):
     budget_sub_row = BudgetSubRowSerializer(many=True, read_only=True)
+
     class Meta:
         model = budget_row
         fields = '__all__'
 
+
 class BudgetSectionSerializer(serializers.ModelSerializer):
     budget_row = BudgetRowSerializer(many=True, read_only=True)
+
     class Meta:
         model = budget_section
         fields = '__all__'
@@ -165,6 +169,7 @@ class BudgetSectionSerializer(serializers.ModelSerializer):
 
 class BudgetChapterSerializer(serializers.ModelSerializer):
     budget_section = BudgetSectionSerializer(many=True, read_only=True)
+
     class Meta:
         model = budget_chapter
         fields = '__all__'
@@ -173,4 +178,40 @@ class BudgetChapterSerializer(serializers.ModelSerializer):
 class programSerializer(serializers.ModelSerializer):
     class Meta:
         model = program
+        fields = '__all__'
+
+
+class NameIdSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ['id', 'name']
+
+
+class BudgetRowNameIdSerializer(NameIdSerializer):
+    class Meta(NameIdSerializer.Meta):
+        model = budget_row
+
+
+class SubUnitNameIdSerializer(NameIdSerializer):
+    class Meta(NameIdSerializer.Meta):
+        model = sub_unit
+
+
+class ProgramNameIdSerializer(NameIdSerializer):
+    class Meta(NameIdSerializer.Meta):
+        model = program
+
+
+class relationsSerializer(serializers.ModelSerializer):
+    budget_row = BudgetRowNameIdSerializer()
+    sub_unit = SubUnitNameIdSerializer(many=True)
+    programs = ProgramNameIdSerializer(many=True)
+
+    class Meta:
+        model = tadbirbodjeh.models.relation
+        fields = '__all__'
+
+
+class relationsCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = tadbirbodjeh.models.relation
         fields = '__all__'

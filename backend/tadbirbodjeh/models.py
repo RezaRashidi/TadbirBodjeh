@@ -62,7 +62,8 @@ class Logistics(models.Model):
     account_name = models.CharField(max_length=255, null=True, blank=True)
     bank_name = models.CharField(max_length=255, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='Logistics', null=True)
-
+    program = models.ForeignKey("program", on_delete=models.SET_NULL, related_name='Logistics', null=True)
+    budget_row = models.ForeignKey("budget_row", on_delete=models.SET_NULL, related_name='Logistics', null=True)
     # filed for array of upload id for each file
     # upload_ids= models.CharField(max_length=255, null=True, blank=True)
     def __str__(self) -> str:
@@ -83,7 +84,6 @@ class Financial(models.Model):
     tax = models.CharField(max_length=255, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='financials', null=True)
     Payment_type = models.BooleanField(default=False, blank=True)
-
     # price = models.FloatField(blank=True, null=True)
     # logistics = models.ManyToManyField(Logistics, blank=True)
 
@@ -91,21 +91,21 @@ class Financial(models.Model):
         return self.name
 
 
-class credit(models.Model):
-    code = models.CharField(max_length=255, blank=True, null=True)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    year = models.CharField(max_length=255, blank=True, null=True)
-    updated = models.DateTimeField(auto_now=True)
-    descr = models.TextField(blank=True)
-    price_public = models.FloatField(blank=True, null=True)
-    price_pubic = models.FloatField(blank=True, null=True)
-    price_pubic_transfer = models.FloatField(blank=True, null=True)
-    price_exclusive = models.FloatField(blank=True, null=True)
-    price_exclusiveـtransfer = models.FloatField(blank=True, null=True)
-    price_other = models.FloatField(blank=True, null=True)
-
-    def __str__(self) -> str:
-        return self.name
+# class credit(models.Model):
+#     code = models.CharField(max_length=255, blank=True, null=True)
+#     name = models.CharField(max_length=255, blank=True, null=True)
+#     year = models.CharField(max_length=255, blank=True, null=True)
+#     updated = models.DateTimeField(auto_now=True)
+#     descr = models.TextField(blank=True)
+#     price_public = models.FloatField(blank=True, null=True)
+#     price_pubic = models.FloatField(blank=True, null=True)
+#     price_pubic_transfer = models.FloatField(blank=True, null=True)
+#     price_exclusive = models.FloatField(blank=True, null=True)
+#     price_exclusiveـtransfer = models.FloatField(blank=True, null=True)
+#     price_other = models.FloatField(blank=True, null=True)
+#
+#     def __str__(self) -> str:
+#         return self.name
 
 
 class budget_chapter(models.Model):
@@ -202,3 +202,13 @@ class program(models.Model):
     general_cost = models.IntegerField(blank=True, null=True, default=0)
     specific_cost = models.IntegerField(blank=True, null=True, default=0)
     other_cost = models.IntegerField(blank=True, null=True, default=0)
+
+
+class relation(models.Model):
+    year = models.CharField(max_length=255, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True, null=True)
+    budget_row = models.ForeignKey(budget_row, on_delete=models.SET_NULL, related_name='relations', null=True)
+    sub_unit = models.ManyToManyField(sub_unit, related_name='relations')
+    cost_type = models.CharField(max_length=255, blank=True, null=True)
+    programs = models.ManyToManyField(program, related_name='relations')

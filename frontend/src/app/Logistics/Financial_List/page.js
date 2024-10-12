@@ -292,8 +292,15 @@ const App = (props) => {
 
                 <Table columns={columns} dataSource={data} loading={loading} pagination={tableParams.pagination}
                        expandable={{
-                           expandedRowRender: (record) => <Fin_detail key={record.updated} record={record}
-                                                                      change_data={update_fin}/>,
+                           expandedRowRender: (record) => <Fin_detail
+                               change_data={(id) => {
+                                   update_fin(id);
+                               }}
+                               key={`${record.id}-${record.updated}`}
+                               record={record}
+
+
+                           />,
 
                        }}
                        onChange={handleTableChange}/>
