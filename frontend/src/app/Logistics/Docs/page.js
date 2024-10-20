@@ -17,6 +17,7 @@ const Logistics_Doc = (prop) => {
     const {handleJWTRefresh, storeToken, getToken} = AuthActions();
     const [location, setlocation] = useState([]);
     const [selected_location, set_selected_location] = useState([]);
+    const [selected_organization, set_selected_organization] = useState([]);
 
     const [id, set_id] = useState(0)
     useJalaliLocaleListener();
@@ -65,7 +66,7 @@ const Logistics_Doc = (prop) => {
                             }
                         }
                     })
-                    set_selected_relation(item.budget_row)
+                    set_selected_relation(item.budget_row.id)
                     form.setFieldsValue({
                         name: item.name,
                         type: item.type,
@@ -75,17 +76,18 @@ const Logistics_Doc = (prop) => {
                         // date_doc: form.setFieldValue("date_doc", dayjs(new Date(item.date_doc))),
                         date_doc: dayjs(new Date(item.date_doc)),
                         Location: item.Location == null ? "" : item.Location.id,
-                        budget_row: item.budget_row,
-                        program: item.program,
+                        budget_row: item.budget_row.id,
+                        program: item.program.id,
                         descr: item.descr,
                         files: item.uploads,
                         vat: item.vat == null ? 0 : item.vat,
                         bank_name: item.bank_name,
                         account_number: item.account_number,
-                        account_name: item.account_name
+                        account_name: item.account_name,
+                        cost_type: item.cost_type,
 
                     })
-                    item.Location !== null ? set_selected_location(item.Location.id) : ""
+                    item.Location !== null ? set_selected_location(item.Location.id) && set_selected_organization(location.find(item => item.id === selected_location).organization_id) : ""
 
                     let Year = dayjs(item.date_doc).format("YYYY");
                     api().url("/api/subUnit?no_pagination=true" + `&year=${Year}`).get().json().then(r => {
@@ -125,9 +127,9 @@ const Logistics_Doc = (prop) => {
     }, [form_date])
 
     function loadRelation() {
-        if (selected_location !== null) {
-            console.log(selected_location)
-            api().url("/api/relation?no_pagination=true&sub_unit=" + selected_location).get().json().then(r => {
+        if (selected_organization !== null) {
+            console.log(selected_organization)
+            api().url("/api/relation?no_pagination=true&organization=" + selected_organization).get().json().then(r => {
                 set_relation(r);
                 console.log(r)
                 // set_budget_row(r)
@@ -137,10 +139,10 @@ const Logistics_Doc = (prop) => {
     }
 
     useEffect(() => {
-        // if (is_fin && selected_location) {
+        // if (is_fin && selected_organization) {
         loadRelation()
 
-    }, [selected_location])
+    }, [selected_organization])
     const delete_doc = () => {
 
         api().url("/api/logistics/" + id).delete().res(r => {
@@ -202,7 +204,7 @@ const Logistics_Doc = (prop) => {
     };
     const onFinish = (values) => {
 
-        // console.log(values);
+        console.log(values);
         let jsondata = {
             "name": values.name,
             "type": values.type,
@@ -230,7 +232,12 @@ const Logistics_Doc = (prop) => {
             jsondata = {
                 "Location": values.Location,
                 "budget_row": values.budget_row,
-                "program": values.program
+                "program": values.program,
+                "cost_type": values.cost_type,
+                "vat": values.vat,
+                "bank_name": values.bank_name,
+                "account_number": values.account_number,
+                "account_name": values.account_name
             }
         }
         let new_jasondata = {...jsondata}
@@ -378,8 +385,6 @@ const Logistics_Doc = (prop) => {
 
                 <Col span={6}>
                     <Form.Item name="date_doc" label="تاریخ">
-
-
                         {/*<JalaliLocaleListener/>*/}
                         <DatePickerJalali
                             // value={form_date}
@@ -417,7 +422,6 @@ const Logistics_Doc = (prop) => {
                         label={<p style={{}}>ارائه دهنده:</p>}
                         //   labelCol={{span: 4}}
                         // style={{paddingLeft: '1.5rem'}}
-
                         rules={[
                             {
                                 type: "text",
@@ -444,6 +448,7 @@ const Logistics_Doc = (prop) => {
                                     budget_row: undefined,
                                     program: undefined
                                 });
+                                set_selected_organization(location.find(item => item.id === value).organization_id)
                             }
                             }
                             // onSearch={onSearch}
@@ -462,7 +467,7 @@ const Logistics_Doc = (prop) => {
             </Row>
             <Row gutter={50}>
 
-                <Col span={12}>
+                <Col span={8}>
                     <Form.Item name="budget_row" label="ردیف" hidden={!is_fin}>
                         <Select
                             showSearch
@@ -490,7 +495,7 @@ const Logistics_Doc = (prop) => {
                     </Form.Item>
                 </Col>
 
-                <Col span={12}>
+                <Col span={8}>
                     <Form.Item name="program" label="برنامه" hidden={!is_fin}>
                         <Select
                             showSearch
@@ -509,6 +514,30 @@ const Logistics_Doc = (prop) => {
                                             value: program.id
                                         }))
                                     )
+                            }
+                        />
+                    </Form.Item>
+                </Col>
+                <Col span={8}>
+                    <Form.Item
+                        label="نوع هزینه"
+                        name="cost_type"
+                        hidden={!is_fin}
+                        // rules={[{required: true, message: 'Please input your username!'}]}
+                    >
+                        <Select
+                            showSearch
+                            filterOption={filterOption}
+                            placeholder={" انتخاب نوع هزینه"}
+                            // optionFilterProp="children"
+                            // onChange={onChange}
+                            // onSearch={onSearch}
+                            options={
+                                [
+                                    {label: "عمومی", value: 0},
+                                    {label: "اختصاصی", value: 1},
+                                    {label: "متفرقه", value: 2}
+                                ]
                             }
                         />
                     </Form.Item>
@@ -577,8 +606,6 @@ const Logistics_Doc = (prop) => {
                                     {label: "بانک قرض‌الحسنه مهر ایران", value: "بانک قرض‌الحسنه مهر ایران"},
                                     {label: "بانک قرض‌الحسنه رسالت", value: "بانک قرض‌الحسنه رسالت"}
                                 ]
-
-
                             }
 
 
@@ -670,8 +697,6 @@ const Logistics_Doc = (prop) => {
                     </Form.Item>
 
                 </Col>
-
-
             </Row>
             <Row>
                 <Col span={24}>
@@ -699,13 +724,11 @@ const Logistics_Doc = (prop) => {
                 <Button disabled={cheekbuttom} type="primary"
                         htmlType="submit">
                     {prop.Fdata ? "ویرایش مدرک" : "ایجاد مدرک"}
-
                 </Button>
                 {prop.Fdata &&
                     <Button disabled={Fdoc_key !== null} type="primary" danger
                             className={"!mr-20"}
                             onClick={delete_doc}>
-
                         حذف مدرک
                     </Button>}
             </Form.Item>

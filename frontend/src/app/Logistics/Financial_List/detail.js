@@ -1,6 +1,7 @@
 "use client";
 import {api} from "@/app/fetcher";
 import Logistics_Doc from "@/app/Logistics/Docs/page";
+import {numberWithCommas} from "@/app/Logistics/Print/page";
 import {ConfigProvider, Modal, Table} from "antd";
 import fa_IR from "antd/lib/locale/fa_IR";
 import React, {useEffect, useState} from "react";
@@ -103,6 +104,7 @@ export default function Fin_detail(props) {
     }, , {
         title: 'قیمت', dataIndex: 'price', key: 'price',
         sorter: (a, b) => a.price - b.price,
+        render: (price) => numberWithCommas(price.toLocaleString('fa-IR')),
     }, , {
         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
             return new Intl.DateTimeFormat('fa-IR', {

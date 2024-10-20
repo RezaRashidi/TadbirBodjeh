@@ -26,7 +26,7 @@ export default function Relation({data, onOk, onCancel}: {
         name?: string;
         year?: string;
         programs?: number[];
-        cost_type?: string;
+        // cost_type?: string;
         Location?: string[]
         budget_row?: number
 
@@ -35,7 +35,7 @@ export default function Relation({data, onOk, onCancel}: {
 
         let Year = dayjs(form_date).format("YYYY");
         // console.log(url)
-        api().url("/api/subUnit?no_pagination=true&year=" + Year).get().json<any[]>().then(r => {
+        api().url("/api/organization?no_pagination=true&year=" + Year).get().json<any[]>().then(r => {
             // console.log(r)
             setlocation(r)
         })
@@ -57,9 +57,9 @@ export default function Relation({data, onOk, onCancel}: {
         if (editmode) {
             api().url("/api/relation/" + data.id + "/").put({
                 year: yearPicker,
-                cost_type: values.cost_type,
+                // cost_type: values.cost_type,
                 budget_row: values.budget_row,
-                sub_unit: values.Location,
+                organization: values.Location,
                 programs: values.programs
 
                 // rel_id: values.Location
@@ -71,9 +71,9 @@ export default function Relation({data, onOk, onCancel}: {
         } else {
             api().url("/api/relation/").post({
                 year: yearPicker,
-                cost_type: values.cost_type,
+                // cost_type: values.cost_type,
                 budget_row: values.budget_row,
-                sub_unit: values.Location,
+                organization: values.Location,
                 programs: values.programs
 
                 // rel_id: values.Location
@@ -101,7 +101,7 @@ export default function Relation({data, onOk, onCancel}: {
             style={{maxWidth: 600}}
             initialValues={{
                 year: data?.year ? dayjs().year(Number(data?.year)).month(1).day(1) : form_date,
-                Location: data?.sub_unit?.map(i => i.id) ?? [],
+                Location: data?.organization?.map(i => i.id) ?? [],
                 cost_type: data?.cost_type ?? undefined,
                 programs: data?.programs?.map(i => i.id) ?? [],
                 budget_row: data?.budget_row?.id ?? undefined
@@ -150,27 +150,6 @@ export default function Relation({data, onOk, onCancel}: {
             </Form.Item>
 
 
-            <Form.Item
-                label="نوع هزینه"
-                name="cost_type"
-                rules={[{required: true, message: 'Please input your username!'}]}
-            >
-                <Select
-                    showSearch
-                    filterOption={filterOption}
-                    placeholder={" انتخاب نوع هزینه"}
-                    // optionFilterProp="children"
-                    // onChange={onChange}
-                    // onSearch={onSearch}
-                    options={
-                        [
-                            {label: "عمومی", value: "0"},
-                            {label: "اختصاصی", value: "1"},
-                            {label: "متفرقه", value: "2"}
-                        ]
-                    }
-                />
-            </Form.Item>
             <Form.Item name="programs" label={"انتخاب برنامه"} rules={[
                 {
                     required: true

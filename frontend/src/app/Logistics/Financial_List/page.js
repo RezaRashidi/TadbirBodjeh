@@ -31,7 +31,9 @@ const App = (props) => {
         const [printRefs, setPrintRefs] = useState({});
 
         const handleModalChange = (newState) => {
+
             setIsModalOpen(newState);
+            fetchData();
         };
         const onchangestate = (e, record) => {
             api().url(`/api/financial/${record.id}/`).patch({
@@ -176,7 +178,7 @@ const App = (props) => {
                 dataIndex: 'total_logistics_price',
                 key: 'total_logistics_price',
                 render: (x) => {
-                    return numberWithCommas(x)
+                    return numberWithCommas(x.toLocaleString('fa-IR'))
                 }
             },
             // {
@@ -242,9 +244,12 @@ const App = (props) => {
                                                 white-space: nowrap;
                                             }
 
+
+
                                         }"
                             trigger={() => <Button icon={<PrinterOutlined/>}>پرینت</Button>}
                             content={() => printRefs[record.id].current}
+
                         /></>
                 }
             }
@@ -298,13 +303,9 @@ const App = (props) => {
                                }}
                                key={`${record.id}-${record.updated}`}
                                record={record}
-
-
                            />,
-
                        }}
                        onChange={handleTableChange}/>
-
             </>
 
 

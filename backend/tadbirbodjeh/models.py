@@ -64,6 +64,7 @@ class Logistics(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='Logistics', null=True)
     program = models.ForeignKey("program", on_delete=models.SET_NULL, related_name='Logistics', null=True)
     budget_row = models.ForeignKey("budget_row", on_delete=models.SET_NULL, related_name='Logistics', null=True)
+    cost_type = models.IntegerField(blank=True, null=True)
     # filed for array of upload id for each file
     # upload_ids= models.CharField(max_length=255, null=True, blank=True)
     def __str__(self) -> str:
@@ -78,9 +79,9 @@ class Financial(models.Model):
     fin_state = models.IntegerField(choices=[(e.value, e.name) for e in fin_state], default=fin_state.start.value)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    programId = models.CharField(max_length=255, blank=True, null=True)
-    topicId = models.CharField(max_length=255, blank=True, null=True)
-    rowId = models.CharField(max_length=255, blank=True, null=True)
+    # programId = models.CharField(max_length=255, blank=True, null=True)
+    # topicId = models.CharField(max_length=255, blank=True, null=True)
+    # rowId = models.CharField(max_length=255, blank=True, null=True)
     tax = models.CharField(max_length=255, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='financials', null=True)
     Payment_type = models.BooleanField(default=False, blank=True)
@@ -144,17 +145,17 @@ class budget_row(models.Model):
         return self.name
 
 
-class budget_sub_row(models.Model):
-    code = models.IntegerField(blank=True, null=True, default=0)
-    fin_code = models.IntegerField(blank=True, null=True, default=0)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-    year = models.CharField(max_length=255, blank=True, null=True)
-    budget_row = models.ForeignKey(budget_row, on_delete=models.SET_NULL, related_name='budget_sub_row', null=True)
-
-    def __str__(self) -> str:
-        return self.name
+# class budget_sub_row(models.Model):
+#     code = models.IntegerField(blank=True, null=True, default=0)
+#     fin_code = models.IntegerField(blank=True, null=True, default=0)
+#     name = models.CharField(max_length=255, blank=True, null=True)
+#     created = models.DateTimeField(auto_now_add=True)
+#     updated = models.DateTimeField(auto_now=True)
+#     year = models.CharField(max_length=255, blank=True, null=True)
+#     budget_row = models.ForeignKey(budget_row, on_delete=models.SET_NULL, related_name='budget_sub_row', null=True)
+#
+#     def __str__(self) -> str:
+#         return self.name
 
 
 class organization(models.Model):
@@ -209,6 +210,7 @@ class relation(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True, null=True)
     budget_row = models.ForeignKey(budget_row, on_delete=models.SET_NULL, related_name='relations', null=True)
-    sub_unit = models.ManyToManyField(sub_unit, related_name='relations')
-    cost_type = models.CharField(max_length=255, blank=True, null=True)
+    organization = models.ManyToManyField(organization, related_name='relations')
     programs = models.ManyToManyField(program, related_name='relations')
+
+    # cost_type = models.CharField(max_length=255, blank=True, null=True)

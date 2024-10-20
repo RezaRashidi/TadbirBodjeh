@@ -18,7 +18,7 @@ export type RelationData = {
     cost_type?: string;
     year?: string;
     programs?: IdNamePair[];
-    sub_unit?: IdNamePair[];
+    organization?: IdNamePair[];
 }
 export default function Page() {
     const [data, setData] = useState([]);
@@ -91,7 +91,7 @@ export default function Page() {
                         year: rec.year,
                         programs: rec.programs,
                         cost_type: rec.cost_type,
-                        sub_unit: rec.sub_unit
+                    organization: rec.organization
 
                     }
                 )}>{budget_row.name}</a>,
@@ -110,33 +110,33 @@ export default function Page() {
             }
         }
         ,
-        {
-            title: 'نوع هزینه',
-            dataIndex: 'cost_type',
-            key: 'cost_type',
-            render: (cost) => {
-                switch (Number(cost)) {
-                    case 0:
-                        return "عمومی"
-                    case 1:
-                        return "اختصاصی"
-                    case 2:
-                        return "متفرقه"
-                    default:
-                        return "نامشخص";
-                }
-            }
-        }
-        ,
+        // {
+        //     title: 'نوع هزینه',
+        //     dataIndex: 'cost_type',
+        //     key: 'cost_type',
+        //     render: (cost) => {
+        //         switch (Number(cost)) {
+        //             case 0:
+        //                 return "عمومی"
+        //             case 1:
+        //                 return "اختصاصی"
+        //             case 2:
+        //                 return "متفرقه"
+        //             default:
+        //                 return "نامشخص";
+        //         }
+        //     }
+        // }
+        // ,
         {
             title: 'مرکز هزینه',
             dataIndex:
-                'sub_unit',
+                'organization',
             key:
-                'sub_unit',
-            render: (sub_unit) => {
+                'organization',
+            render: (organization) => {
 
-                return sub_unit.map((p) => <div key={p.id}>{p.name}</div>)
+                return organization.map((p) => <div key={p.id}>{p.name}</div>)
 
 
             }

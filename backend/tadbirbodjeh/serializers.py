@@ -3,16 +3,26 @@ import django.db.models
 from rest_framework import serializers
 
 import tadbirbodjeh.models
-from tadbirbodjeh.models import budget_chapter, budget_section, budget_row, budget_sub_row, program
+from tadbirbodjeh.models import budget_chapter, budget_section, budget_row, program
 from tadbirbodjeh.models import organization, unit
 from .models import Financial, Logistics, LogisticsUploads, PettyCash, sub_unit
 
 
 class sub_unitSerializer(serializers.ModelSerializer):
+    unit_id = serializers.IntegerField(source='unit.id', read_only=True)
+    organization_id = serializers.IntegerField(source='unit.organization.id', read_only=True)
+
     class Meta:
         model = sub_unit
         fields = '__all__'
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.unit:
+            representation['unit_id'] = instance.unit.id
+            if instance.unit.organization:
+                representation['organization_id'] = instance.unit.organization.id
+        return representation
 
 class FinancialSerializer(serializers.ModelSerializer):
     total_logistics_price = serializers.SerializerMethodField()
@@ -95,7 +105,11 @@ class LogisticsSerializerlist(serializers.ModelSerializer):
     uploads = LogisticsUploadsSerializerforlist(many=True, read_only=True)
     user = serializers.SerializerMethodField()
     Location = sub_unitSerializer()
+    program = serializers.SerializerMethodField()
+    budget_row = serializers.SerializerMethodField()
 
+    # program=ProgramNameIdSerializer()
+    # budget_row = BudgetRowNameIdSerializer()
     # sub_units = serializers.SerializerMethodField()  # New field
     #
     # def get_sub_units(self, obj):  # New method
@@ -107,6 +121,14 @@ class LogisticsSerializerlist(serializers.ModelSerializer):
             return obj.created_by.first_name + ' ' + obj.created_by.last_name
         else:
             return 'Unknown User'
+
+    def get_program(self, obj):
+        from tadbirbodjeh.serializers import ProgramNameIdSerializer
+        return ProgramNameIdSerializer(obj.program).data
+
+    def get_budget_row(self, obj):
+        from tadbirbodjeh.serializers import BudgetRowNameIdSerializer
+        return BudgetRowNameIdSerializer(obj.budget_row).data
 
     class Meta:
         model = Logistics
@@ -145,14 +167,14 @@ class organizationSerializer(serializers.ModelSerializer):
 #         model = sub_unit
 #         fields = '__all__'
 
-class BudgetSubRowSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = budget_sub_row
-        fields = '__all__'
+# class BudgetSubRowSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = budget_sub_row
+#         fields = '__all__'
 
 
 class BudgetRowSerializer(serializers.ModelSerializer):
-    budget_sub_row = BudgetSubRowSerializer(many=True, read_only=True)
+    # budget_sub_row = BudgetSubRowSerializer(many=True, read_only=True)
 
     class Meta:
         model = budget_row
@@ -183,11 +205,16 @@ class programSerializer(serializers.ModelSerializer):
 
 class NameIdSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'code']
 
 
-class BudgetRowNameIdSerializer(NameIdSerializer):
-    class Meta(NameIdSerializer.Meta):
+class NameIdSerializerForProgramAndBudget(serializers.ModelSerializer):
+    class Meta:
+        fields = ['id', 'name', 'code', 'fin_code']
+
+
+class BudgetRowNameIdSerializer(NameIdSerializerForProgramAndBudget):
+    class Meta(NameIdSerializerForProgramAndBudget.Meta):
         model = budget_row
 
 
@@ -196,14 +223,14 @@ class SubUnitNameIdSerializer(NameIdSerializer):
         model = sub_unit
 
 
-class ProgramNameIdSerializer(NameIdSerializer):
-    class Meta(NameIdSerializer.Meta):
+class ProgramNameIdSerializer(NameIdSerializerForProgramAndBudget):
+    class Meta(NameIdSerializerForProgramAndBudget.Meta):
         model = program
 
 
 class relationsSerializer(serializers.ModelSerializer):
     budget_row = BudgetRowNameIdSerializer()
-    sub_unit = SubUnitNameIdSerializer(many=True)
+    organization = SubUnitNameIdSerializer(many=True)
     programs = ProgramNameIdSerializer(many=True)
 
     class Meta:

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="server" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" serverName="server" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+    <option name="confirmBeforeUploading" value="false" />
     <serverData>
       <paths name="server">
         <serverdata>
@@ -8,6 +9,9 @@
             <mapping deploy="/backend" local="$PROJECT_DIR$/backend" web="/" />
             <mapping deploy="/frontend" local="$PROJECT_DIR$/frontend" web="" />
           </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/frontend/src/app/Server.ts" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>

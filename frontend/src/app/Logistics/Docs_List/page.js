@@ -1,6 +1,7 @@
 "use client";
 import {api} from "@/app/fetcher";
 import Logistics_Doc from "@/app/Logistics/Docs/page";
+import {numberWithCommas} from "@/app/Logistics/Print/page";
 import {Modal, Radio, Table} from "antd";
 import React, {useEffect, useState} from "react";
 
@@ -68,6 +69,7 @@ const App = ({}) => {
         title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller',
     }, , {
         title: 'قیمت', dataIndex: 'price', key: 'price',
+        render: (price) => numberWithCommas(price.toLocaleString('fa-IR')),
         sorter: (a, b) => a.price - b.price,
     }, , {
         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {

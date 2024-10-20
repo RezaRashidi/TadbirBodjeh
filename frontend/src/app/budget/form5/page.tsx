@@ -140,40 +140,42 @@ export default function Program() {
                     }
                 </ul>
             ),
-        }, {
-            title: 'زیر ردیف',
-            dataIndex: 'budget_section',
-            key: 'budget_section',
-            render: (budget_section) => (
-                <ul>
-                    {
-                        budget_section.map((item) => (
-                            item.budget_row.map(
-                                (row) => (
-                                    row.budget_sub_row.map(
-                                        (subRow) => (
-                                            <li key={subRow.id}>
-                                                <a onClick={() => showModal({
-                                                    type: 3,
-                                                    id: subRow.id,
-                                                    name: subRow.name,
-                                                    title: 'زیر ردیف',
-                                                    code: subRow.code,
-                                                    year: subRow.year,
-                                                    budget_row: subRow.budget_row,
-                                                    fin_code: subRow.fin_code
-                                                })}>{subRow.name}</a>
-                                            </li>
-                                        )
-                                    )
-                                )
-                            )
-
-                        ))
-                    }
-                </ul>
-            ),
         }
+
+        // , {
+        //     title: 'زیر ردیف',
+        //     dataIndex: 'budget_section',
+        //     key: 'budget_section',
+        //     render: (budget_section) => (
+        //         <ul>
+        //             {
+        //                 budget_section.map((item) => (
+        //                     item.budget_row.map(
+        //                         (row) => (
+        //                             row.budget_sub_row.map(
+        //                                 (subRow) => (
+        //                                     <li key={subRow.id}>
+        //                                         <a onClick={() => showModal({
+        //                                             type: 3,
+        //                                             id: subRow.id,
+        //                                             name: subRow.name,
+        //                                             title: 'زیر ردیف',
+        //                                             code: subRow.code,
+        //                                             year: subRow.year,
+        //                                             budget_row: subRow.budget_row,
+        //                                             fin_code: subRow.fin_code
+        //                                         })}>{subRow.name}</a>
+        //                                     </li>
+        //                                 )
+        //                             )
+        //                         )
+        //                     )
+        //
+        //                 ))
+        //             }
+        //         </ul>
+        //     ),
+        // }
     ];
     return (
         <div>
@@ -235,17 +237,17 @@ export default function Program() {
                 >
                     ایجاد ردیف
                 </Button>
-                <Button type="primary" size="middle" icon={<PlusOutlined/>}
+                {/*<Button type="primary" size="middle" icon={<PlusOutlined/>}*/}
 
-                        onClick={
-                            () => showModal({
-                                name: "",
-                                type: 3, id: null, title: "واحد زیرردیف"
-                            })
-                        }
-                >
-                    ایجاد زیرردیف
-                </Button>
+                {/*        onClick={*/}
+                {/*            () => showModal({*/}
+                {/*                name: "",*/}
+                {/*                type: 3, id: null, title: "واحد زیرردیف"*/}
+                {/*            })*/}
+                {/*        }*/}
+                {/*>*/}
+                {/*    ایجاد زیرردیف*/}
+                {/*</Button>*/}
             </Space>
             <Modal title={selected_data?.title} style={{marginLeft: "-15%"}} centered open={isModalOpen}
                    onOk={handleOk} onCancel={handleCancel} footer={null} zIndex={100} width={"75%"}>

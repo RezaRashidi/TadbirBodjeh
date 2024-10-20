@@ -20,10 +20,10 @@ from rest_framework import permissions, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row, budget_sub_row, program, \
+from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row, program, \
     relation
 from tadbirbodjeh.serializers import organizationSerializer, unitSerializer, BudgetRowSerializer, \
-    BudgetSectionSerializer, BudgetChapterSerializer, BudgetSubRowSerializer, programSerializer, relationsSerializer, \
+    BudgetSectionSerializer, BudgetChapterSerializer, programSerializer, relationsSerializer, \
     relationsCreateSerializer
 from .models import Financial, Logistics, LogisticsUploads, PettyCash, sub_unit
 from .serializers import (
@@ -347,26 +347,27 @@ class LogisticsViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         user_groups = self.request.user.groups.all()
         group_names = [group.name for group in user_groups]
-        if any(name.startswith("financial") for name in group_names) and instance.Fdoc_key.fin_state > 2:
-            return Response({"error": "You do not have permission to perform this action."},
-                            status=status.HTTP_403_FORBIDDEN)
-        if any(name.startswith("logistic") for name in group_names) and instance.Fdoc_key.fin_state > 1:
-            return Response({"error": "You do not have permission to perform this action."},
-                            status=status.HTTP_403_FORBIDDEN)
+        if instance.Fdoc_key is not None:
+            if any(name.startswith("financial") for name in group_names) and instance.Fdoc_key.fin_state > 2:
+                return Response({"error": "You do not have permission to perform this action."},
+                                status=status.HTTP_403_FORBIDDEN)
+            if any(name.startswith("logistic") for name in group_names) and instance.Fdoc_key.fin_state > 1:
+                return Response({"error": "You do not have permission to perform this action."},
+                                status=status.HTTP_403_FORBIDDEN)
         return super().partial_update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         user_groups = self.request.user.groups.all()
         group_names = [group.name for group in user_groups]
-        print(instance.Fdoc_key.fin_state)
-        if any(name.startswith("financial") for name in group_names) and instance.Fdoc_key.fin_state > 2:
-            return Response({"error": "You do not have permission to perform this action."},
-                            status=status.HTTP_403_FORBIDDEN)
+        if instance.Fdoc_key is not None:
+            if any(name.startswith("financial") for name in group_names) and instance.Fdoc_key.fin_state > 2:
+                return Response({"error": "You do not have permission to perform this action."},
+                                status=status.HTTP_403_FORBIDDEN)
 
-        if any(name.startswith("logistic") for name in group_names) and instance.Fdoc_key.fin_state > 1:
-            return Response({"error": "You do not have permission to perform this action."},
-                            status=status.HTTP_403_FORBIDDEN)
+            if any(name.startswith("logistic") for name in group_names) and instance.Fdoc_key.fin_state > 1:
+                return Response({"error": "You do not have permission to perform this action."},
+                                status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -681,23 +682,23 @@ class BudgetRowViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class BudgetSubRowViewSet(viewsets.ModelViewSet):
-    queryset = budget_sub_row.objects.all()
-    serializer_class = BudgetSubRowSerializer
-    permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
-
-    def get_queryset(self):
-        queryset = budget_sub_row.objects.all()
-        no_pagination = self.request.query_params.get('no_pagination', None)
-        year = self.request.query_params.get('year', None)
-        if no_pagination == 'true' and year:
-            queryset = queryset.filter(year=year)
-            self.pagination_class = None
-        if no_pagination == 'true':
-            self.pagination_class = None
-        if year:
-            queryset = queryset.filter(year=year)
-        return queryset
+# class BudgetSubRowViewSet(viewsets.ModelViewSet):
+#     queryset = budget_sub_row.objects.all()
+#     serializer_class = BudgetSubRowSerializer
+#     permission_classes = [IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+#
+#     def get_queryset(self):
+#         queryset = budget_sub_row.objects.all()
+#         no_pagination = self.request.query_params.get('no_pagination', None)
+#         year = self.request.query_params.get('year', None)
+#         if no_pagination == 'true' and year:
+#             queryset = queryset.filter(year=year)
+#             self.pagination_class = None
+#         if no_pagination == 'true':
+#             self.pagination_class = None
+#         if year:
+#             queryset = queryset.filter(year=year)
+#         return queryset
 
 
 class programViewSet(viewsets.ModelViewSet):
@@ -731,8 +732,9 @@ class relationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = relation.objects.all()
+
         no_pagination = self.request.query_params.get('no_pagination', None)
-        sub_unit_id = self.request.query_params.get('sub_unit', None)
+        organization_id = self.request.query_params.get('organization', None)
         year = self.request.query_params.get('year', None)
         if no_pagination == 'true' and year:
             queryset = queryset.filter(year=year)
@@ -741,6 +743,6 @@ class relationViewSet(viewsets.ModelViewSet):
             self.pagination_class = None
         if year:
             queryset = queryset.filter(year=year)
-        if sub_unit_id:
-            queryset = queryset.filter(sub_unit__in=sub_unit_id)
+        if organization_id:
+            queryset = queryset.filter(organization=organization_id)
         return queryset

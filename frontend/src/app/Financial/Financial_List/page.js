@@ -1,21 +1,18 @@
 "use client";
 import {api} from "@/app/fetcher";
+import Fin_last_print, {numberWithCommas} from "@/app/Financial/Financial_List/Print/page";
 import Financial_docs from "@/app/Logistics/Financial_docs/page";
 import Fin_detail from "@/app/Logistics/Financial_List/detail";
-import Fin_print, {numberWithCommas} from "@/app/Logistics/Print/page";
 import {PrinterOutlined} from "@ant-design/icons";
 import {Button, Modal, Radio, Table} from "antd";
 import React, {useEffect, useState} from "react";
 import ReactToPrint from "react-to-print";
-
 // const fin_state = {
 //     "در دست اقدام": 0,
 //     "در حال بررسی": 1,
 //     "تایید": 2,
 //
 // }
-
-
 const App = (props) => {
         const [data, setData] = useState();
         const [loading, setLoading] = useState(true);
@@ -32,9 +29,8 @@ const App = (props) => {
 
         const handleModalChange = (newState) => {
             setIsModalOpen(newState);
+            fetchData();
         };
-
-
 // Usage
         function update_fin(id) {
             let xit = data.filter((item) => {
@@ -95,7 +91,6 @@ const App = (props) => {
                 title: 'شماره سند',
                 dataIndex: 'id',
                 key: 'id',
-
             },
             {
                 title: 'نام سند',
@@ -152,7 +147,7 @@ const App = (props) => {
                 key: 'total_logistics_price',
                 align: 'center',
                 render: (x) => {
-                    return numberWithCommas(x)
+                    return numberWithCommas(x.toLocaleString('fa-IR'))
                 }
             },
 
@@ -211,9 +206,9 @@ const App = (props) => {
                     //     setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));
                     // }
                     // console.log(`${record.id}-${record.updated}`);
-                    return < >
+                    return <>
                         <div style={{display: 'none'}}>
-                            <Fin_print key={record.updated} ref={printRefs[record.id]} record={record}/>
+                            <Fin_last_print key={record.updated} ref={printRefs[record.id]} record={record}/>
                         </div>
                         <ReactToPrint
                             pageStyle="@media print {
@@ -221,17 +216,22 @@ const App = (props) => {
                                             height: 100vh; /* Use 100% here to support printing more than a single page*/
                                             margin: 0 !important;
                                             padding: 0 !important;
-                                            overflow: hidden;
+
 
                                           }
                                              .no-wrap {
                                                 white-space: nowrap;
                                             }
 
+
+
+
+
                                         }"
                             trigger={() => <Button icon={<PrinterOutlined/>}></Button>}
                             content={() => printRefs[record.id].current}
-                        /></>
+                        />
+                    </>
                 }
             }
 
@@ -246,13 +246,9 @@ const App = (props) => {
             })
         }
         return (
-
             <>
-
-
                 <Modal title="ویرایش سند" style={{marginLeft: "-15%"}} centered open={isModalOpen}
                        onOk={handleOk} width={"75%"} onCancel={handleCancel} footer={null} zIndex={100}>
-
                     <Financial_docs Fdata={data} selectedid={selectedid} modal={handleModalChange}/>
                 </Modal>
                 <Radio.Group onChange={(e) => {
@@ -266,23 +262,25 @@ const App = (props) => {
                 }} defaultValue={fin_state}>
                     <Radio.Button value={1}>در حال بررسی</Radio.Button>
                     <Radio.Button value={2}>تایید شده</Radio.Button>
-
                 </Radio.Group>
-
                 <Table columns={columns} dataSource={data} loading={loading} pagination={tableParams.pagination}
                        expandable={{
-                           expandedRowRender: (record) => <Fin_detail key={record.updated} record={record}
+                           expandedRowRender: (record) =>
+
+                               <Fin_detail key={record.updated} record={record}
                                                                       change_data={(id) => {
                                                                           update_fin(id);
                                                                       }}
-                           />,
+                               />
+
+                           // console.log(record);
+                           // <Fin_last_print key={record.updated} ref={printRefs[record.id]} record={record}/>
+
+
 
                        }}
                        onChange={handleTableChange}/>
-
             </>
-
-
         )
     }
 ;
