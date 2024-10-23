@@ -536,7 +536,9 @@ const Logistics_Doc = (prop) => {
                                 [
                                     {label: "عمومی", value: 0},
                                     {label: "اختصاصی", value: 1},
-                                    {label: "متفرقه", value: 2}
+                                    {label: "متفرقه و ابلاغی", value: 2},
+                                    {label: "تعمیر و تجهیز", value: 3},
+                                    {label: "تامین فضا", value: 4}
                                 ]
                             }
                         />
@@ -617,14 +619,16 @@ const Logistics_Doc = (prop) => {
                 <Col span={12}>
                     <Form.Item
                         name="account_number"
-                        label="شماره حساب"
+                        label="شماره شبا"
                         rules={[
                             {
                                 type: "text",
                             },
                         ]}
                     >
-                        <Input placeholder=""/>
+                        <Input
+                            addonAfter={"IR"}
+                            placeholder=""/>
                     </Form.Item>
                 </Col>
 

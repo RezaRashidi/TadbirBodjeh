@@ -3,7 +3,7 @@
     /* Whatever */
     .row:nth-child(odd) {
         print-color-adjust: exact;
-        background-color: #c3c3c3;
+        background-color: #efefef;
     }
 
 

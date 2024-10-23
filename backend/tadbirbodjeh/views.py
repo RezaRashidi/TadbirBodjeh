@@ -1,5 +1,6 @@
 import datetime
 import logging
+from io import BytesIO
 
 import django.contrib.auth
 import django.contrib.auth.decorators
@@ -15,7 +16,10 @@ import rest_framework.permissions
 import rest_framework.views
 import rest_framework_simplejwt.exceptions
 import rest_framework_simplejwt.tokens
+import xlsxwriter
 from django.db.models import Q
+from django.db.models import Sum
+from django.http import HttpResponse
 from rest_framework import permissions, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -746,3 +750,56 @@ class relationViewSet(viewsets.ModelViewSet):
         if organization_id:
             queryset = queryset.filter(organization=organization_id)
         return queryset
+
+
+class GenerateExcelView(rest_framework.views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, financial_id):
+        try:
+            financial = Financial.objects.get(id=financial_id)
+
+            if not financial.Payment_type:
+                return Response({"error": "Payment_type is not true for this Financial record"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            logistics = Logistics.objects.filter(Fdoc_key=financial)
+
+            # Group by account_number and account_name, sum the prices
+            grouped_logistics = logistics.values('account_number', 'account_name', 'bank_name').annotate(
+                total_price=Sum('price'))
+
+            # Create a workbook and add a worksheet.
+            output = BytesIO()
+            workbook = xlsxwriter.Workbook(output)
+            worksheet = workbook.add_worksheet()
+
+            # Add headers
+            headers = ['Amount', 'CreditIBAN', 'CurrencyCode', 'CreditAccountOwnerName', 'CreditAccountOwnerIdentifier',
+                       'Identifier', 'Description']
+            for col, header in enumerate(headers):
+                worksheet.write(0, col, header)
+
+            # Add data
+            for row, item in enumerate(grouped_logistics, start=1):
+                worksheet.write(row, 0, item['total_price'])
+                worksheet.write(row, 1, f"IR{item['account_number']}")
+                worksheet.write(row, 2, '')  # CurrencyCode (empty)
+                worksheet.write(row, 3, item['account_name'])
+                worksheet.write(row, 4, '')  # CreditAccountOwnerIdentifier (empty)
+                worksheet.write(row, 5, '')  # Identifier (empty)
+                worksheet.write(row, 6, '')  # Description (empty)
+
+            workbook.close()
+
+            # Create the HttpResponse object with Excel mime type
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename=financial_{financial_id}_logistics.xlsx'
+            response.write(output.getvalue())
+
+            return response
+
+        except Financial.DoesNotExist:
+            return Response({"error": "Financial record not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

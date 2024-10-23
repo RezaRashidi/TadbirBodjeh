@@ -41,8 +41,11 @@ function Fin_last_print(props, ref) {
     const [Log_list, set_Log_list] = useState([], (x) => convertToPersianNumber(x));
     const [fin, set_fin] = useState({});
     const username = props.record ? props.record.user_group == "logistics-other" ? "" : props.record.user : ''
+
     const {Text} = Typography;
     let id = props.record ? props.record.id : 41;
+    const Payment_type = props.record ? props.record.Payment_type : false
+    const user = props.record ? props.record.user : ''
     // console.log("props");
     // console.log(props.record.id);
     let Price = 0;
@@ -77,9 +80,9 @@ function Fin_last_print(props, ref) {
             existingItem.price += item.price;
             existingItem.vat += item.vat;
             if (existingItem.Location && item.Location) {
-                if (existingItem.Location.name !== item.Location.name &&
+                if (existingItem.Location.organization_name !== item.Location.organization_name &&
                     !existingItem.Location.name.includes(item.Location.name)) {
-                    existingItem.Location.name = `${existingItem.Location.name || ""}${existingItem.Location.name ? " - " : ""}${item.Location.name || ""}`.trim();
+                    existingItem.Location.organization_name = `${existingItem.Location.organization_name || ""}${existingItem.Location.organization_name ? " - " : ""}${item.Location.organization_name || ""}`.trim();
                 }
             } else if (item.Location) {
                 existingItem.Location = {...item.Location};
@@ -160,7 +163,29 @@ function Fin_last_print(props, ref) {
 
         , {
             title: 'محل هزینه', dataIndex: 'Location', key: 'Location', align: "center",
-            render: (data) => data?.name
+            render: (data) => data?.organization_name
+        },
+        {
+            title: 'نوع',
+            dataIndex: 'cost_type',
+            key: 'cost_type',
+            render: (cost_type) => {
+                switch (cost_type) {
+                    case 0:
+                        return "عمومی";
+                    case 1:
+                        return "اختصاصی";
+                    case 2:
+                        return "متفرقه و ابلاغی";
+                    case 3:
+                        return "تعمیر و تجهیز";
+                    case 4:
+                        return "تامین فضا";
+                    default:
+                        return "نامشخص";
+                }
+            },
+            align: "center",
         },
 
         //     {
@@ -201,7 +226,7 @@ function Fin_last_print(props, ref) {
         },
         {
             title: 'شماره حساب', dataIndex: 'account_number', key: 'account_number', align: "center",
-            render: (account_number) => <span className={"text-sm font-extrabold"}>{account_number}</span>,
+            render: (account_number) => <span className={"text-sm font-extrabold"}>IR{account_number}</span>,
         },
         {
             title: 'نام بانک', dataIndex: 'bank_name', key: 'bank_name', align: "center"
@@ -267,6 +292,9 @@ function Fin_last_print(props, ref) {
                     </header>
                     <article className={"pb-4 text-right"}>
                         <p>مدیر محترم امور مالی</p>
+                        <p>به استناد مواد ۱۶ و ۱۷ آئین نامه مالی و معاملاتی دانشگاه مبلغ {Price_ir} به ریال</p>
+                        <p> مبلغ به حروف : {Num2persian(Price)} ریال بابت {Num2persian(bank_log_list.length)} فقره سند
+                            هزینه از محل اعتبارات ردیف ۱۲۲۹۰۰ بودجه سال ۱۴۰۳ کل کشور بشرح موارد زیر: </p>
 
 
                     </article>
@@ -295,21 +323,18 @@ function Fin_last_print(props, ref) {
                             <tbody style={{width: "100%"}}>
                             <tr style={{width: "100%"}}>
                                 <td className={"py-5"}>
-                                    <p className={"text-center"}>تنظیم و رسیدگی</p>
-                                    <p className={"text-center"}> فاطمه علیزاده </p>
+                                    <p className={"text-center"}>رئیس دانشگاه</p>
+                                    <p className={"text-center"}> دکتر محمدتقی پیربابائی </p>
                                 </td>
-                                <td className={"no-wrap py-5 "}>
-                                    <p className={"text-center"}>صدور حواله</p>
-                                    <p className={"text-center no-wrap"}>علیرضا پرتو </p>
-                                </td>
-                                <td className={"py-5"}>
-                                    <p className={"text-center"}>مدیر امور مالی</p>
-                                    <p className={"text-center"}>دکتر علیرضا خدادادی</p>
-                                </td>
-                                <td className={"py-5"}>
-                                    <p className={"text-center"}>معاون اداری، عمرانی و مالی</p>
-                                    <p className={"text-center"}>دکتر آزیتا بلالی اسکویی</p>
-                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                        <table style={{position: "absolute", bottom: "0", width: "100%"}}>
+                            <tbody style={{width: "100%"}}>
+                            <tr style={{width: "100%"}}>
+                                <td>مدارک ضمیمه</td>
+                                <td> یک فقره سند هزینه به انضمام کلیه مدارک لازم و کافی</td>
                             </tr>
                             </tbody>
                         </table>
@@ -385,7 +410,7 @@ function Fin_last_print(props, ref) {
                                            <Table.Summary.Cell index={1} colSpan={5} align={"center"}>
                                                <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text>
                                            </Table.Summary.Cell>
-                                           <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
+                                           <Table.Summary.Cell index={1} colSpan={2} align={"center"}>
                                                <Text className={"text-sm font-extrabold"}>{Price_ir}  </Text>
                                            </Table.Summary.Cell>
                                            <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
@@ -397,7 +422,8 @@ function Fin_last_print(props, ref) {
                                    </>);
                                }}/>
                     </article>
-
+                    {!Payment_type ?
+                        <p className={"text-right"}>کسر از تنخواه(شارژ تنخواه) {user} به مبلغ {Price_ir} ریال </p> :
                     <article className={"pb-4 "}>
                         <Table className={"text-s "} columns={columns_bank} dataSource={bank_log_list} bordered
                                pagination={false}
@@ -418,7 +444,7 @@ function Fin_last_print(props, ref) {
                                        </Table.Summary.Row>
                                    </>);
                                }}/>
-                    </article>
+                    </article>}
                     <footer className="nazanin" style={{width: "100%"}}>
                         <table style={{width: "100%"}}>
                             <tbody style={{width: "100%"}}>
@@ -438,7 +464,7 @@ function Fin_last_print(props, ref) {
                                 </td>
                                 <td className={"py-5"}>
                                     <p className={"text-center"}>معاون اداری، عمرانی و مالی</p>
-                                    <p className={"text-center"}>دکتر آزیتا بلالی اسکویی</p>
+                                    <p className={"text-center"}>دکتر احد نژاد ابراهیمی</p>
                                 </td>
                             </tr>
 

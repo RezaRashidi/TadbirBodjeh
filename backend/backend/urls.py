@@ -26,6 +26,7 @@ from tadbirbodjeh.views import (
     LogisticsUploadsViewSet, LogoutView, pettyCashViewSet, pettyCashReport, get_user_info, getAllLogisticUser,
     changeOwnerFinancial, OrganizationViewSet, UnitViewSet, SubUnitViewSet  # , units
 )
+from tadbirbodjeh.views import GenerateExcelView
 
 router = routers.DefaultRouter()
 router.register(r"logistics", LogisticsViewSet, basename="logistics")
@@ -62,5 +63,6 @@ urlpatterns = [
     path("api/pettycashreport/", pettyCashReport.as_view(), name='ActiveReports'),
     path('get_user_info/', get_user_info.as_view(), name='get_user_info'),
     path('api-auth/', include('rest_framework.urls')),  # Include Django REST Framework URLs
+    path('api/generate-excel/<int:financial_id>/', GenerateExcelView.as_view(), name='generate-excel'),
     # path("accounts/", include("django.contrib.auth.urls")),
 ]

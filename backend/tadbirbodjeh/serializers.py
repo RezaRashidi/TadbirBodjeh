@@ -11,7 +11,7 @@ from .models import Financial, Logistics, LogisticsUploads, PettyCash, sub_unit
 class sub_unitSerializer(serializers.ModelSerializer):
     unit_id = serializers.IntegerField(source='unit.id', read_only=True)
     organization_id = serializers.IntegerField(source='unit.organization.id', read_only=True)
-
+    organization_name = serializers.CharField(source='unit.organization.name', read_only=True)
     class Meta:
         model = sub_unit
         fields = '__all__'

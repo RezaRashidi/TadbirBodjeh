@@ -263,7 +263,7 @@ function Fin_print(props, ref) {
                                 گردد. </p>
                         </td>
                         <td className={"py-5"}>
-                            <p className={"text-center"}> آزیتا بلالی اسکویی</p>
+                            <p className={"text-center"}>دکتر احد نژاد ابراهیمی</p>
                             <p className={"text-center"}> معاون اداری، عمرانی و مالی </p>
                         </td>
                     </tr>

@@ -3,7 +3,7 @@ import {api} from "@/app/fetcher";
 import Fin_last_print, {numberWithCommas} from "@/app/Financial/Financial_List/Print/page";
 import Financial_docs from "@/app/Logistics/Financial_docs/page";
 import Fin_detail from "@/app/Logistics/Financial_List/detail";
-import {PrinterOutlined} from "@ant-design/icons";
+import {DownloadOutlined, PrinterOutlined} from "@ant-design/icons";
 import {Button, Modal, Radio, Table} from "antd";
 import React, {useEffect, useState} from "react";
 import ReactToPrint from "react-to-print";
@@ -31,6 +31,24 @@ const App = (props) => {
             setIsModalOpen(newState);
             fetchData();
         };
+        const downloadExcel = async (financialId, username) => {
+            try {
+                const response = await api().url(`/api/generate-excel/${financialId}/`).get().blob();
+                const blob = new Blob([response], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = `${username}_${financialId}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                message.success('Excel file downloaded successfully');
+            } catch (error) {
+                // console.error('Error downloading Excel file:', error);
+                // message.error('Failed to download Excel file');
+            }
+        };
+
 // Usage
         function update_fin(id) {
             let xit = data.filter((item) => {
@@ -41,6 +59,7 @@ const App = (props) => {
             })
             setData(xit)
         }
+
         const showModal = (value) => {
             // console.log(  ...data.filter((item) => item.id === value.id).flat())
             setselectedid(value.id)
@@ -201,6 +220,16 @@ const App = (props) => {
                 }
             },
             {
+                title: 'اکسل',
+                render: (record) => (
+                    <Button
+                        icon={<DownloadOutlined/>}
+                        onClick={() => downloadExcel(record.id, record.user)}
+                        disabled={record.Payment_type == false}
+                    />
+                )
+            },
+            {
                 title: "چاپ", key: 'print', align: 'center', render: (record) => {
                     // if (!printRefs[record.id]) {
                     //     setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));
@@ -275,7 +304,6 @@ const App = (props) => {
 
                            // console.log(record);
                            // <Fin_last_print key={record.updated} ref={printRefs[record.id]} record={record}/>
-
 
 
                        }}
