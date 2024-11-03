@@ -59,16 +59,34 @@ function Fin_last_print(props, ref) {
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
     dayjs.locale('fa');
+
     let bank_log_list = Log_list.reduce((acc, item) => {
         const existingItem = acc.find(i => i.account_number === item.account_number && i.account_name === item.account_name);
         if (existingItem) {
             existingItem.price += item.price;
             existingItem.vat += item.vat;
+            const existingBudgetRow = existingItem.budget_rows.find(br => br.id === item.budget_row.id);
+            if (existingBudgetRow) {
+                existingBudgetRow.price += item.price;
+            } else {
+                existingItem.budget_rows.push({...item.budget_row, price: item.price});
+            }
         } else {
-            acc.push({...item});
+            acc.push({
+                ...item,
+                budget_rows: [{...item.budget_row, price: item.price}]
+            });
         }
         return acc;
     }, []);
+    // console.log(bank_log_list)
+    // After reduction, format the budget_row information
+    // bank_log_list = bank_log_list.map(item => ({
+    //     ...item,
+    //     budget_row:  item.budget_rows.length>1? item.budget_rows.map(br => `${br.name} (${numberWithCommas(convertToPersianNumber(br.price))})`).join(' - '):item.budget_rows.map(br => br.name).join(', ')
+    // }));
+    // console.log(bank_log_list)
+
 
     let new_log_list = Log_list.reduce((acc, item) => {
         const existingItem = acc.find(i =>
@@ -127,7 +145,7 @@ function Fin_last_print(props, ref) {
         []
     )
     //props.record.updated
-    const columns = [
+    const columns1 = [
         {
             title: '#',
             dataIndex: 'index',
@@ -218,12 +236,107 @@ function Fin_last_print(props, ref) {
             title: 'ارزش افزوده', dataIndex: 'vat', key: 'vat', align: "vat",
         },
     ];
+    const columns2 = [
+        {
+            title: '#',
+            dataIndex: 'index',
+            key: 'index',
+            width: "5px",
+            align: "center",
+            render: (text, record, index) => index + 1
+        },
+
+
+        // {
+        //     title: 'نام کالا/خدمات', dataIndex: 'name', key: 'name', align: "center"
+        // },
+        //     {
+        //     title: 'نوع ارائه',
+        //     dataIndex: 'type',
+        //     key: 'type',
+        //     render: (bool) => bool ? "کالا" : "خدمات",
+        //     align: "center",
+        // }
+        // , {
+        //     title: 'کدملی/شناسه', dataIndex: 'seller_id', key: 'seller_id', align: "center",
+        // }
+        , {
+            title: 'کد و عنوان ردیف هزینه', dataIndex: 'budget_row', key: 'budget_row', align: "center", width: 200,
+            render: (data) => data.fin_code + ":" + data.name
+        },
+        , {
+            title: 'کد و عنوان برنامه', dataIndex: 'program', key: 'program', align: "center",
+            render: (data) => data.fin_code + ":" + data.name
+        },
+
+
+        , {
+            title: 'محل هزینه', dataIndex: 'Location', key: 'Location', align: "center",
+            render: (data) => data?.organization_name
+        },
+        {
+            title: 'نوع',
+            dataIndex: 'cost_type',
+            key: 'cost_type',
+            render: (cost_type) => {
+                switch (cost_type) {
+                    case 0:
+                        return "عمومی";
+                    case 1:
+                        return "اختصاصی";
+                    case 2:
+                        return "متفرقه و ابلاغی";
+                    case 3:
+                        return "تعمیر و تجهیز";
+                    case 4:
+                        return "تامین فضا";
+                    default:
+                        return "نامشخص";
+                }
+            },
+            align: "center",
+        },
+
+        //     {
+        //     title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller', align: "center",
+        // },
+        //     {
+        //         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
+        //             return new Intl.DateTimeFormat('fa-IR', {
+        //                 year: 'numeric',
+        //                 month: '2-digit',
+        //                 day: '2-digit'
+        //             }).format(new Date(date));
+        //         }, align: "center",
+        //     },
+
+
+        {
+            title: 'مبلغ',
+            dataIndex: 'price',
+            key: 'price',
+            render: (price) => <span className={"text-sm font-extrabold"}>{convertToPersianNumber(price)}</span>,
+            align: "center",
+        },
+
+        //
+        // {
+        //     title: 'توضیحات', dataIndex: 'descr', key: 'descr', align: "center",
+        // },
+        // {
+        //     title: 'ارزش افزوده', dataIndex: 'vat', key: 'vat', align: "vat",
+        // },
+    ];
     const columns_bank = [
 
 
         {
             title: 'نام و نام خانوادگی / شرکت', dataIndex: 'account_name', key: 'account_name', align: "center"
         },
+        // {
+        //     title: 'کد و عنوان ردیف هزینه', dataIndex: 'budget_row', key: 'budget_row', align: "center", width: 200,
+        //     render: (data) => data
+        // },
         {
             title: 'شماره حساب', dataIndex: 'account_number', key: 'account_number', align: "center",
             render: (account_number) => <span className={"text-sm font-extrabold"}>IR{account_number}</span>,
@@ -239,9 +352,9 @@ function Fin_last_print(props, ref) {
             render: (price) => <span className={"text-sm font-extrabold"}>{convertToPersianNumber(price)}</span>,
             align: "center",
         },
-        {
-            title: 'ارزش افزوده', dataIndex: 'vat', key: 'vat', align: "vat",
-        },
+        // {
+        //     title: 'ارزش افزوده', dataIndex: 'vat', key: 'vat', align: "vat",
+        // },
     ];
     return <ConfigProvider locale={fa_IR} direction="rtl" theme={{
         token: {
@@ -257,12 +370,12 @@ function Fin_last_print(props, ref) {
         }
     }}>
 
-        <div ref={ref} className={" yekan block"} dir="rtl">
-            <div className="page-break-after">
+        <div ref={ref} className={" yekan block"} dir="rtl">.
+            <div className="break-after-page pl-8 ">
                 <div className="page-content">
                     <header>
                         <Row gutter={50}>
-                            <Col span={4}>
+                            <Col span={6}>
                                 <Image
                                     src={arm}
                                     height={100}
@@ -270,124 +383,28 @@ function Fin_last_print(props, ref) {
                                     className={""}
                                 />
                             </Col>
-                            <Col span={16}>
-                                <p className={"text-center font-bold yekan text-2xl"}>دانشگاه هنر اسلامی تبریز </p>
-                                <p className={"text-center font-bold yekan text-2xl"}> حواله از محل اعتبارات
-                                    هزینه‌ای </p>
-                            </Col>
-                        </Row>
-                        <Row gutter={50}>
-                            <Col span={8} className={"leading-8"}>
-                                <h1> شماره سند: {(parseInt(fin.id)).toLocaleString('fa-IR')} </h1>
-                            </Col>
-                            <Col span={8} className={"leading-8"}>
-                                <h1>تاریخ: {fin.date_doc && !isNaN(new Date(fin.date_doc)) ? new Intl.DateTimeFormat('fa-IR', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit'
-                                }).format(new Date(fin.date_doc)) : ''}</h1>
-                            </Col>
-
-                        </Row>
-                    </header>
-                    <article className={"pb-4 text-right"}>
-                        <p>مدیر محترم امور مالی</p>
-                        <p>به استناد مواد ۱۶ و ۱۷ آئین نامه مالی و معاملاتی دانشگاه مبلغ {Price_ir} به ریال</p>
-                        <p> مبلغ به حروف : {Num2persian(Price)} ریال بابت {Num2persian(bank_log_list.length)} فقره سند
-                            هزینه از محل اعتبارات ردیف ۱۲۲۹۰۰ بودجه سال ۱۴۰۳ کل کشور بشرح موارد زیر: </p>
-
-
-                    </article>
-                    <article className={"pb-4 "}>
-                        <Table className={"text-s "} columns={columns_bank} dataSource={bank_log_list} bordered
-                               pagination={false}
-                               rowClassName={'row'}
-                               summary={(pageData) => {
-                                   return (<>
-                                       <Table.Summary.Row>
-                                           <Table.Summary.Cell index={1} colSpan={3} align={"center"}>
-                                               <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text>
-                                           </Table.Summary.Cell>
-                                           <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
-                                               <Text className={"text-sm font-extrabold"}>{Price_ir}  </Text>
-                                           </Table.Summary.Cell>
-                                           <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
-                                               <Text className={"text-sm font-extrabold"}>{Vat_ir}  </Text>
-                                           </Table.Summary.Cell>
-                                       </Table.Summary.Row>
-                                   </>);
-                               }}/>
-                    </article>
-                    <footer className="nazanin" style={{width: "100%"}}>
-                        <table style={{width: "100%"}}>
-                            <tbody style={{width: "100%"}}>
-                            <tr style={{width: "100%"}}>
-                                <td className={"py-5"}>
-                                    <p className={"text-center"}>رئیس دانشگاه</p>
-                                    <p className={"text-center"}> دکتر محمدتقی پیربابائی </p>
-                                </td>
-                            </tr>
-
-                            </tbody>
-                        </table>
-                        <table style={{position: "absolute", bottom: "0", width: "100%"}}>
-                            <tbody style={{width: "100%"}}>
-                            <tr style={{width: "100%"}}>
-                                <td>مدارک ضمیمه</td>
-                                <td> یک فقره سند هزینه به انضمام کلیه مدارک لازم و کافی</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </footer>
-                </div>
-            </div>
-            <div className="page-break-before">
-                <div className="page-content">
-                    <header>
-                        <Row gutter={50}>
-                            <Col span={4}>
-                                <Image
-                                    src={arm}
-                                    height={100}
-                                    alt="Picture of the author"
-                                    className={""}
-                                />
-                            </Col>
-                            <Col span={16}>
+                            <Col span={12}>
                                 <p className={"text-center font-bold yekan text-2xl"}>دانشگاه هنر اسلامی تبریز </p>
                                 <p className={"text-center font-bold yekan text-2xl"}> حواله پرداخت </p>
-                                {/*<p className={"text-center font-bold yekan text-2xl"}>صورت ریز*/}
-                                {/*    هزینه {fin.Payment_type && "(پرداخت مستقیم)"} </p>*/}
-                                {/*<p className={"text-center text-xl"}> تدارکات </p>*/}
+                                <p className={"text-center  yekan text-xl"}> {!fin.Payment_type && "(کسر از تنخواه)"} </p>
                             </Col>
-
-                        </Row>
-
-                        <Row gutter={50}>
-                            <Col span={8} className={"leading-8"}>
-
-                                <h1> شماره سند: {(parseInt(fin.id)).toLocaleString('fa-IR')} </h1>
-
+                            <Col span={6} className={"text-right"}>
+                                <div className={"float-left"}>
+                                    <h1> شماره سند: {(parseInt(fin.id)).toLocaleString('fa-IR')} </h1>
+                                    <h1>تاریخ: {fin.date_doc && !isNaN(new Date(fin.date_doc)) ? new Intl.DateTimeFormat('fa-IR', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit'
+                                    }).format(new Date(fin.date_doc)) : ''}</h1>
+                                    <h1>
+                                        پیوست: دارد
+                                    </h1></div>
                             </Col>
-                            <Col span={8} className={"leading-8"}>
-                                <h1>تاریخ: {fin.date_doc && !isNaN(new Date(fin.date_doc)) ? new Intl.DateTimeFormat('fa-IR', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit'
-                                }).format(new Date(fin.date_doc)) : ''}</h1>
-                            </Col>
-                            <Col span={8} className={"leading-8 text-left"}>
-                                <h1>
-                                    ارقام به ریال می باشد
-                                </h1>
-                            </Col>
-
-
                         </Row>
                     </header>
 
-                    <article className={"pb-4 "}>
-                        <Table className={"text-s "} columns={columns} dataSource={new_log_list} bordered
+                    <article className={"pb-4  "}>
+                        <Table className={"text-s "} columns={columns1} dataSource={new_log_list} bordered
                                pagination={false}
                                rowClassName={'row'}
                             // size="small"
@@ -407,8 +424,16 @@ function Fin_last_print(props, ref) {
 
                                    return (<>
                                        <Table.Summary.Row>
-                                           <Table.Summary.Cell index={1} colSpan={5} align={"center"}>
-                                               <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text>
+                                           <Table.Summary.Cell index={1} colSpan={5} align={"center"}
+                                                               className={"font-bold"}>
+                                               {Payment_type ?
+                                                   <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text> :
+                                                   <p className={""}>کسر از تنخواه(شارژ تنخواه) {user} به
+                                                       مبلغ {Num2persian(Price)} ریال </p>
+
+
+                                               }
+
                                            </Table.Summary.Cell>
                                            <Table.Summary.Cell index={1} colSpan={2} align={"center"}>
                                                <Text className={"text-sm font-extrabold"}>{Price_ir}  </Text>
@@ -422,29 +447,29 @@ function Fin_last_print(props, ref) {
                                    </>);
                                }}/>
                     </article>
-                    {!Payment_type ?
-                        <p className={"text-right"}>کسر از تنخواه(شارژ تنخواه) {user} به مبلغ {Price_ir} ریال </p> :
-                    <article className={"pb-4 "}>
-                        <Table className={"text-s "} columns={columns_bank} dataSource={bank_log_list} bordered
-                               pagination={false}
-                               rowClassName={'row'}
-                               summary={(pageData) => {
-                                   return (<>
-                                       <Table.Summary.Row>
+                    {Payment_type &&
+                        <article className={"pb-4 "}>
+                            <Table className={"text-s "} columns={columns_bank} dataSource={bank_log_list} bordered
+                                   pagination={false}
+                                   rowClassName={'row'}
+                                   summary={(pageData) => {
+                                       return (<>
+                                           <Table.Summary.Row>
 
-                                           <Table.Summary.Cell index={1} colSpan={3} align={"center"}>
-                                               <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text>
-                                           </Table.Summary.Cell>
-                                           <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
-                                               <Text className={"text-sm font-extrabold"}>{Price_ir}  </Text>
-                                           </Table.Summary.Cell>
-                                           <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
-                                               <Text className={"text-sm font-extrabold"}>{Vat_ir}  </Text>
-                                           </Table.Summary.Cell>
-                                       </Table.Summary.Row>
-                                   </>);
-                               }}/>
-                    </article>}
+                                               <Table.Summary.Cell index={1} colSpan={3} align={"center"}
+                                                                   className={"font-bold"}>
+                                                   <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text>
+                                               </Table.Summary.Cell>
+                                               <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
+                                                   <Text className={"text-sm font-extrabold"}>{Price_ir}  </Text>
+                                               </Table.Summary.Cell>
+                                               {/*<Table.Summary.Cell index={1} colSpan={1} align={"center"}>*/}
+                                               {/*    <Text className={"text-sm font-extrabold"}>{Vat_ir}  </Text>*/}
+                                               {/*</Table.Summary.Cell>*/}
+                                           </Table.Summary.Row>
+                                       </>);
+                                   }}/>
+                        </article>}
                     <footer className="nazanin" style={{width: "100%"}}>
                         <table style={{width: "100%"}}>
                             <tbody style={{width: "100%"}}>
@@ -476,6 +501,137 @@ function Fin_last_print(props, ref) {
                     </footer>
                 </div>
             </div>
+
+            <div className=" pl-8 ">
+                <div className="page-content">
+                    <header>
+                        <Row gutter={50}>
+                            <Col span={6}>
+                                <Image
+                                    src={arm}
+                                    height={100}
+                                    alt="Picture of the author"
+                                    className={""}
+                                />
+                            </Col>
+                            <Col span={12}>
+                                <p className={"text-center font-bold yekan text-2xl"}>دانشگاه هنر اسلامی تبریز </p>
+                                <p className={"text-center font-bold yekan text-2xl"}> حواله پرداخت </p>
+                                <p className={"text-center  yekan text-xl"}> {!fin.Payment_type && "(کسر از تنخواه)"} </p>
+                            </Col>
+                            <Col span={6} className={"text-right"}>
+                                <div className={"float-left"}>
+                                    <h1> شماره سند: {(parseInt(fin.id)).toLocaleString('fa-IR')} </h1>
+                                    <h1>تاریخ: {fin.date_doc && !isNaN(new Date(fin.date_doc)) ? new Intl.DateTimeFormat('fa-IR', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit'
+                                    }).format(new Date(fin.date_doc)) : ''}</h1>
+                                    <h1>
+                                        پیوست: دارد
+                                    </h1></div>
+                            </Col>
+
+                        </Row>
+
+
+                    </header>
+                    <article className={"pb-4 text-right pt-2 pb-0"}>
+                        <p className={"font-bold"}>مدیر محترم امور مالی</p>
+                        <p>به استناد مواد ۱۶ و ۱۷ آئین نامه مالی و معاملاتی دانشگاه مبلغ {Price_ir} به ریال</p>
+                        <p> مبلغ به حروف : {Num2persian(Price)} ریال بابت {Num2persian(bank_log_list.length)} فقره سند
+                            هزینه از محل اعتبارات ردیف ۱۲۲۹۰۰ بودجه
+                            سال {fin.date_doc && !isNaN(new Date(fin.date_doc)) ? new Intl.DateTimeFormat('fa-IR', {
+                                year: 'numeric'
+                            }).format(new Date(fin.date_doc)) : ''} کل کشور نسبت به پرداخت اقدام نمائید. </p>
+
+
+                    </article>
+                    <Row className={"p-0"}>
+                        <Col span={16}></Col>
+                        <Col span={8} className={" text-left"}>
+                            <h1>
+                                ارقام به ریال می باشد
+                            </h1>
+                        </Col>
+                    </Row>
+                    <article className={"pb-4 "}>
+                        <Table className={"text-s "} columns={columns2} dataSource={new_log_list} bordered
+                               pagination={false}
+                               rowClassName={'row'}
+                            // size="small"
+                            // theme={{
+                            //     token: {
+                            //         fontFamily: "Yekan",
+                            //         Table: {
+                            //             cellFontSize: 1,
+                            //             padding: "2px",
+                            //             borderColor: "black"
+                            //             /* here is your component tokens */
+                            //         }
+                            //     }
+                            // }}
+                               summary={(pageData) => {
+                                   return (<>
+                                       <Table.Summary.Row>
+                                           <Table.Summary.Cell index={1} colSpan={4} align={"center"}
+                                                               className={"font-bold"}>
+                                               {Payment_type ?
+                                                   <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text> :
+                                                   <p className={""}>کسر از تنخواه(شارژ تنخواه) {user} به
+                                                       مبلغ {Num2persian(Price)} ریال </p>
+                                               }
+                                           </Table.Summary.Cell>
+                                           <Table.Summary.Cell index={1} colSpan={2} align={"center"}>
+                                               <Text className={"text-sm font-extrabold"}>{Price_ir}  </Text>
+                                           </Table.Summary.Cell>
+                                           {/*<Table.Summary.Cell index={1} colSpan={1} align={"center"}>*/}
+                                           {/*    <Text className={"text-sm font-extrabold"}>{Vat_ir}  </Text>*/}
+                                           {/*</Table.Summary.Cell>*/}
+                                       </Table.Summary.Row>
+                                   </>);
+                               }}/>
+                    </article>
+                    {Payment_type &&
+                        <article className={"pb-4 "}>
+                            <Table className={"text-s "} columns={columns_bank} dataSource={bank_log_list} bordered
+                                   pagination={false}
+                                   rowClassName={'row'}
+                                   summary={(pageData) => {
+                                       return (<>
+                                           <Table.Summary.Row>
+                                               <Table.Summary.Cell index={1} colSpan={3} align={"center"}
+                                                                   className={"font-bold"}>
+                                                   <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text>
+                                               </Table.Summary.Cell>
+                                               <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
+                                                   <Text className={"text-sm font-extrabold"}>{Price_ir}  </Text>
+                                               </Table.Summary.Cell>
+                                               {/*<Table.Summary.Cell index={1} colSpan={1} align={"center"}>*/}
+                                               {/*    <Text className={"text-sm font-extrabold"}>{Vat_ir}  </Text>*/}
+                                               {/*</Table.Summary.Cell>*/}
+                                           </Table.Summary.Row>
+                                       </>);
+                                   }}/>
+                        </article>}
+                    <footer className="nazanin" style={{width: "100%"}}>
+                        <table style={{width: "100%"}}>
+                            <tbody style={{width: "100%"}}>
+                            <tr style={{width: "100%"}}>
+                                <td style={{width: "50%"}}></td>
+                                <td className={"py-5 text-center text-2xl"}>
+                                    <p className={""}>رئیس دانشگاه</p>
+                                    <p className={""}> دکتر محمدتقی پیربابائی </p>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+
+                    </footer>
+                </div>
+            </div>
+
         </div>
     </ConfigProvider>
 }

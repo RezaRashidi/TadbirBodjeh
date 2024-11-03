@@ -16,6 +16,8 @@ admin.site.register(tadbirbodjeh.models.budget_row)
 
 admin.site.register(tadbirbodjeh.models.program)
 admin.site.register(tadbirbodjeh.models.relation)
+admin.site.register(tadbirbodjeh.models.Contract)
+admin.site.register(tadbirbodjeh.models.Contractor_type)
 
 
 

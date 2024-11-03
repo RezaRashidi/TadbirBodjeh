@@ -242,3 +242,21 @@ class relationsCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = tadbirbodjeh.models.relation
         fields = '__all__'
+
+
+class ContractSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = tadbirbodjeh.models.Contract
+        fields = '__all__'
+
+
+class Contractor_type_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = tadbirbodjeh.models.Contractor_type
+        fields = '__all__'
+
+
+class ContractRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = tadbirbodjeh.models.Contract_record
+        fields = '__all__'

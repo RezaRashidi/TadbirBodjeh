@@ -27,6 +27,8 @@ const Logistics_Doc = (prop) => {
     const is_fin = Cookies.get("group") == "financial"
     const [relation, set_relation] = useState([])
     const [selected_relation, set_selected_relation] = useState(0)
+    const [list_contract_types, set_list_contract_types] = useState([])
+
 
     let cheekbuttom = true
     if (Fdoc_key !== null) {
@@ -71,25 +73,33 @@ const Logistics_Doc = (prop) => {
                         name: item.name,
                         type: item.type,
                         price: item.price,
-                        seller: item.seller,
-                        seller_id: item.seller_id,
-                        // date_doc: form.setFieldValue("date_doc", dayjs(new Date(item.date_doc))),
-                        date_doc: dayjs(new Date(item.date_doc)),
+                        Contractor_id: item.Contractor_id,
+                        Contractor: item.Contractor,
+                        document_date: dayjs(new Date(item.document_date)),
+                        contract_number: item.contract_number,
+                        Contractor_type: item.Contractor_type,
                         Location: item.Location == null ? "" : item.Location.id,
                         budget_row: item.budget_row.id,
                         program: item.program.id,
-                        descr: item.descr,
-                        files: item.uploads,
-                        vat: item.vat == null ? 0 : item.vat,
+                        cost_type: item.cost_type,
+                        account_name: item.account_name,
                         bank_name: item.bank_name,
                         account_number: item.account_number,
-                        account_name: item.account_name,
-                        cost_type: item.cost_type,
-
-                    })
+                        total_contract_amount: item.total_contract_amount,
+                        paid_amount: item.paid_amount,
+                        requested_performance_amount: item.requested_performance_amount,
+                        treasury_deduction_percent: item.treasury_deduction_percent,
+                        overhead_percentage: item.overhead_percentage,
+                        payable_amount_after_deductions: item.payable_amount_after_deductions,
+                        tax_percentage: item.tax_percentage,
+                        final_payable_amount: item.final_payable_amount,
+                        descr: item.descr,
+                        performance_withholding_percentage: item.performance_withholding_percentage,
+                        files: item.uploads,
+                    });
                     item.Location !== null ? set_selected_location(item.Location.id) && set_selected_organization(location.find(item => item.id === selected_location).organization_id) : ""
 
-                    let Year = dayjs(item.date_doc).format("YYYY");
+                    let Year = dayjs(item.document_date).format("YYYY");
                     api().url("/api/subUnit?no_pagination=true" + `&year=${Year}`).get().json().then(r => {
                         // console.log(r)
                         setlocation(r)
@@ -99,10 +109,10 @@ const Logistics_Doc = (prop) => {
                     // setlocation(prop.location)
 
                     setFileList(x)
-                    // set_form_date(new Date(item.date_doc).toISOString())
-                    // console.log(form.getFieldsValue().date_doc)
-                    // form.setFieldValue("date_doc", {value: new Date(item.date_doc)})
-                    // console.log(form.getFieldsValue().date_doc)
+                    // set_form_date(new Date(item.document_date).toISOString())
+                    // console.log(form.getFieldsValue().document_date)
+                    // form.setFieldValue("document_date", {value: new Date(item.document_date)})
+                    // console.log(form.getFieldsValue().document_date)
 
                 }
             })
@@ -138,14 +148,23 @@ const Logistics_Doc = (prop) => {
         }
     }
 
+    function load_contract_types() {
+        api().url("/api/contractor_type?no_pagination=true").get().json().then(r => {
+            // console.log(r)
+            set_list_contract_types(r);
+            // set_budget_row(r)
+        })
+    }
+
     useEffect(() => {
         // if (is_fin && selected_organization) {
         loadRelation()
+        load_contract_types()
 
     }, [selected_organization])
     const delete_doc = () => {
 
-        api().url("/api/logistics/" + id).delete().res(r => {
+        api().url("/api/contract/" + id).delete().res(r => {
 
                 prop.remove(prop.selectedid)
                 prop.modal(false)
@@ -166,9 +185,9 @@ const Logistics_Doc = (prop) => {
                 item.name = data.name
                 item.type = data.type
                 item.price = data.price
-                item.seller = data.seller
-                item.seller_id = data.seller_id
-                item.date_doc = data.date_doc
+                item.Contractor_id = data.Contractor_id
+                item.Contractor = data.Contractor
+                item.document_date = data.document_date
                 item.Location = data.Location
                 item.descr = data.descr
                 item.uploads = data.uploads
@@ -176,7 +195,20 @@ const Logistics_Doc = (prop) => {
                 item.bank_name = data.bank_name
                 item.account_number = data.account_number
                 item.account_name = data.account_name
-
+                item.contract_number = data.contract_number;
+                item.Contractor_type = data.Contractor_type;
+                item.budget_row = data.budget_row;
+                item.program = data.program;
+                item.cost_type = data.cost_type;
+                item.total_contract_amount = data.total_contract_amount;
+                item.paid_amount = data.paid_amount;
+                item.requested_performance_amount = data.requested_performance_amount;
+                item.treasury_deduction_percent = data.treasury_deduction_percent;
+                item.overhead_percentage = data.overhead_percentage;
+                item.payable_amount_after_deductions = data.payable_amount_after_deductions;
+                item.tax_percentage = data.tax_percentage;
+                item.final_payable_amount = data.final_payable_amount;
+                item.performanceـwithholding_percentage = data.performanceـwithholding_percentage;
             }
         })
     }
@@ -209,16 +241,11 @@ const Logistics_Doc = (prop) => {
             "name": values.name,
             "type": values.type,
             "price": typeof values.price !== 'undefined' ? values.price : 0,
-            "seller": values.seller,
-            "seller_id": values.seller_id,
-            "date_doc": values.date_doc,
+            "Contractor_id": values.Contractor_id,
+            "Contractor": values.Contractor,
+            "document_date": values.document_date,
             "Location": values.Location,
-
             "descr": values.descr,
-            // "F_conf": false,
-            // "measure": "",
-            // "CostDriver": "",
-            // "Fdoc_key": null,
             "uploads": fileList.map((file) => {
                 return file.response.id
             })
@@ -226,20 +253,23 @@ const Logistics_Doc = (prop) => {
             "vat": values.vat,
             "bank_name": values.bank_name,
             "account_number": values.account_number,
-            "account_name": values.account_name
+            "account_name": values.account_name,
+            "contract_number": values.contract_number,
+            "Contractor_type": values.Contractor_type,
+            "budget_row": values.budget_row,
+            "program": values.program,
+            "cost_type": values.cost_type,
+            "total_contract_amount": values.total_contract_amount,
+            "paid_amount": values.paid_amount,
+            "requested_performance_amount": values.requested_performance_amount,
+            "treasury_deduction_percent": values.treasury_deduction_percent,
+            "overhead_percentage": values.overhead_percentage,
+            "payable_amount_after_deductions": values.payable_amount_after_deductions,
+            "tax_percentage": values.tax_percentage,
+            "final_payable_amount": values.final_payable_amount,
+            "performanceـwithholding_percentage": values.performanceـwithholding_percentage
         }
-        if (is_fin) {
-            jsondata = {
-                "Location": values.Location,
-                "budget_row": values.budget_row,
-                "program": values.program,
-                "cost_type": values.cost_type,
-                "vat": values.vat,
-                "bank_name": values.bank_name,
-                "account_number": values.account_number,
-                "account_name": values.account_name
-            }
-        }
+        // }
         let new_jasondata = {...jsondata}
 
         new_jasondata.uploads = fileList.map((file) => {
@@ -252,8 +282,8 @@ const Logistics_Doc = (prop) => {
 
         prop.selectedid && updateData(new_jasondata)
         // console.log(new_jasondata);
-        const request = prop.selectedid ? api().url(`/api/logistics/${prop.selectedid}/`).put(jsondata).json() :
-            api().url(`/api/logistics/`).post(jsondata).json()
+        const request = prop.selectedid ? api().url(`/api/contract/${prop.selectedid}/`).put(jsondata).json() :
+            api().url(`/api/contract/`).post(jsondata).json()
 
         request.then(data => {
             // update_fin()
@@ -280,6 +310,7 @@ const Logistics_Doc = (prop) => {
         // })
         // request.then((response, reject) => response.json().then((value) => console.log(value)))
     };
+
     const propsUpload = {
         name: "files",
         action: url + "/api/logistics-uploads/",
@@ -335,6 +366,7 @@ const Logistics_Doc = (prop) => {
 
     };
     return (
+
         <Form
 
             labelAlign="left"
@@ -347,7 +379,7 @@ const Logistics_Doc = (prop) => {
             initialValues={{
 
                 type: true,
-                date_doc: form_date,
+                document_date: form_date,
 
             }}
             validateMessages={validateMessages}
@@ -355,37 +387,33 @@ const Logistics_Doc = (prop) => {
             autoComplete="on"
 
         >
+            <Row gutter={0} className={"pb-6"}>
+                <Radio.Group defaultValue="1" size="large" className={"my-4"}>
+                    <Radio.Button value="1">سایر قرارداد</Radio.Button>
+                    <Radio.Button value="2">قرارداد</Radio.Button>
+                    <Radio.Button value="3">طرح پژوهشی خارجی</Radio.Button>
+                    <Radio.Button value="4">عمرانی</Radio.Button>
+
+                </Radio.Group>
+            </Row>
             <Row gutter={50}>
-                <Col span={12}>
+                <Col span={6}>
                     <Form.Item
                         name="name"
-                        label="نام کالا/خدمات"
+                        label="نام قرارداد"
                         rules={[
                             {
                                 required: true,
-                                message: "نام خدمات یا کلا را وارد نمایید",
+                                message: "نام قرارداد را وارد نمایید",
                             },
                         ]}
                     >
                         <Input/>
                     </Form.Item>
                 </Col>
-                <Col span={6}>
-                    <Form.Item
-                        label="نوع ارائه"
-                        name="type"
-                        labelCol={{span: 8}}
-                        wrapperCol={{span: 16}}
-                    >
-                        <Radio.Group>
-                            <Radio.Button value={true} defaultChecked={true}>کالا</Radio.Button>
-                            <Radio.Button value={false}>خدمات</Radio.Button>
-                        </Radio.Group>
-                    </Form.Item>
-                </Col>
 
-                <Col span={6}>
-                    <Form.Item name="date_doc" label="تاریخ">
+                <Col span={4}>
+                    <Form.Item name="document_date" label="تاریخ قرارداد">
                         {/*<JalaliLocaleListener/>*/}
                         <DatePickerJalali
                             // value={form_date}
@@ -398,29 +426,56 @@ const Logistics_Doc = (prop) => {
                         />
                     </Form.Item>
                 </Col>
+                <Col span={6}>
+                    <Form.Item name="contract_number" label="شماره قرارداد">
+                        <Input/>
 
+                    </Form.Item>
+                </Col>
+                <Col span={8}>
+                    <Form.Item name="Contractor_type" label="نوع خدمات" rules={[
+                        {
+                            required: true
+                        },
+                    ]}>
+                        <Select
+                            showSearch
+                            filterOption={filterOption}
+                            placeholder=" انتخاب  خدمات"
+                            // optionFilterProp="children"
+                            // onChange={}
+
+                            // onSearch={onSearch}
+                            // filterOption={filterOption}
+                            options={
+                                list_contract_types.map((item) => {
+                                    return {label: item.name, value: item.id}
+                                })}
+                        />
+                    </Form.Item>
+                </Col>
             </Row>
 
             <Row gutter={50}>
                 <Col span={6}>
                     <Form.Item
-                        name="seller_id"
-                        label="کد ملی/ شناسه"
+                        name="Contractor"
+                        label="نام و نام خانوادگی/ شخص حقوقی"
                         rules={[
                             {
                                 type: "text",
                             },
                         ]}
                     >
-                        <Input placeholder="شناسه فروشنده"/>
+                        <Input/>
                     </Form.Item>
                 </Col>
                 <Col span={6}>
                     <Form.Item
                         colon={false}
-                        name="seller"
+                        name="Contractor_id"
                         // label="ارائه دهنده"
-                        label={<p style={{}}>ارائه دهنده:</p>}
+                        label={<p style={{}}>کد ملی/شناسه ملی/کد اقتصادی:</p>}
                         //   labelCol={{span: 4}}
                         // style={{paddingLeft: '1.5rem'}}
                         rules={[
@@ -429,7 +484,7 @@ const Logistics_Doc = (prop) => {
                             },
                         ]}
                     >
-                        <Input placeholder=" فروشگاه/شرکت/شخص"/>
+                        <Input/>
                     </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -468,8 +523,9 @@ const Logistics_Doc = (prop) => {
             </Row>
             <Row gutter={50}>
 
+
                 <Col span={8}>
-                    <Form.Item name="budget_row" label="ردیف" hidden={!is_fin}>
+                    <Form.Item name="budget_row" label="ردیف">
                         <Select
                             showSearch
                             filterOption={filterOption}
@@ -495,9 +551,9 @@ const Logistics_Doc = (prop) => {
                         />
                     </Form.Item>
                 </Col>
-
                 <Col span={8}>
-                    <Form.Item name="program" label="برنامه" hidden={!is_fin}>
+                    <Form.Item name="program" label="برنامه"
+                    >
                         <Select
                             showSearch
                             filterOption={filterOption}
@@ -523,7 +579,7 @@ const Logistics_Doc = (prop) => {
                     <Form.Item
                         label="نوع هزینه"
                         name="cost_type"
-                        hidden={!is_fin}
+
                         // rules={[{required: true, message: 'Please input your username!'}]}
                     >
                         <Select
@@ -636,10 +692,10 @@ const Logistics_Doc = (prop) => {
 
             </Row>
             <Row gutter={50}>
-                <Col span={12}>
+                <Col span={6}>
                     <Form.Item
-                        name="price"
-                        label="قیمت"
+                        name="total_contract_amount"
+                        label="مبلغ کل قرارداد/ کل کارکرد"
                         rules={[
                             {
                                 required: true,
@@ -669,10 +725,10 @@ const Logistics_Doc = (prop) => {
                     </Form.Item>
 
                 </Col>
-                <Col span={12}>
+                <Col span={6}>
                     <Form.Item
-                        name="vat"
-                        label="ارزش افزوده"
+                        name="paid_amount"
+                        label="مبلغ پرداخت شده"
                         rules={[
                             {
                                 required: true,
@@ -691,16 +747,205 @@ const Logistics_Doc = (prop) => {
                                 for (let i = 0; i < 10; i++) {
                                     newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
                                 }
-
                                 return newValue?.replace(/\$\s?|(,*)/g, '')
                             }
-
-
                             }
                             style={{width: "100%"}}
                         />
                     </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item
+                        name="requested_performance_amount"
+                        label="مبلغ کارکرد درخواستی"
+                        rules={[
+                            {
+                                required: true,
+                                type: "number",
+                                min: 0,
+                            },
+                        ]}
+                    >
+                        <InputNumber
+                            addonAfter={"﷼"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+                            }
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item
+                        name="performanceـwithholding_percentage"
+                        label="درصد حسن انجام کار"
+                    >
+                        <InputNumber
+                            addonAfter={"%"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+                            }
+                            min={0}
+                            max={100}
+                            // defaultValue={3}
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
+                </Col>
+            </Row>
 
+            <Row gutter={50}>
+
+                <Col span={4}>
+                    <Form.Item
+                        name="treasury_deduction_percent"
+                        label="درصد خزانه"
+                    >
+                        <InputNumber
+                            addonAfter={"%"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+                            }
+                            min={0}
+                            max={100}
+                            // defaultValue={3}
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
+                </Col>
+                <Col span={4}>
+                    <Form.Item
+                        name="overhead_percentage"
+                        label="درصد بالاسری"
+                    >
+                        <InputNumber
+                            addonAfter={"%"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+                            }
+                            min={0}
+                            max={100}
+                            // defaultValue={5}
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item
+                        name="payable_amount_after_deductions"
+                        label="مبلغ قابل پرداخت بعد از کسورات"
+                        rules={[
+                            {
+                                required: true,
+                                type: "number",
+                                min: 0,
+                            },
+                        ]}
+                    >
+                        <InputNumber
+                            addonAfter={"﷼"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+                            }
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
+                </Col>
+
+                <Col span={4}>
+                    <Form.Item
+                        name="tax_percentage"
+                        label="درصد مالیات"
+                    >
+                        <InputNumber
+                            addonAfter={"%"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+                            }
+                            min={0}
+                            max={100}
+                            // defaultValue={0}
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
+                </Col>
+
+                <Col span={6}>
+                    <Form.Item
+                        name="final_payable_amount"
+                        label="مبلغ نهایی قابل پرداخت"
+                        rules={[
+                            {
+                                required: true,
+                                type: "number",
+                                min: 0,
+                            },
+                        ]}
+                    >
+                        <InputNumber
+                            addonAfter={"﷼"}
+                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            parser={(value) => {
+                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                let newValue = value;
+                                for (let i = 0; i < 10; i++) {
+                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+                                }
+                                return newValue?.replace(/\$\s?|(,*)/g, '')
+                            }
+                            }
+                            style={{width: "100%"}}
+                        />
+                    </Form.Item>
                 </Col>
             </Row>
             <Row>
@@ -728,11 +973,11 @@ const Logistics_Doc = (prop) => {
             >
                 <Button disabled={cheekbuttom} type="primary"
                         htmlType="submit">
-                    {prop.Fdata ? "ویرایش مدرک" : "ایجاد مدرک"}
+                    {prop.Fdata ? "ویرایش قرارداد" : "ایجاد قرارداد"}
                 </Button>
                 {prop.Fdata &&
                     <Button disabled={Fdoc_key !== null} type="primary" danger
-                            className={"!mr-20"}
+                        // className={"!mr-20"}
                             onClick={delete_doc}>
                         حذف مدرک
                     </Button>}

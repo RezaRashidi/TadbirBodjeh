@@ -4,7 +4,7 @@ import Fin_last_print, {numberWithCommas} from "@/app/Financial/Financial_List/P
 import Financial_docs from "@/app/Logistics/Financial_docs/page";
 import Fin_detail from "@/app/Logistics/Financial_List/detail";
 import {DownloadOutlined, PrinterOutlined} from "@ant-design/icons";
-import {Button, Modal, Radio, Table} from "antd";
+import {Button, message, Modal, Radio, Table} from "antd";
 import React, {useEffect, useState} from "react";
 import ReactToPrint from "react-to-print";
 // const fin_state = {
@@ -295,7 +295,7 @@ const App = (props) => {
                 <Table columns={columns} dataSource={data} loading={loading} pagination={tableParams.pagination}
                        expandable={{
                            expandedRowRender: (record) =>
-
+                               //
                                <Fin_detail key={record.updated} record={record}
                                                                       change_data={(id) => {
                                                                           update_fin(id);

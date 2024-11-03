@@ -1,6 +1,13 @@
 'use client'
 import {AuthActions} from "@/app/auth/utils";
-import {AppstoreOutlined, BookOutlined, CalculatorOutlined, DiffOutlined, SettingOutlined} from '@ant-design/icons';
+import {
+    AppstoreOutlined,
+    BookOutlined,
+    CalculatorOutlined,
+    DiffOutlined,
+    SettingOutlined,
+    WalletOutlined
+} from '@ant-design/icons';
 import {Menu} from 'antd';
 import {usePathname, useRouter} from "next/navigation";
 import React from 'react';
@@ -67,9 +74,9 @@ const Menur = ({group}) => {
             getItem('لیست اسناد', 'l4'),
         ]),
         getItem('تنخواه گردان', null, <BookOutlined/>, [
-                getItem('ثبت تنخواه', 'l6'),
-                getItem('لیست تنخواه', 'l7'),
-                getItem('گزارش تنخواه', 'l8')]),
+            getItem('ثبت تنخواه', 'l6'),
+            getItem('لیست تنخواه', 'l7'),
+            getItem('گزارش تنخواه', 'l8')]),
 
         , {
             type: 'divider',
@@ -85,11 +92,19 @@ const Menur = ({group}) => {
         {
             type: 'divider',
         },
+        getItem('قرار دادها', 'sub5', <WalletOutlined/>, [
+            // getItem('لیست اسناد تازه', 'l10'),
+            // getItem('صدور اسناد مالی', 'l11'),
+            getItem('قرارداد', 'l112'),
+        ]),
+
+        {
+            type: 'divider',
+        },
         getItem('تنخواه گردان', null, <BookOutlined/>, [
             getItem('ثبت تنخواه', 'l6'),
             getItem('لیست تنخواه', 'l7'),
             getItem('گزارش تنخواه', 'l8')]),
-
 
 
     ]
@@ -134,6 +149,7 @@ const Menur = ({group}) => {
         if (e.key === 'l101') router.push('/budget/form5');
         if (e.key === 'l102') router.push('/budget/costcenter');
         if (e.key === 'l103') router.push('/budget/relation');
+        if (e.key === 'l112') router.push('/Financial/Contract');
 
         // console.log('click ', e);
     };

@@ -212,5 +212,62 @@ class relation(models.Model):
     budget_row = models.ForeignKey(budget_row, on_delete=models.SET_NULL, related_name='relations', null=True)
     organization = models.ManyToManyField(organization, related_name='relations')
     programs = models.ManyToManyField(program, related_name='relations')
-
     # cost_type = models.CharField(max_length=255, blank=True, null=True)
+
+
+class Contractor_type(models.Model):
+    name = models.CharField(max_length=255, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Contract_record(models.Model):
+    paid_amount = models.FloatField(null=True)
+    requested_performance_amount = models.FloatField(max_length=255, null=True)
+    treasury_deduction_percent = models.FloatField(max_length=255, null=True)
+    overhead_percentage = models.FloatField(max_length=255, null=True)
+    performanceـwithholding = models.FloatField(max_length=255, null=True)
+    performanceـwithholding_percentage = models.FloatField(max_length=255, null=True)
+    payable_amount_after_deductions = models.FloatField(max_length=255, null=True)
+    tax_percentage = models.FloatField(max_length=255, null=True)
+    tax_amount = models.FloatField(max_length=255, null=True)
+    final_payable_amount = models.FloatField(max_length=255, null=True)
+    insurance = models.FloatField(max_length=255, null=True)
+    advance_payment_deductions = models.FloatField(max_length=255, null=True)
+    vat = models.FloatField(max_length=255, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='Contractor', null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    descr = models.TextField(null=True)
+
+
+class Contract(models.Model):
+    name = models.CharField(max_length=255)
+    Contractor = models.CharField(max_length=255)
+    Contractor_id = models.CharField(max_length=255)
+    Contractor_level = models.IntegerField(null=True)
+    Contractor_type = models.ForeignKey(Contractor_type, on_delete=models.SET_NULL, related_name='contracts', null=True)
+    Contract_record = models.ManyToManyField(Contract_record, related_name='contracts')
+    contract_number = models.CharField(max_length=255)
+    document_date = models.DateTimeField()
+    total_contract_amount = models.FloatField(null=True)
+    Location = models.ForeignKey(sub_unit, on_delete=models.SET_NULL, related_name='contracts', null=True)
+    descr = models.TextField(null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    uploads = models.ManyToManyField(LogisticsUploads)
+    account_number = models.CharField(max_length=255, null=True)
+    account_name = models.CharField(max_length=255, null=True)
+    bank_name = models.CharField(max_length=255, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='contracts', null=True)
+    program = models.ForeignKey(program, on_delete=models.SET_NULL, related_name='contracts', null=True)
+    budget_row = models.ForeignKey(budget_row, on_delete=models.SET_NULL, related_name='contracts', null=True)
+    cost_type = models.IntegerField(null=True)
+
+    # Fdoc_key = models.ForeignKey(
+    #     'Financial', related_name="logistics", on_delete=models.SET_NULL, null=True
+    # )
+    # date_doc = models.DateTimeField(blank=True)
+    def __str__(self) -> str:
+        return self.name

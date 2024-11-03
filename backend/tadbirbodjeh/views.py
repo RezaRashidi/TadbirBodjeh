@@ -24,8 +24,9 @@ from rest_framework import permissions, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+import tadbirbodjeh.serializers
 from tadbirbodjeh.models import organization, unit, budget_chapter, budget_section, budget_row, program, \
-    relation
+    relation, Contract, Contractor_type, Contract_record
 from tadbirbodjeh.serializers import organizationSerializer, unitSerializer, BudgetRowSerializer, \
     BudgetSectionSerializer, BudgetChapterSerializer, programSerializer, relationsSerializer, \
     relationsCreateSerializer
@@ -772,7 +773,7 @@ class GenerateExcelView(rest_framework.views.APIView):
             # Create a workbook and add a worksheet.
             output = BytesIO()
             workbook = xlsxwriter.Workbook(output)
-            worksheet = workbook.add_worksheet()
+            worksheet = workbook.add_worksheet('ACHGroupTransfer')
 
             # Add headers
             headers = ['Amount', 'CreditIBAN', 'CurrencyCode', 'CreditAccountOwnerName', 'CreditAccountOwnerIdentifier',
@@ -803,3 +804,35 @@ class GenerateExcelView(rest_framework.views.APIView):
             return Response({"error": "Financial record not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ContractView(viewsets.ModelViewSet):
+    queryset = Contract.objects.all()
+    serializer_class = tadbirbodjeh.serializers.ContractSerializer
+    permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+
+class Contractor_type_View(viewsets.ModelViewSet):
+    queryset = Contractor_type.objects.all()
+    serializer_class = tadbirbodjeh.serializers.Contractor_type_Serializer
+    permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+    def get_queryset(self):
+        queryset = Contractor_type.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        if no_pagination == 'true':
+            self.pagination_class = None
+        return queryset
+
+
+class ContractRecordViewSet(viewsets.ModelViewSet):
+    queryset = Contract_record.objects.all()
+    serializer_class = tadbirbodjeh.serializers.ContractRecordSerializer
+    permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
+
+    def get_queryset(self):
+        queryset = Contract_record.objects.all()
+        no_pagination = self.request.query_params.get('no_pagination', None)
+        if no_pagination == 'true':
+            self.pagination_class = None
+        return queryset

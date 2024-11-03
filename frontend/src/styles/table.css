@@ -12,6 +12,7 @@
         break-before: page;
         display: block;
         clear: both;
+        /*padding-left: 30px;*/
     }
 
     .page-break-after {
@@ -19,6 +20,7 @@
         break-after: page;
         display: block;
         clear: both;
+        /*padding-left: 30px;*/
     }
 
     .page-content {

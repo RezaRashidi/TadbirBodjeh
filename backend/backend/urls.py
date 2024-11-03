@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 
-import tadbirbodjeh
+import tadbirbodjeh.models
 from tadbirbodjeh.views import (
     FinancialViewSet,
     LogisticsViewSet,
@@ -46,7 +46,9 @@ router.register(r"budget_row", tadbirbodjeh.views.BudgetRowViewSet)
 
 router.register(r"program", tadbirbodjeh.views.programViewSet)
 router.register(r"relation", tadbirbodjeh.views.relationViewSet)
-
+router.register(r"contract", tadbirbodjeh.views.ContractView)
+router.register(r"contractor_type", tadbirbodjeh.views.Contractor_type_View)
+router.register(r"contract_record", tadbirbodjeh.views.ContractRecordViewSet)
 
 # router.register(r"password-reset", PasswordResetView.as_view())
 urlpatterns = [
