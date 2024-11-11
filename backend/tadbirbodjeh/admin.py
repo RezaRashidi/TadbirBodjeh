@@ -18,6 +18,7 @@ admin.site.register(tadbirbodjeh.models.program)
 admin.site.register(tadbirbodjeh.models.relation)
 admin.site.register(tadbirbodjeh.models.Contract)
 admin.site.register(tadbirbodjeh.models.Contractor_type)
+admin.site.register(tadbirbodjeh.models.Contract_record)
 
 
 

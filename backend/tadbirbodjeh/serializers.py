@@ -245,12 +245,23 @@ class relationsCreateSerializer(serializers.ModelSerializer):
 
 
 class ContractSerializer(serializers.ModelSerializer):
+    paid_amount = serializers.SerializerMethodField()
+
+    def get_paid_amount(self, obj):
+        import django.db.models
+        return tadbirbodjeh.models.Contract_record.objects.filter(
+            Contract=obj
+        ).aggregate(
+            total_paid=django.db.models.Sum('final_payable_amount')
+        )['total_paid'] or 0
+
     class Meta:
         model = tadbirbodjeh.models.Contract
         fields = '__all__'
 
 
 class Contractor_type_Serializer(serializers.ModelSerializer):
+
     class Meta:
         model = tadbirbodjeh.models.Contractor_type
         fields = '__all__'

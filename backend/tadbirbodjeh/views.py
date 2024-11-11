@@ -811,6 +811,9 @@ class ContractView(viewsets.ModelViewSet):
     serializer_class = tadbirbodjeh.serializers.ContractSerializer
     permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
 
+    def perform_create(self, serializer):
+        # get sum of prices of all  related logstics
+        instance = serializer.save(created_by=self.request.user)
 
 class Contractor_type_View(viewsets.ModelViewSet):
     queryset = Contractor_type.objects.all()
@@ -820,16 +823,21 @@ class Contractor_type_View(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Contractor_type.objects.all()
         no_pagination = self.request.query_params.get('no_pagination', None)
+        contractor_level = self.request.query_params.get('contractor_level', None)
         if no_pagination == 'true':
             self.pagination_class = None
+        if contractor_level:
+            queryset = queryset.filter(Contractor_level=contractor_level)
         return queryset
-
 
 class ContractRecordViewSet(viewsets.ModelViewSet):
     queryset = Contract_record.objects.all()
     serializer_class = tadbirbodjeh.serializers.ContractRecordSerializer
     permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
 
+    def perform_create(self, serializer):
+        # get sum of prices of all  related logstics
+        instance = serializer.save(created_by=self.request.user)
     def get_queryset(self):
         queryset = Contract_record.objects.all()
         no_pagination = self.request.query_params.get('no_pagination', None)

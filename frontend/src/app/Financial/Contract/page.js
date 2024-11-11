@@ -4,13 +4,12 @@ import {api} from "@/app/fetcher";
 import {url} from "@/app/Server";
 import {UploadOutlined} from "@ant-design/icons";
 import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
-import {Button, Col, Form, Input, InputNumber, message, Radio, Row, Select, Upload,} from "antd";
+import {Button, Col, Form, Input, InputNumber, message, Popconfirm, Radio, Row, Select, Table, Upload,} from "antd";
 import dayjs from "dayjs";
-import Cookies from "js-cookie";
 import React, {useEffect, useState} from "react";
 
 
-const Logistics_Doc = (prop) => {
+const Contract_Doc = (prop) => {
     const [form] = Form.useForm()
     const [fileList, setFileList] = useState([])
     const [Fdoc_key, set_Fdoc_key] = useState(null)
@@ -18,34 +17,206 @@ const Logistics_Doc = (prop) => {
     const [location, setlocation] = useState([]);
     const [selected_location, set_selected_location] = useState([]);
     const [selected_organization, set_selected_organization] = useState([]);
-
     const [id, set_id] = useState(0)
     useJalaliLocaleListener();
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
     const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
-    const is_fin = Cookies.get("group") == "financial"
+    // const is_fin = Cookies.get("group") == "financial"
     const [relation, set_relation] = useState([])
     const [selected_relation, set_selected_relation] = useState(0)
     const [list_contract_types, set_list_contract_types] = useState([])
+    const [Contractor_level, set_Contractor_level] = useState("a")
+    const [Contract_record, set_Contract_record] = useState([]);
+    const [delete_Contract_record, set_delete_Contract_record] = useState([]);
+    const [update_Contract_record, set_update_Contract_record] = useState([]);
+    useEffect(() => {
+        // Fetch initial data from the API
+        // api().url('/api/contract-record/').get().json()
+        //     .then(data => {
+        //         set_Contract_record(data.map((item, index) => ({...item, key: index})));
+        //     })
+        //     .catch(() => {
+        //         message.error('Failed to fetch data');
+        //     });
+    }, []);
+    const handleAdd = () => {
+        const newData = {
+            key: Contract_record.length + 1,
+            requested_performance_amount: 0,
+            treasury_deduction_percent: 0,
+            overhead_percentage: 0,
+            performanceـwithholding: 0,
+            performanceـwithholding_percentage: 0,
+            payable_amount_after_deductions: 0,
+            tax_percentage: 0,
+            tax_amount: 0,
+            final_payable_amount: 0,
+            insurance: 0,
+            advance_payment_deductions: 0,
+            vat: 0,
+            new: true,
+        };
+        set_Contract_record([...Contract_record, newData]);
+    };
+    const handleDelete = (key) => {
+        const newData = Contract_record.filter((item) => item.key !== key);
+        set_Contract_record(newData);
+    };
+    const handleSave = (row) => {
+        const newData = [...Contract_record];
+        const index = newData.findIndex((item) => row.key === item.key);
+        const item = newData[index];
+        newData.splice(index, 1, {...item, ...row});
+        set_Contract_record(newData);
+        // Determine if the record is new or existing
+        const apiCall = item.id
+            ? api().url(`/api/contract-record/${item.id}/`).put(row).json()
+            : api().url('/api/contract-record/').post(row).json();
+        apiCall
+            .then(() => {
+                message.success('Record saved successfully');
+            })
+            .catch(() => {
+                message.error('Failed to save record');
+            });
+    };
+    const calculateFinalPayableAmount = (record) => {
+        const {
+            requested_performance_amount,
+            treasury_deduction_percent,
+            overhead_percentage,
+            performanceـwithholding,
+            performanceـwithholding_percentage,
+            payable_amount_after_deductions,
+            tax_percentage,
+            tax_amount,
+            insurance,
+            advance_payment_deductions,
+            vat
+        } = record;
+        const treasuryDeduction = (requested_performance_amount * treasury_deduction_percent) / 100;
+        const overheadDeduction = (requested_performance_amount * overhead_percentage) / 100;
 
+        let performanceWithholding = performanceـwithholding || 0;
+        if (performanceـwithholding_percentage) {
+            performanceWithholding = (requested_performance_amount * performanceـwithholding_percentage) / 100;
+        }
+        let taxDeduction = tax_amount || 0;
+        if (tax_percentage) {
+            taxDeduction = (requested_performance_amount * tax_percentage) / 100;
+        }
+        let totalDeductions = 0
+        if (Contractor_level === "d") {
+            totalDeductions = taxDeduction
+        }
+        if (Contractor_level === "c") {
 
-    let cheekbuttom = true
-    if (Fdoc_key !== null) {
-        if (prop.fin_state !== undefined) {
-            // console.log(prop.fin_state)
-            cheekbuttom = prop.fin_state > 0
-            if (prop.fin_state == 1 && is_fin) {
-                cheekbuttom = false
-            }
-
+            totalDeductions = treasuryDeduction +
+                overheadDeduction +
+                performanceWithholding +
+                taxDeduction +
+                (insurance || 0) +
+                (advance_payment_deductions || 0) +
+                (vat || 0);
+        }
+        if (Contractor_level === "a") {
+            totalDeductions = treasuryDeduction +
+                overheadDeduction +
+                performanceWithholding +
+                taxDeduction
         }
 
+        // return Math.max(requested_performance_amount - totalDeductions, 0);
+        return requested_performance_amount - totalDeductions
+    };
 
-    } else {
-        cheekbuttom = false
-    }
+    useEffect(() => {
+        // Recalculate all items when Contractor_level changes
+        const updatedDataSource = Contract_record.map(item => {
+            return recalculateItem(item, Contractor_level);
+        });
+        set_Contract_record(updatedDataSource);
+        load_contract_types()
+
+    }, [Contractor_level]);
+
+    const recalculateItem = (item, level) => {
+        const newItem = {...item};
+        if (newItem.requested_performance_amount !== 0) {
+            if (level === "b") {
+                let deductionPercentage = newItem.overhead_percentage + newItem.treasury_deduction_percent;
+                let deductionAmount = (newItem.requested_performance_amount * deductionPercentage) / 100;
+                newItem.payable_amount_after_deductions = Number((newItem.requested_performance_amount - deductionAmount).toFixed(4));
+                newItem.tax_amount = Number((newItem.payable_amount_after_deductions * newItem.tax_percentage / 100).toFixed(2));
+                newItem.final_payable_amount = Number((newItem.payable_amount_after_deductions - newItem.tax_amount).toFixed(2));
+            } else {
+                newItem.tax_amount = Number((newItem.requested_performance_amount * newItem.tax_percentage / 100).toFixed(2));
+                newItem.final_payable_amount = calculateFinalPayableAmount(newItem);
+            }
+        }
+        return newItem;
+    };
+    const handleInputChange = (value, record, dataIndex) => {
+        const newData = [...Contract_record];
+        const index = newData.findIndex((item) => record.key === item.key);
+        if (index > -1) {
+            const item = {...newData[index], [dataIndex]: value};
+
+            // Update related fields
+            if (item.requested_performance_amount !== 0) {
+                switch (dataIndex) {
+                    case 'performanceـwithholding':
+                        item.performanceـwithholding_percentage = Number(((value / item.requested_performance_amount) * 100).toFixed(4));
+                        break;
+                    case 'performanceـwithholding_percentage':
+                        item.performanceـwithholding = Number((item.requested_performance_amount * value / 100).toFixed(2));
+                        break;
+                    case 'tax_amount':
+                        item.tax_percentage = Contractor_level === "b"
+                            ? Number(((value / item.payable_amount_after_deductions) * 100).toFixed(4))
+                            : Number(((value / item.requested_performance_amount) * 100).toFixed(4));
+                        break;
+                    case 'tax_percentage':
+                        item.tax_amount = Contractor_level === "b"
+                            ? Number((item.payable_amount_after_deductions * value / 100).toFixed(2))
+                            : Number((item.requested_performance_amount * value / 100).toFixed(2));
+                        break;
+                }
+            } else {
+                // Reset related fields if requested_performance_amount is 0
+                item.performanceـwithholding_percentage = 0;
+                item.performanceـwithholding = 0;
+                item.tax_percentage = 0;
+                item.tax_amount = 0;
+            }
+
+            // Recalculate the item
+            const recalculatedItem = recalculateItem(item, Contractor_level);
+            newData.splice(index, 1, recalculatedItem);
+            set_Contract_record(newData);
+        }
+    };
+
+
+    //
+    // let cheekbuttom = true
+    // if (Fdoc_key !== null) {
+    //     if (prop.fin_state !== undefined) {
+    //         // console.log(prop.fin_state)
+    //         cheekbuttom = prop.fin_state > 0
+    //         if (prop.fin_state == 1 && is_fin) {
+    //             cheekbuttom = false
+    //         }
+    //     }
+    //
+    // } else {
+    //     cheekbuttom = false
+    // }
+    //
+
     // console.log(prop)
+    //UPDATE
     useEffect(() => {
 
         if (prop.Fdata) {
@@ -125,7 +296,6 @@ const Logistics_Doc = (prop) => {
 
         }
     }, [prop.Fdata, prop.selectedid]);
-
     useEffect(() => {
 
         let Year = form_date.format("YYYY");
@@ -135,6 +305,12 @@ const Logistics_Doc = (prop) => {
         })
 
     }, [form_date])
+    useEffect(() => {
+        // if (is_fin && selected_organization) {
+        loadRelation()
+
+
+    }, [selected_organization])
 
     function loadRelation() {
         if (selected_organization !== null) {
@@ -149,19 +325,19 @@ const Logistics_Doc = (prop) => {
     }
 
     function load_contract_types() {
-        api().url("/api/contractor_type?no_pagination=true").get().json().then(r => {
+        api().url("/api/contractor_type?no_pagination=true&contractor_level=" + Contractor_level).get().json().then(r => {
             // console.log(r)
             set_list_contract_types(r);
+            if (r.length === 1) {
+                form.setFieldsValue({Contractor_type: r[0].id});
+            } else {
+                form.setFieldsValue({Contractor_type: ""});
+            }
             // set_budget_row(r)
         })
     }
 
-    useEffect(() => {
-        // if (is_fin && selected_organization) {
-        loadRelation()
-        load_contract_types()
 
-    }, [selected_organization])
     const delete_doc = () => {
 
         api().url("/api/contract/" + id).delete().res(r => {
@@ -250,7 +426,6 @@ const Logistics_Doc = (prop) => {
                 return file.response.id
             })
             ,
-            "vat": values.vat,
             "bank_name": values.bank_name,
             "account_number": values.account_number,
             "account_name": values.account_name,
@@ -260,16 +435,16 @@ const Logistics_Doc = (prop) => {
             "program": values.program,
             "cost_type": values.cost_type,
             "total_contract_amount": values.total_contract_amount,
-            "paid_amount": values.paid_amount,
-            "requested_performance_amount": values.requested_performance_amount,
-            "treasury_deduction_percent": values.treasury_deduction_percent,
-            "overhead_percentage": values.overhead_percentage,
-            "payable_amount_after_deductions": values.payable_amount_after_deductions,
-            "tax_percentage": values.tax_percentage,
-            "final_payable_amount": values.final_payable_amount,
-            "performanceـwithholding_percentage": values.performanceـwithholding_percentage
+            "Contractor_level": Contractor_level,
+            // "paid_amount": values.paid_amount,
+            //     "requested_performance_amount": values.requested_performance_amount,
+            //     "treasury_deduction_percent": values.treasury_deduction_percent,
+            //     "overhead_percentage": values.overhead_percentage,
+            //     "payable_amount_after_deductions": values.payable_amount_after_deductions,
+            //     "tax_percentage": values.tax_percentage,
+            //     "final_payable_amount": values.final_payable_amount,
+            //     "performanceـwithholding_percentage": values.performanceـwithholding_percentage
         }
-        // }
         let new_jasondata = {...jsondata}
 
         new_jasondata.uploads = fileList.map((file) => {
@@ -280,6 +455,22 @@ const Logistics_Doc = (prop) => {
             }
         })
 
+
+        let newContract_record = Contract_record.map((item) => {
+            let newItem = {...item};
+            columns.forEach((column) => {
+                if (column.hidden) {
+                    if (typeof column.hidden === 'boolean' && column.hidden) {
+                        newItem[column.dataIndex] = null;
+                    } else if (Array.isArray(column.hidden) && column.hidden.includes(Contractor_level)) {
+                        newItem[column.dataIndex] = null;
+                    }
+                }
+            });
+            return newItem;
+        });
+        // console.log(newContract_record)
+
         prop.selectedid && updateData(new_jasondata)
         // console.log(new_jasondata);
         const request = prop.selectedid ? api().url(`/api/contract/${prop.selectedid}/`).put(jsondata).json() :
@@ -288,6 +479,18 @@ const Logistics_Doc = (prop) => {
         request.then(data => {
             // update_fin()
             // console.log(prop.update_fin.updated)
+            console.log(data)
+            newContract_record.map((item) => {
+                api().url(`/api/contract_record/`).post({
+                    ...item,
+                    Contract: data.id,
+                    Contractor_level: Contractor_level
+                }).json()
+            })
+            set_Contract_record([])
+            set_update_Contract_record([])
+            set_delete_Contract_record([])
+
             message.success("مدارک با موفقیت ثبت شد")
             prop.selectedid && updateData(data)
             prop.selectedid && prop.modal(false)
@@ -297,6 +500,8 @@ const Logistics_Doc = (prop) => {
                 message.error("خطا در ثبت مدارک")
                 console.log(error)
             })
+
+
         // request.res(response => {
         //     if (response.ok) {
         //         message.success("مدارک با موفقیت ثبت شد")
@@ -310,6 +515,189 @@ const Logistics_Doc = (prop) => {
         // })
         // request.then((response, reject) => response.json().then((value) => console.log(value)))
     };
+
+    const columns = [
+        {
+            title: 'مبلغ درخواستی',
+            dataIndex: 'requested_performance_amount',
+            editable: true,
+            render: (text, record) => <InputNumber defaultValue={text} variant="borderless" min={0} changeOnWheel
+                                                   onChange={(value) => handleInputChange(value, record, 'requested_performance_amount')}
+            />,
+        },
+        {
+            title: 'درصد کسر خزانه',
+            dataIndex: 'treasury_deduction_percent',
+            editable: true,
+            render: (text, record) => (
+                <InputNumber
+                    defaultValue={text}
+                    variant="borderless"
+                    min={0}
+                    changeOnWheel
+                    onChange={(value) => handleInputChange(value, record, 'treasury_deduction_percent')}
+                />
+            ),
+            hidden: ['c', 'a', 'd'].includes(Contractor_level),
+        },
+        {
+            title: 'درصد بالاسری',
+            dataIndex: 'overhead_percentage',
+            editable: true,
+            render: (text, record) => (
+                <InputNumber
+                    value={text}
+                    variant="borderless"
+                    changeOnWheel
+                    onChange={(value) => handleInputChange(value, record, 'overhead_percentage')}
+                />
+            ),
+            hidden: ['c', 'a', 'd'].includes(Contractor_level),
+        },
+        {
+            title: 'حسن انجام کار',
+            dataIndex: 'performanceـwithholding',
+            editable: true,
+            render: (text, record) => (
+                <InputNumber
+                    value={text}
+                    variant="borderless"
+                    changeOnWheel
+                    onChange={(value) => handleInputChange(value, record, 'performanceـwithholding')}
+                />
+            ),
+            hidden: ['b', 'd'].includes(Contractor_level),
+        },
+        {
+            title: 'درصد حسن انجام کار',
+            dataIndex: 'performanceـwithholding_percentage',
+            editable: true,
+            render: (text, record) => (
+                <InputNumber
+                    value={text}
+                    variant="borderless"
+                    changeOnWheel
+                    onChange={(value) => handleInputChange(value, record, 'performanceـwithholding_percentage')}
+                />
+            ),
+            hidden: ['b', 'd'].includes(Contractor_level),
+        },
+        {
+            title: 'مبلغ قابل پرداخت پس از کسورات',
+            dataIndex: 'payable_amount_after_deductions',
+            // editable: true,
+            // render: (text, record) => (
+            //     <InputNumber
+            //         value={text}
+            //         variant="borderless"
+            //         changeOnWheel
+            //         onChange={(value) => handleInputChange(value, record, 'payable_amount_after_deductions')}
+            //     />
+            // ),
+            hidden: Contractor_level !== "b",
+        },
+        {
+            title: 'درصد مالیات',
+            dataIndex: 'tax_percentage',
+            editable: true,
+            render: (text, record) => (
+                <InputNumber
+                    value={text}
+                    variant="borderless"
+                    changeOnWheel
+                    onChange={(value) => handleInputChange(value, record, 'tax_percentage')}
+                />
+            ),
+        },
+        {
+            title: 'مبلغ مالیات',
+            dataIndex: 'tax_amount',
+            editable: true,
+            render: (text, record) => (
+                <InputNumber
+                    value={text}
+                    variant="borderless"
+                    changeOnWheel
+                    onChange={(value) => handleInputChange(value, record, 'tax_amount')}
+                />
+            ),
+        },
+        {
+            title: 'بیمه',
+            dataIndex: 'insurance',
+            editable: true,
+            render: (text, record) => (
+                <InputNumber
+                    value={text}
+                    variant="borderless"
+                    changeOnWheel
+                    onChange={(value) => handleInputChange(value, record, 'insurance')}
+                />
+            ),
+            hidden: Contractor_level !== "c",
+        },
+        {
+            title: 'کسر پیش پرداخت',
+            dataIndex: 'advance_payment_deductions',
+            editable: true,
+            render: (text, record) => (
+                <InputNumber
+                    value={text}
+                    variant="borderless"
+                    changeOnWheel
+                    onChange={(value) => handleInputChange(value, record, 'advance_payment_deductions')}
+                />
+            ),
+            hidden: Contractor_level !== "c",
+        },
+        {
+            title: 'مالیات بر ارزش افزوده',
+            dataIndex: 'vat',
+            editable: true,
+            render: (text, record) => (
+                <InputNumber
+                    value={text}
+                    variant="borderless"
+                    changeOnWheel
+                    onChange={(value) => handleInputChange(value, record, 'vat')}
+                />
+            ),
+            hidden: Contractor_level !== "c",
+        },
+        {
+            title: 'مبلغ نهایی قابل پرداخت',
+            dataIndex: 'final_payable_amount',
+            // editable: true,
+            // render: (text, record) => (
+            //     <InputNumber
+            //         value={text}
+            //         variant="borderless"
+            //         changeOnWheel
+            //         onChange={(value) => handleInputChange(value, record, 'final_payable_amount')}
+            //     />
+            // ),
+        },
+        {
+            title: 'عملیات',
+            dataIndex: 'operation',
+            render: (_, record) => {
+
+
+                return <>
+                    {!record.new && <a onClick={() => handleEdit(record)}>ویرایش</a>}
+                    <p></p>
+                    <Popconfirm title="آیا مطمئن هستید که می‌خواهید حذف کنید؟"
+                                onConfirm={() => handleDelete(record.key)}>
+                        <a>حذف</a>
+                    </Popconfirm>
+
+
+                </>
+
+            }
+
+        },
+    ];
 
     const propsUpload = {
         name: "files",
@@ -388,23 +776,26 @@ const Logistics_Doc = (prop) => {
 
         >
             <Row gutter={0} className={"pb-6"}>
-                <Radio.Group defaultValue="1" size="large" className={"my-4"}>
-                    <Radio.Button value="1">سایر قرارداد</Radio.Button>
-                    <Radio.Button value="2">قرارداد</Radio.Button>
-                    <Radio.Button value="3">طرح پژوهشی خارجی</Radio.Button>
-                    <Radio.Button value="4">عمرانی</Radio.Button>
-
+                <Radio.Group defaultValue="a" size="large" className={"my-4"} onChange={
+                    (e) => {
+                        set_Contractor_level(e.target.value)
+                    }
+                }>
+                    <Radio.Button value="a">قرارداد</Radio.Button>
+                    <Radio.Button value="b">طرح پژوهشی خارجی</Radio.Button>
+                    <Radio.Button value="c">عمرانی</Radio.Button>
+                    <Radio.Button value="d">سایر کارکردها</Radio.Button>
                 </Radio.Group>
             </Row>
             <Row gutter={50}>
                 <Col span={6}>
                     <Form.Item
                         name="name"
-                        label="نام قرارداد"
+                        label="عنوان"
                         rules={[
                             {
                                 required: true,
-                                message: "نام قرارداد را وارد نمایید",
+                                message: "عنوان را وارد نمایید",
                             },
                         ]}
                     >
@@ -470,7 +861,7 @@ const Logistics_Doc = (prop) => {
                         <Input/>
                     </Form.Item>
                 </Col>
-                <Col span={6}>
+                <Col span={8}>
                     <Form.Item
                         colon={false}
                         name="Contractor_id"
@@ -487,7 +878,7 @@ const Logistics_Doc = (prop) => {
                         <Input/>
                     </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={10}>
                     <Form.Item name="Location" label="محل هزینه" rules={[
                         {
                             required: true
@@ -692,7 +1083,7 @@ const Logistics_Doc = (prop) => {
 
             </Row>
             <Row gutter={50}>
-                <Col span={6}>
+                <Col span={12}>
                     <Form.Item
                         name="total_contract_amount"
                         label="مبلغ کل قرارداد/ کل کارکرد"
@@ -725,7 +1116,7 @@ const Logistics_Doc = (prop) => {
                     </Form.Item>
 
                 </Col>
-                <Col span={6}>
+                <Col span={12}>
                     <Form.Item
                         name="paid_amount"
                         label="مبلغ پرداخت شده"
@@ -754,200 +1145,9 @@ const Logistics_Doc = (prop) => {
                         />
                     </Form.Item>
                 </Col>
-                <Col span={6}>
-                    <Form.Item
-                        name="requested_performance_amount"
-                        label="مبلغ کارکرد درخواستی"
-                        rules={[
-                            {
-                                required: true,
-                                type: "number",
-                                min: 0,
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                            addonAfter={"﷼"}
-                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => {
-                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                                let newValue = value;
-                                for (let i = 0; i < 10; i++) {
-                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-                                }
-                                return newValue?.replace(/\$\s?|(,*)/g, '')
-                            }
-                            }
-                            style={{width: "100%"}}
-                        />
-                    </Form.Item>
-                </Col>
-                <Col span={6}>
-                    <Form.Item
-                        name="performanceـwithholding_percentage"
-                        label="درصد حسن انجام کار"
-                    >
-                        <InputNumber
-                            addonAfter={"%"}
-                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => {
-                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                                let newValue = value;
-                                for (let i = 0; i < 10; i++) {
-                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-                                }
-                                return newValue?.replace(/\$\s?|(,*)/g, '')
-                            }
-                            }
-                            min={0}
-                            max={100}
-                            // defaultValue={3}
-                            style={{width: "100%"}}
-                        />
-                    </Form.Item>
-                </Col>
             </Row>
 
-            <Row gutter={50}>
 
-                <Col span={4}>
-                    <Form.Item
-                        name="treasury_deduction_percent"
-                        label="درصد خزانه"
-                    >
-                        <InputNumber
-                            addonAfter={"%"}
-                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => {
-                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                                let newValue = value;
-                                for (let i = 0; i < 10; i++) {
-                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-                                }
-                                return newValue?.replace(/\$\s?|(,*)/g, '')
-                            }
-                            }
-                            min={0}
-                            max={100}
-                            // defaultValue={3}
-                            style={{width: "100%"}}
-                        />
-                    </Form.Item>
-                </Col>
-                <Col span={4}>
-                    <Form.Item
-                        name="overhead_percentage"
-                        label="درصد بالاسری"
-                    >
-                        <InputNumber
-                            addonAfter={"%"}
-                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => {
-                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                                let newValue = value;
-                                for (let i = 0; i < 10; i++) {
-                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-                                }
-                                return newValue?.replace(/\$\s?|(,*)/g, '')
-                            }
-                            }
-                            min={0}
-                            max={100}
-                            // defaultValue={5}
-                            style={{width: "100%"}}
-                        />
-                    </Form.Item>
-                </Col>
-                <Col span={6}>
-                    <Form.Item
-                        name="payable_amount_after_deductions"
-                        label="مبلغ قابل پرداخت بعد از کسورات"
-                        rules={[
-                            {
-                                required: true,
-                                type: "number",
-                                min: 0,
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                            addonAfter={"﷼"}
-                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => {
-                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                                let newValue = value;
-                                for (let i = 0; i < 10; i++) {
-                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-                                }
-                                return newValue?.replace(/\$\s?|(,*)/g, '')
-                            }
-                            }
-                            style={{width: "100%"}}
-                        />
-                    </Form.Item>
-                </Col>
-
-                <Col span={4}>
-                    <Form.Item
-                        name="tax_percentage"
-                        label="درصد مالیات"
-                    >
-                        <InputNumber
-                            addonAfter={"%"}
-                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => {
-                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                                let newValue = value;
-                                for (let i = 0; i < 10; i++) {
-                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-                                }
-                                return newValue?.replace(/\$\s?|(,*)/g, '')
-                            }
-                            }
-                            min={0}
-                            max={100}
-                            // defaultValue={0}
-                            style={{width: "100%"}}
-                        />
-                    </Form.Item>
-                </Col>
-
-                <Col span={6}>
-                    <Form.Item
-                        name="final_payable_amount"
-                        label="مبلغ نهایی قابل پرداخت"
-                        rules={[
-                            {
-                                required: true,
-                                type: "number",
-                                min: 0,
-                            },
-                        ]}
-                    >
-                        <InputNumber
-                            addonAfter={"﷼"}
-                            formatter={(value) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => {
-                                const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-                                const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                                let newValue = value;
-                                for (let i = 0; i < 10; i++) {
-                                    newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-                                }
-                                return newValue?.replace(/\$\s?|(,*)/g, '')
-                            }
-                            }
-                            style={{width: "100%"}}
-                        />
-                    </Form.Item>
-                </Col>
-            </Row>
             <Row>
                 <Col span={24}>
                     <Form.Item
@@ -961,9 +1161,31 @@ const Logistics_Doc = (prop) => {
                 </Col>
             </Row>
 
+
+            <Button
+                onClick={handleAdd}
+                type="primary"
+                style={{
+                    marginBottom: 16,
+                }}
+            >
+                افزودن کارکرد
+            </Button>
+            <Table
+                className={"p-0-cell "}
+
+                dataSource={Contract_record}
+                columns={columns}
+                rowClassName="editable-row"
+                pagination={false}
+
+            />
+
+
             <Upload {...propsUpload}>
                 <Button icon={<UploadOutlined/>}>ضمیمه فایل</Button>
             </Upload>
+
 
             <Form.Item
                 wrapperCol={{
@@ -971,8 +1193,9 @@ const Logistics_Doc = (prop) => {
                     offset: 8,
                 }}
             >
-                <Button disabled={cheekbuttom} type="primary"
-                        htmlType="submit">
+                <Button //disabled={cheekbuttom}
+                    type="primary"
+                    htmlType="submit">
                     {prop.Fdata ? "ویرایش قرارداد" : "ایجاد قرارداد"}
                 </Button>
                 {prop.Fdata &&
@@ -986,4 +1209,4 @@ const Logistics_Doc = (prop) => {
     )
         ;
 };
-export default Logistics_Doc;
+export default Contract_Doc;

@@ -88,3 +88,12 @@ tr td:nth-child(2) {
 .green-row {
     background-color: rgba(248, 172, 9, 0.19) !important;
 }
+
+.p-0-cell .ant-table-cell {
+    padding: 0 !important;
+}
+
+.p-0-cell .editable-cell-value-wrap {
+
+    padding: 0 !important;
+}
