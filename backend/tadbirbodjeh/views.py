@@ -841,6 +841,9 @@ class ContractRecordViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Contract_record.objects.all()
         no_pagination = self.request.query_params.get('no_pagination', None)
+        contract = self.request.query_params.get('contract', None)
         if no_pagination == 'true':
             self.pagination_class = None
+        if contract:
+            queryset = queryset.filter(Contract=contract)
         return queryset

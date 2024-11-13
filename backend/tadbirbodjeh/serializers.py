@@ -246,7 +246,12 @@ class relationsCreateSerializer(serializers.ModelSerializer):
 
 class ContractSerializer(serializers.ModelSerializer):
     paid_amount = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
 
+    def get_user(self, obj):
+        first_name = obj.created_by.first_name if obj.created_by and obj.created_by.first_name else ''
+        last_name = obj.created_by.last_name if obj.created_by and obj.created_by.last_name else ''
+        return f"{first_name} {last_name}".strip()
     def get_paid_amount(self, obj):
         import django.db.models
         return tadbirbodjeh.models.Contract_record.objects.filter(

@@ -28,8 +28,6 @@ const Contract_Doc = (prop) => {
     const [list_contract_types, set_list_contract_types] = useState([])
     const [Contractor_level, set_Contractor_level] = useState("a")
     const [Contract_record, set_Contract_record] = useState([]);
-    const [delete_Contract_record, set_delete_Contract_record] = useState([]);
-    const [update_Contract_record, set_update_Contract_record] = useState([]);
     useEffect(() => {
         // Fetch initial data from the API
         // api().url('/api/contract-record/').get().json()
@@ -55,32 +53,27 @@ const Contract_Doc = (prop) => {
             insurance: 0,
             advance_payment_deductions: 0,
             vat: 0,
-            new: true,
+            mode: "new",
         };
         set_Contract_record([...Contract_record, newData]);
     };
     const handleDelete = (key) => {
-        const newData = Contract_record.filter((item) => item.key !== key);
+        const newData = Contract_record.filter((item) => {
+            console.log(item.key === key)
+            console.log(item.mode !== "new")
+            if (item.key === key && item.mode !== "new") {
+
+                item.mode = "delete";
+
+                return true
+            }
+
+            return item.key !== key;
+        });
+        console.log(newData)
         set_Contract_record(newData);
     };
-    const handleSave = (row) => {
-        const newData = [...Contract_record];
-        const index = newData.findIndex((item) => row.key === item.key);
-        const item = newData[index];
-        newData.splice(index, 1, {...item, ...row});
-        set_Contract_record(newData);
-        // Determine if the record is new or existing
-        const apiCall = item.id
-            ? api().url(`/api/contract-record/${item.id}/`).put(row).json()
-            : api().url('/api/contract-record/').post(row).json();
-        apiCall
-            .then(() => {
-                message.success('Record saved successfully');
-            })
-            .catch(() => {
-                message.error('Failed to save record');
-            });
-    };
+
     const calculateFinalPayableAmount = (record) => {
         const {
             requested_performance_amount,
@@ -158,7 +151,17 @@ const Contract_Doc = (prop) => {
         return newItem;
     };
     const handleInputChange = (value, record, dataIndex) => {
-        const newData = [...Contract_record];
+        const newData = Contract_record.map(item => {
+                if (item.key === record.key) {
+                    if (item.mode === "new") {
+                        return item;
+                    } else {
+                        return {...item, mode: "edit"};
+                    }
+                }
+                return item;
+            }
+        );
         const index = newData.findIndex((item) => record.key === item.key);
         if (index > -1) {
             const item = {...newData[index], [dataIndex]: value};
@@ -239,7 +242,8 @@ const Contract_Doc = (prop) => {
                             }
                         }
                     })
-                    set_selected_relation(item.budget_row.id)
+                    set_Contractor_level(item.Contractor_level)
+                    // set_selected_relation(item.budget_row.id)
                     form.setFieldsValue({
                         name: item.name,
                         type: item.type,
@@ -250,23 +254,18 @@ const Contract_Doc = (prop) => {
                         contract_number: item.contract_number,
                         Contractor_type: item.Contractor_type,
                         Location: item.Location == null ? "" : item.Location.id,
-                        budget_row: item.budget_row.id,
-                        program: item.program.id,
-                        cost_type: item.cost_type,
+                        budget_row: item.budget_row?.id || "",
+                        program: item.program?.id || "",
+                        cost_type: item.cost_type || "",
                         account_name: item.account_name,
                         bank_name: item.bank_name,
                         account_number: item.account_number,
                         total_contract_amount: item.total_contract_amount,
                         paid_amount: item.paid_amount,
-                        requested_performance_amount: item.requested_performance_amount,
-                        treasury_deduction_percent: item.treasury_deduction_percent,
-                        overhead_percentage: item.overhead_percentage,
-                        payable_amount_after_deductions: item.payable_amount_after_deductions,
-                        tax_percentage: item.tax_percentage,
                         final_payable_amount: item.final_payable_amount,
                         descr: item.descr,
-                        performance_withholding_percentage: item.performance_withholding_percentage,
                         files: item.uploads,
+
                     });
                     item.Location !== null ? set_selected_location(item.Location.id) && set_selected_organization(location.find(item => item.id === selected_location).organization_id) : ""
 
@@ -276,7 +275,7 @@ const Contract_Doc = (prop) => {
                         setlocation(r)
                     })
 
-
+                    load_Contract_record(item.id)
                     // setlocation(prop.location)
 
                     setFileList(x)
@@ -296,6 +295,18 @@ const Contract_Doc = (prop) => {
 
         }
     }, [prop.Fdata, prop.selectedid]);
+
+    function load_Contract_record(id) {
+
+        api().url("/api/contract_record?no_pagination=true&contract=" + id).get().json().then(r => {
+            set_Contract_record(r.map(item => {
+                return {...item, key: item.id}
+            }))
+            // console.log(    r)
+        })
+
+    }
+
     useEffect(() => {
 
         let Year = form_date.format("YYYY");
@@ -436,14 +447,6 @@ const Contract_Doc = (prop) => {
             "cost_type": values.cost_type,
             "total_contract_amount": values.total_contract_amount,
             "Contractor_level": Contractor_level,
-            // "paid_amount": values.paid_amount,
-            //     "requested_performance_amount": values.requested_performance_amount,
-            //     "treasury_deduction_percent": values.treasury_deduction_percent,
-            //     "overhead_percentage": values.overhead_percentage,
-            //     "payable_amount_after_deductions": values.payable_amount_after_deductions,
-            //     "tax_percentage": values.tax_percentage,
-            //     "final_payable_amount": values.final_payable_amount,
-            //     "performanceـwithholding_percentage": values.performanceـwithholding_percentage
         }
         let new_jasondata = {...jsondata}
 
@@ -481,39 +484,38 @@ const Contract_Doc = (prop) => {
             // console.log(prop.update_fin.updated)
             console.log(data)
             newContract_record.map((item) => {
-                api().url(`/api/contract_record/`).post({
-                    ...item,
-                    Contract: data.id,
-                    Contractor_level: Contractor_level
-                }).json()
+
+                if (item.mode === "new") {
+                    api().url(`/api/contract_record/`).post({
+                        ...item,
+                        Contract: data.id,
+                        Contractor_level: Contractor_level
+                    }).json()
+
+                } else if (item.mode === "edit") {
+
+                    api().url(`/api/contract_record/${item.id}/`).put({
+                        ...item,
+                        Contractor_level: Contractor_level
+                    }).json()
+                } else if (item.mode === "delete") {
+                    api().url(`/api/contract_record/${item.id}/`).delete().json()
+                }
+
             })
             set_Contract_record([])
-            set_update_Contract_record([])
-            set_delete_Contract_record([])
 
-            message.success("مدارک با موفقیت ثبت شد")
+            message.success("قرارداد با موفقیت ثبت شد")
             prop.selectedid && updateData(data)
             prop.selectedid && prop.modal(false)
             !prop.selectedid && form.resetFields() || setFileList([]);
         })
             .catch(error => {
-                message.error("خطا در ثبت مدارک")
+                message.error("خطا در ثبت قرارداد")
                 console.log(error)
             })
 
 
-        // request.res(response => {
-        //     if (response.ok) {
-        //         message.success("مدارک با موفقیت ثبت شد")
-        //         prop.selectedid && prop.modal(false)
-        //         !prop.selectedid && form.resetFields();
-        //     } else {
-        //         message.error("خطا در ثبت مدارک")
-        //     }
-
-
-        // })
-        // request.then((response, reject) => response.json().then((value) => console.log(value)))
     };
 
     const columns = [
@@ -684,7 +686,6 @@ const Contract_Doc = (prop) => {
 
 
                 return <>
-                    {!record.new && <a onClick={() => handleEdit(record)}>ویرایش</a>}
                     <p></p>
                     <Popconfirm title="آیا مطمئن هستید که می‌خواهید حذف کنید؟"
                                 onConfirm={() => handleDelete(record.key)}>
@@ -776,7 +777,7 @@ const Contract_Doc = (prop) => {
 
         >
             <Row gutter={0} className={"pb-6"}>
-                <Radio.Group defaultValue="a" size="large" className={"my-4"} onChange={
+                <Radio.Group value={Contractor_level} size="large" className={"my-4"} onChange={
                     (e) => {
                         set_Contractor_level(e.target.value)
                     }
@@ -1174,7 +1175,7 @@ const Contract_Doc = (prop) => {
             <Table
                 className={"p-0-cell "}
 
-                dataSource={Contract_record}
+                dataSource={Contract_record.filter(item => item.mode !== "delete")}
                 columns={columns}
                 rowClassName="editable-row"
                 pagination={false}

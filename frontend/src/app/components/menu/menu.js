@@ -96,6 +96,7 @@ const Menur = ({group}) => {
             // getItem('لیست اسناد تازه', 'l10'),
             // getItem('صدور اسناد مالی', 'l11'),
             getItem('قرارداد', 'l112'),
+            getItem('لیست قرارداد', 'l113'),
         ]),
 
         {
@@ -150,6 +151,7 @@ const Menur = ({group}) => {
         if (e.key === 'l102') router.push('/budget/costcenter');
         if (e.key === 'l103') router.push('/budget/relation');
         if (e.key === 'l112') router.push('/Financial/Contract');
+        if (e.key === 'l113') router.push('/Financial/Contract_List');
 
         // console.log('click ', e);
     };
