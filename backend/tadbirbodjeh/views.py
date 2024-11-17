@@ -807,7 +807,7 @@ class GenerateExcelView(rest_framework.views.APIView):
 
 
 class ContractView(viewsets.ModelViewSet):
-    queryset = Contract.objects.all()
+    queryset = Contract.objects.all().reverse()
     serializer_class = tadbirbodjeh.serializers.ContractSerializer
     permission_classes = [rest_framework.permissions.IsAuthenticated, rest_framework.permissions.DjangoModelPermissions]
 

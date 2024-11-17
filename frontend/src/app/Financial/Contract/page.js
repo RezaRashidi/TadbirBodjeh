@@ -1,13 +1,14 @@
 "use client";
 import {AuthActions} from "@/app/auth/utils";
 import {api} from "@/app/fetcher";
+import Contract_print from "@/app/Financial/Contract/Print/page";
 import {url} from "@/app/Server";
-import {UploadOutlined} from "@ant-design/icons";
+import {PrinterOutlined, UploadOutlined} from "@ant-design/icons";
 import {DatePicker as DatePickerJalali, jalaliPlugin, useJalaliLocaleListener} from "@realmodule/antd-jalali";
 import {Button, Col, Form, Input, InputNumber, message, Popconfirm, Radio, Row, Select, Table, Upload,} from "antd";
 import dayjs from "dayjs";
 import React, {useEffect, useState} from "react";
-
+import ReactToPrint from "react-to-print";
 
 const Contract_Doc = (prop) => {
     const [form] = Form.useForm()
@@ -18,9 +19,6 @@ const Contract_Doc = (prop) => {
     const [selected_location, set_selected_location] = useState([]);
     const [selected_organization, set_selected_organization] = useState([]);
     const [id, set_id] = useState(0)
-    useJalaliLocaleListener();
-    dayjs.calendar('jalali');
-    dayjs.extend(jalaliPlugin);
     const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
     // const is_fin = Cookies.get("group") == "financial"
     const [relation, set_relation] = useState([])
@@ -28,6 +26,10 @@ const Contract_Doc = (prop) => {
     const [list_contract_types, set_list_contract_types] = useState([])
     const [Contractor_level, set_Contractor_level] = useState("a")
     const [Contract_record, set_Contract_record] = useState([]);
+    const [printRefs, setPrintRefs] = useState({});
+    useJalaliLocaleListener();
+    dayjs.calendar('jalali');
+    dayjs.extend(jalaliPlugin);
     useEffect(() => {
         // Fetch initial data from the API
         // api().url('/api/contract-record/').get().json()
@@ -41,6 +43,7 @@ const Contract_Doc = (prop) => {
     const handleAdd = () => {
         const newData = {
             key: Contract_record.length + 1,
+            descr: "",
             requested_performance_amount: 0,
             treasury_deduction_percent: 0,
             overhead_percentage: 0,
@@ -152,22 +155,24 @@ const Contract_Doc = (prop) => {
     };
     const handleInputChange = (value, record, dataIndex) => {
         const newData = Contract_record.map(item => {
-                if (item.key === record.key) {
-                    if (item.mode === "new") {
-                        return item;
-                    } else {
-                        return {...item, mode: "edit"};
-                    }
+            if (item.key === record.key) {
+                if (item.mode === "new") {
+                    return item;
+                } else {
+                    return {...item, mode: "edit"};
                 }
-                return item;
             }
-        );
+            return item;
+        });
         const index = newData.findIndex((item) => record.key === item.key);
         if (index > -1) {
             const item = {...newData[index], [dataIndex]: value};
 
-            // Update related fields
-            if (item.requested_performance_amount !== 0) {
+            // Handle string input for 'descr'
+            if (dataIndex === 'descr') {
+                item.descr = value;
+            } else if (item.requested_performance_amount !== 0) {
+                // Update related fields for numeric inputs
                 switch (dataIndex) {
                     case 'performanceـwithholding':
                         item.performanceـwithholding_percentage = Number(((value / item.requested_performance_amount) * 100).toFixed(4));
@@ -193,7 +198,7 @@ const Contract_Doc = (prop) => {
                 item.tax_percentage = 0;
                 item.tax_amount = 0;
             }
-
+            console.log(value)
             // Recalculate the item
             const recalculatedItem = recalculateItem(item, Contractor_level);
             newData.splice(index, 1, recalculatedItem);
@@ -243,7 +248,7 @@ const Contract_Doc = (prop) => {
                         }
                     })
                     set_Contractor_level(item.Contractor_level)
-                    // set_selected_relation(item.budget_row.id)
+                    set_selected_relation(item.budget_row)
                     form.setFieldsValue({
                         name: item.name,
                         type: item.type,
@@ -253,10 +258,10 @@ const Contract_Doc = (prop) => {
                         document_date: dayjs(new Date(item.document_date)),
                         contract_number: item.contract_number,
                         Contractor_type: item.Contractor_type,
-                        Location: item.Location == null ? "" : item.Location.id,
-                        budget_row: item.budget_row?.id || "",
-                        program: item.program?.id || "",
-                        cost_type: item.cost_type || "",
+                        Location: item.Location == null ? "" : item.Location,
+                        budget_row: item.budget_row || "",
+                        program: item.program || "",
+                        cost_type: item.cost_type,
                         account_name: item.account_name,
                         bank_name: item.bank_name,
                         account_number: item.account_number,
@@ -302,7 +307,10 @@ const Contract_Doc = (prop) => {
             set_Contract_record(r.map(item => {
                 return {...item, key: item.id}
             }))
-            // console.log(    r)
+            r.map((item) => {
+                printRefs[item.id] = React.createRef();
+            });
+            console.log(r)
         })
 
     }
@@ -341,9 +349,10 @@ const Contract_Doc = (prop) => {
             set_list_contract_types(r);
             if (r.length === 1) {
                 form.setFieldsValue({Contractor_type: r[0].id});
-            } else {
-                form.setFieldsValue({Contractor_type: ""});
             }
+            // else {
+            //     form.setFieldsValue({Contractor_type: ""});
+            // }
             // set_budget_row(r)
         })
     }
@@ -367,37 +376,37 @@ const Contract_Doc = (prop) => {
 //write fun that get the changed data from the form and update prop.Fdata with new data
     function updateData(data) {
 
-        prop.Fdata.filter((item) => {
-            if (item.id === prop.selectedid) {
-                item.name = data.name
-                item.type = data.type
-                item.price = data.price
-                item.Contractor_id = data.Contractor_id
-                item.Contractor = data.Contractor
-                item.document_date = data.document_date
-                item.Location = data.Location
-                item.descr = data.descr
-                item.uploads = data.uploads
-                item.vat = data.vat
-                item.bank_name = data.bank_name
-                item.account_number = data.account_number
-                item.account_name = data.account_name
-                item.contract_number = data.contract_number;
-                item.Contractor_type = data.Contractor_type;
-                item.budget_row = data.budget_row;
-                item.program = data.program;
-                item.cost_type = data.cost_type;
-                item.total_contract_amount = data.total_contract_amount;
-                item.paid_amount = data.paid_amount;
-                item.requested_performance_amount = data.requested_performance_amount;
-                item.treasury_deduction_percent = data.treasury_deduction_percent;
-                item.overhead_percentage = data.overhead_percentage;
-                item.payable_amount_after_deductions = data.payable_amount_after_deductions;
-                item.tax_percentage = data.tax_percentage;
-                item.final_payable_amount = data.final_payable_amount;
-                item.performanceـwithholding_percentage = data.performanceـwithholding_percentage;
-            }
-        })
+        // prop.Fdata.filter((item) => {
+        //     if (item.id === prop.selectedid) {
+        //         item.name = data.name
+        //         item.type = data.type
+        //         item.price = data.price
+        //         item.Contractor_id = data.Contractor_id
+        //         item.Contractor = data.Contractor
+        //         item.document_date = data.document_date
+        //         item.Location = data.Location
+        //         item.descr = data.descr
+        //         item.uploads = data.uploads
+        //         item.vat = data.vat
+        //         item.bank_name = data.bank_name
+        //         item.account_number = data.account_number
+        //         item.account_name = data.account_name
+        //         item.contract_number = data.contract_number;
+        //         item.Contractor_type = data.Contractor_type;
+        //         item.budget_row = data.budget_row;
+        //         item.program = data.program;
+        //         item.cost_type = data.cost_type;
+        //         item.total_contract_amount = data.total_contract_amount;
+        //         item.paid_amount = data.paid_amount;
+        //         item.requested_performance_amount = data.requested_performance_amount;
+        //         item.treasury_deduction_percent = data.treasury_deduction_percent;
+        //         item.overhead_percentage = data.overhead_percentage;
+        //         item.payable_amount_after_deductions = data.payable_amount_after_deductions;
+        //         item.tax_percentage = data.tax_percentage;
+        //         item.final_payable_amount = data.final_payable_amount;
+        //         item.performanceـwithholding_percentage = data.performanceـwithholding_percentage;
+        //     }
+        // })
     }
 
     function update_fin() {
@@ -443,6 +452,7 @@ const Contract_Doc = (prop) => {
             "contract_number": values.contract_number,
             "Contractor_type": values.Contractor_type,
             "budget_row": values.budget_row,
+
             "program": values.program,
             "cost_type": values.cost_type,
             "total_contract_amount": values.total_contract_amount,
@@ -506,7 +516,7 @@ const Contract_Doc = (prop) => {
             set_Contract_record([])
 
             message.success("قرارداد با موفقیت ثبت شد")
-            prop.selectedid && updateData(data)
+            prop.selectedid && prop.update() //updateData(data)
             prop.selectedid && prop.modal(false)
             !prop.selectedid && form.resetFields() || setFileList([]);
         })
@@ -525,6 +535,14 @@ const Contract_Doc = (prop) => {
             editable: true,
             render: (text, record) => <InputNumber defaultValue={text} variant="borderless" min={0} changeOnWheel
                                                    onChange={(value) => handleInputChange(value, record, 'requested_performance_amount')}
+            />,
+        },
+        {
+            title: 'شرح',
+            dataIndex: 'descr',
+            editable: true,
+            render: (text, record) => <Input defaultValue={text} variant="borderless"
+                                             onChange={(value) => handleInputChange(value.target.value, record, 'descr')}
             />,
         },
         {
@@ -698,6 +716,34 @@ const Contract_Doc = (prop) => {
             }
 
         },
+        {
+            title: "چاپ", key: 'print', align: 'center', render: (record) => {
+                // if (!printRefs[record.id]) {
+                //     setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));
+                // }
+                // console.log(`${record.id}-${record.updated}`);
+                return <>
+                    <div style={{display: 'none'}}>
+                        <Contract_print key={record.updated} ref={printRefs[record.id]} record={record}
+                                        form={form.getFieldsValue()}/>
+                    </div>
+                    <ReactToPrint
+                        pageStyle="@media print {
+                                          html, body {
+                                            height: 100vh; /* Use 100% here to support printing more than a single page*/
+                                            margin: 0 !important;
+                                            padding: 0 !important;
+                                          }
+                                             .no-wrap {
+                                                white-space: nowrap;
+                                            }
+                                        }"
+                        trigger={() => <Button icon={<PrinterOutlined/>}></Button>}
+                        content={() => printRefs[record.id].current}
+                    />
+                </>
+            }
+        }
     ];
 
     const propsUpload = {

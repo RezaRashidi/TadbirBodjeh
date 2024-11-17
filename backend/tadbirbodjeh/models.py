@@ -225,6 +225,7 @@ class Contractor_type(models.Model):
 class Contract_record(models.Model):
     # paid_amount = models.FloatField(null=True)
     Contract = models.ForeignKey("Contract", on_delete=models.SET_NULL, related_name='contract_record', null=True)
+    descr = models.TextField(null=True, max_length=255)
     Contractor_level = models.CharField(null=True, max_length=2)
     requested_performance_amount = models.FloatField(max_length=255, null=True)
     treasury_deduction_percent = models.FloatField(max_length=255, null=True)

@@ -140,7 +140,9 @@ const App = ({}) => {
 
 
             <Contract_Doc Fdata={data} selectedid={selectedid} modal={handleModalChange} remove={remove_item}
-                          location={location}/>
+                          location={location} update={
+                () => setupdatedata(!updatedata)
+            }/>
 
         </Modal>
 
