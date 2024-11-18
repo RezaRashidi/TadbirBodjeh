@@ -1,5 +1,4 @@
 "use client";
-import {api} from "@/app/fetcher";
 import arm from "@/images/Arm.jpg";
 import {jalaliPlugin} from "@realmodule/antd-jalali";
 import {Col, ConfigProvider, Row, Table, Typography} from "antd";
@@ -7,7 +6,7 @@ import fa_IR from "antd/lib/locale/fa_IR";
 import dayjs from "dayjs";
 import Image from "next/image";
 import Num2persian from 'num2persian';
-import React, {useEffect, useState} from "react";
+import React from "react";
 import "@/styles/table.css";
 
 export function numberWithCommas(x) {
@@ -20,343 +19,168 @@ function convertToPersianNumber(number) {
     return number.toLocaleString('fa-IR');
 }
 
-export async function asyncFetchLogisticsData(id) {
-    let nextURL = `/api/logistics/?Fdoc_key=${id}`;
-    let url = false
-    let newdata = []
-    while (nextURL) {
-        const res = await api().url(nextURL, url).get().json();
-
-        if (res.next !== null) {
-            url = true
-        }
-        nextURL = res.next;
-        newdata.push(...res.results.map((item) => ({"key": item.id, ...item})));
-    }
-    console.log(newdata)
-    return newdata
+function toPersianNumbers(str) {
+    const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    return str.replace(/[0-9]/g, function (w) {
+        return persianNumbers[+w];
+    });
 }
 
-function Contract_print(props, ref) {
-    const [Log_list, set_Log_list] = useState([], (x) => convertToPersianNumber(x));
-    const [fin, set_fin] = useState({});
-    const username = props.record ? props.record.user_group == "logistics-other" ? "" : props.record.user : ''
+// Then use it like this:
 
+
+function Contract_print(props, ref) {
+    // const [Log_list, set_Log_list] = useState([], (x) => convertToPersianNumber(x));
+    // const [fin, set_fin] = useState({});
+    // const username = props.record ? props.record.user_group == "logistics-other" ? "" : props.record.user : ''
+    const Contractor_level = props.record ? props.record.Contractor_level : ''
+    const Contractor_level_name =
+        Contractor_level === "a" ? 'قرارداد' :
+            Contractor_level === "b" ? 'طرح پژوهشی خارجی' :
+                Contractor_level === "c" ? 'عمرانی' :
+                    Contractor_level === "d" ? "سایر کارکردها" :
+                        "نامشخص";
     const {Text} = Typography;
-    let id = props.record ? props.record.id : 41;
-    const Payment_type = props.record ? props.record.Payment_type : false
-    const user = props.record ? props.record.user : ''
+    // let id = props.record ? props.record.id : 41;
+    // const Payment_type = props.record ? props.record.Payment_type : false
+    // const user = props.record ? props.record.user : ''
     // console.log("props");
     // console.log(props.record.id);
-    let Price = 0;
-    Log_list.forEach(({price,}) => {
-        Price += price;
-    });
-    let Vat = 0
-    Log_list.forEach(({vat,}) => {
-        Vat += vat
-    })
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
     dayjs.locale('fa');
+    const record = props.record || {};
+    console.log(record)
 
-
-    let bank_log_list = Log_list.reduce((acc, item) => {
-        const existingItem = acc.find(i => i.account_number === item.account_number && i.account_name === item.account_name);
-        if (existingItem) {
-            existingItem.price += item.price;
-            existingItem.vat += item.vat;
-            const existingBudgetRow = existingItem.budget_rows.find(br => br.id === item.budget_row.id);
-            if (existingBudgetRow) {
-                existingBudgetRow.price += item.price;
-            } else {
-                existingItem.budget_rows.push({...item.budget_row, price: item.price});
-            }
-        } else {
-            acc.push({
-                ...item,
-                budget_rows: [{...item.budget_row, price: item.price}]
-            });
-        }
-        return acc;
-    }, []);
-    // console.log(bank_log_list)
-    // After reduction, format the budget_row information
-    // bank_log_list = bank_log_list.map(item => ({
-    //     ...item,
-    //     budget_row:  item.budget_rows.length>1? item.budget_rows.map(br => `${br.name} (${numberWithCommas(convertToPersianNumber(br.price))})`).join(' - '):item.budget_rows.map(br => br.name).join(', ')
-    // }));
-    // console.log(bank_log_list)
-
-
-    let new_log_list = Log_list.reduce((acc, item) => {
-        const existingItem = acc.find(i =>
-            i.program.fin_code === item.program.fin_code &&
-            i.budget_row.fin_code === item.budget_row.fin_code
-        );
-        if (existingItem) {
-            existingItem.name = existingItem.name + " - " + item.name;
-            existingItem.price += item.price;
-            existingItem.vat += item.vat;
-            if (existingItem.Location && item.Location) {
-                if (existingItem.Location.organization_name !== item.Location.organization_name &&
-                    !existingItem.Location.name.includes(item.Location.name)) {
-                    existingItem.Location.organization_name = `${existingItem.Location.organization_name || ""}${existingItem.Location.organization_name ? " - " : ""}${item.Location.organization_name || ""}`.trim();
-                }
-            } else if (item.Location) {
-                existingItem.Location = {...item.Location};
-            }
-        } else {
-            acc.push({...item});
-        }
-        return acc;
-    }, []);
-    // const farsinum = value => {
-    //     if (value === null || value === undefined) {
-    //         return 0
-    //     }
-    //
-    //     const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-    //     const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    //     let newValue = value;
-    //     for (let i = 0; i < 10; i++) {
-    //         newValue = newValue.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
-    //     }
-    //     return newValue;
-    // }
-    let Price_ir = numberWithCommas(convertToPersianNumber(Price))
-    let Vat_ir = numberWithCommas(convertToPersianNumber(Vat))
-    useEffect(() => {
-
-
-            asyncFetchLogisticsData(id).then(r => {
-                set_Log_list(r)
-                // console.log(r);
-            });
-
-            if (props.record) {
-                set_fin(props.record);
-            } else {
-                api().url(`/api/financial/${id}`).get().json().then((res) => {
-                    set_fin(res)
-                })
-            }
-        }
-        ,
-        []
-    )
     //props.record.updated
+
+
     const columns1 = [
-        {
-            title: '#',
-            dataIndex: 'index',
-            key: 'index',
-            width: "5px",
-            align: "center",
-            render: (text, record, index) => index + 1
-        },
-
 
         {
-            title: 'نام کالا/خدمات', dataIndex: 'name', key: 'name', align: "center"
-        },
-        //     {
-        //     title: 'نوع ارائه',
-        //     dataIndex: 'type',
-        //     key: 'type',
-        //     render: (bool) => bool ? "کالا" : "خدمات",
-        //     align: "center",
-        // }
-        // , {
-        //     title: 'کدملی/شناسه', dataIndex: 'seller_id', key: 'seller_id', align: "center",
-        // }
-        , {
-            title: 'کد و عنوان ردیف هزینه', dataIndex: 'budget_row', key: 'budget_row', align: "center", width: 200,
-            render: (data) => data.fin_code + ":" + data.name
-        },
-        , {
-            title: 'کد و عنوان برنامه', dataIndex: 'program', key: 'program', align: "center",
-            render: (data) => data.fin_code + ":" + data.name
-        },
-
-
-        , {
-            title: 'محل هزینه', dataIndex: 'Location', key: 'Location', align: "center",
-            render: (data) => data?.organization_name
+            title: 'نام‌ و نام‌خانوادگی/شرکت',
+            dataIndex: 'Contractor',
         },
         {
-            title: 'نوع',
-            dataIndex: 'cost_type',
-            key: 'cost_type',
-            render: (cost_type) => {
-                switch (cost_type) {
-                    case 0:
-                        return "عمومی";
-                    case 1:
-                        return "اختصاصی";
-                    case 2:
-                        return "متفرقه و ابلاغی";
-                    case 3:
-                        return "تعمیر و تجهیز";
-                    case 4:
-                        return "تامین فضا";
-                    default:
-                        return "نامشخص";
-                }
-            },
-            align: "center",
+            title: 'شماره قرارداد/سند',
+            dataIndex: 'contract_number',
         },
-
-        //     {
-        //     title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller', align: "center",
-        // },
-        //     {
-        //         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
-        //             return new Intl.DateTimeFormat('fa-IR', {
-        //                 year: 'numeric',
-        //                 month: '2-digit',
-        //                 day: '2-digit'
-        //             }).format(new Date(date));
-        //         }, align: "center",
-        //     },
-
+        {
+            title: 'تاریخ قرارداد',
+            dataIndex: 'document_date',
+            render: (data) => toPersianNumbers(dayjs(data).format('YYYY/MM/DD')),
+        },
 
         {
-            title: 'مبلغ',
-            dataIndex: 'price',
-            key: 'price',
-            render: (price) => <span className={"text-sm font-extrabold"}>{convertToPersianNumber(price)}</span>,
-            align: "center",
+            title: 'شماره حساب',
+            dataIndex: 'account_number',
+        },
+        ,
+        {
+            title: 'بانک',
+            dataIndex: 'bank_name',
         },
 
-        //
+        {
+            title: 'مبلغ کارکرد',
+            dataIndex: 'requested_performance_amount',
+        },
+
+
         // {
-        //     title: 'توضیحات', dataIndex: 'descr', key: 'descr', align: "center",
+        //     title: 'حسن انجام کار',
+        //     dataIndex: 'performanceـwithholding',
+        //     hidden: ['b', 'd'].includes(Contractor_level),
+        // },
+        // {
+        //     title: 'درصد حسن انجام کار',
+        //     dataIndex: 'performanceـwithholding_percentage',
+        //
+        //     hidden: ['b', 'd'].includes(Contractor_level),
         // },
         {
-            title: 'ارزش افزوده', dataIndex: 'vat', key: 'vat', align: "vat",
+            title: 'مبلغ قابل پرداخت پس از کسورات',
+            dataIndex: 'payable_amount_after_deductions',
+
+            hidden: Contractor_level !== "b",
         },
+        // {
+        //     title: 'درصد مالیات',
+        //     dataIndex: 'tax_percentage',
+        // },
+        // {
+        //     title: 'مبلغ مالیات',
+        //     dataIndex: 'tax_amount',
+        // },
+        {
+            title: 'بیمه',
+            dataIndex: 'insurance',
+            hidden: Contractor_level !== "c",
+        },
+        {
+            title: 'کسر پیش پرداخت',
+            dataIndex: 'advance_payment_deductions',
+            hidden: Contractor_level !== "c",
+        },
+        // {
+        //     title: 'مالیات بر ارزش افزوده',
+        //     dataIndex: 'vat',
+        //     hidden: Contractor_level !== "c",
+        // },
+        {
+            title: 'مبلغ نهایی قابل پرداخت',
+            dataIndex: 'final_payable_amount',
+        }
+
     ];
+
+
     const columns2 = [
         {
-            title: '#',
-            dataIndex: 'index',
-            key: 'index',
-            width: "5px",
-            align: "center",
-            render: (text, record, index) => index + 1
-        },
-
-
-        // {
-        //     title: 'نام کالا/خدمات', dataIndex: 'name', key: 'name', align: "center"
-        // },
-        //     {
-        //     title: 'نوع ارائه',
-        //     dataIndex: 'type',
-        //     key: 'type',
-        //     render: (bool) => bool ? "کالا" : "خدمات",
-        //     align: "center",
-        // }
-        // , {
-        //     title: 'کدملی/شناسه', dataIndex: 'seller_id', key: 'seller_id', align: "center",
-        // }
-        , {
-            title: 'کد و عنوان ردیف هزینه', dataIndex: 'budget_row', key: 'budget_row', align: "center", width: 200,
-            render: (data) => data.fin_code + ":" + data.name
-        },
-        , {
-            title: 'کد و عنوان برنامه', dataIndex: 'program', key: 'program', align: "center",
-            render: (data) => data.fin_code + ":" + data.name
-        },
-
-
-        , {
-            title: 'محل هزینه', dataIndex: 'Location', key: 'Location', align: "center",
-            render: (data) => data?.organization_name
+            title: 'کد و عنوان هزینه',
+            dataIndex: 'budget_row',
         },
         {
-            title: 'نوع',
+            title: 'کد و عنوان برنامه',
+            dataIndex: 'program',
+        }, {
+            title: 'محل هزینه',
+            dataIndex: 'organization',
+        }, {
+            title: 'محل اعتبار',
             dataIndex: 'cost_type',
-            key: 'cost_type',
-            render: (cost_type) => {
-                switch (cost_type) {
-                    case 0:
-                        return "عمومی";
-                    case 1:
-                        return "اختصاصی";
-                    case 2:
-                        return "متفرقه و ابلاغی";
-                    case 3:
-                        return "تعمیر و تجهیز";
-                    case 4:
-                        return "تامین فضا";
-                    default:
-                        return "نامشخص";
-                }
-            },
-            align: "center",
-        },
-
-        //     {
-        //     title: 'ارائه دهنده', dataIndex: 'seller', key: 'seller', align: "center",
-        // },
-        //     {
-        //         title: 'تاریخ', dataIndex: 'date_doc', key: 'date_doc', render: (date) => {
-        //             return new Intl.DateTimeFormat('fa-IR', {
-        //                 year: 'numeric',
-        //                 month: '2-digit',
-        //                 day: '2-digit'
-        //             }).format(new Date(date));
-        //         }, align: "center",
-        //     },
-
-
-        {
-            title: 'مبلغ',
-            dataIndex: 'price',
-            key: 'price',
-            render: (price) => <span className={"text-sm font-extrabold"}>{convertToPersianNumber(price)}</span>,
-            align: "center",
-        },
-
-        //
-        // {
-        //     title: 'توضیحات', dataIndex: 'descr', key: 'descr', align: "center",
-        // },
-        // {
-        //     title: 'ارزش افزوده', dataIndex: 'vat', key: 'vat', align: "vat",
-        // },
-    ];
-    const columns_bank = [
-
-
-        {
-            title: 'نام و نام خانوادگی / شرکت', dataIndex: 'account_name', key: 'account_name', align: "center"
-        },
-        // {
-        //     title: 'کد و عنوان ردیف هزینه', dataIndex: 'budget_row', key: 'budget_row', align: "center", width: 200,
-        //     render: (data) => data
-        // },
-        {
-            title: 'شماره حساب', dataIndex: 'account_number', key: 'account_number', align: "center",
-            render: (account_number) => <span className={"text-sm font-extrabold"}>IR{account_number}</span>,
+        }, {
+            title: 'ارزش افزوده',
+            dataIndex: 'vat',
         },
         {
-            title: 'نام بانک', dataIndex: 'bank_name', key: 'bank_name', align: "center"
+            title: 'حسن انجام کار',
+            dataIndex: 'performanceـwithholding',
+            hidden: ['b', 'd'].includes(Contractor_level),
+        },
+        {
+            title: 'کسر خزانه',
+            dataIndex: 'treasury_deduction_percent',
+            render: (value, record) => (
+                ((record.requested_performance_amount / 100) * value).toFixed(2)
+            ),
+            hidden: ['c', 'a', 'd'].includes(Contractor_level),
+        },
+        {
+            title: ' بالاسری',
+            dataIndex: 'overhead_percentage',
+            render: (value, record) => (
+                ((record.requested_performance_amount / 100) * value).toFixed(2)
+            ),
+            hidden: ['c', 'a', 'd'].includes(Contractor_level),
+        },
+        {
+            title: 'مبلغ کارکرد',
+            dataIndex: 'requested_performance_amount',
         },
 
-        {
-            title: 'مبلغ',
-            dataIndex: 'price',
-            key: 'price',
-            render: (price) => <span className={"text-sm font-extrabold"}>{convertToPersianNumber(price)}</span>,
-            align: "center",
-        },
-        // {
-        //     title: 'ارزش افزوده', dataIndex: 'vat', key: 'vat', align: "vat",
-        // },
-    ];
+    ]
+
     return <ConfigProvider locale={fa_IR} direction="rtl" theme={{
         token: {
             fontFamily: "Yekan",
@@ -387,90 +211,27 @@ function Contract_print(props, ref) {
                             <Col span={12}>
                                 <p className={"text-center font-bold yekan text-2xl"}>دانشگاه هنر اسلامی تبریز </p>
                                 <p className={"text-center font-bold yekan text-2xl"}> حواله پرداخت </p>
-                                <p className={"text-center  yekan text-xl"}> {!fin.Payment_type && "(کسر از تنخواه)"} </p>
+                                <p className={"text-center font-bold yekan text-2xl"}> {Contractor_level_name} </p>
                             </Col>
                             <Col span={6} className={"text-right"}>
                                 <div className={"float-left"}>
-                                    <h1> شماره سند: {(parseInt(fin.id)).toLocaleString('fa-IR')} </h1>
-                                    <h1>تاریخ: {fin.date_doc && !isNaN(new Date(fin.date_doc)) ? new Intl.DateTimeFormat('fa-IR', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit'
-                                    }).format(new Date(fin.date_doc)) : ''}</h1>
-                                    <h1>
-                                        پیوست: دارد
-                                    </h1></div>
+                                    <h1> شماره سند: {(parseInt(props.record?.id)).toLocaleString('fa-IR')} </h1>
+                                    <h1>تاریخ: {toPersianNumbers(dayjs().format('YYYY/MM/DD'))}</h1>
+                                </div>
                             </Col>
                         </Row>
                     </header>
 
                     <article className={"pb-4  "}>
-                        <Table className={"text-s "} columns={columns1} dataSource={new_log_list} bordered
+                        <Table className={"text-s pb-5"} columns={columns2} dataSource={[record]} bordered
+                               pagination={false}
+                               rowClassName={'row'}/>
+                        <Table className={"text-s "} columns={columns1} dataSource={[record]} bordered
                                pagination={false}
                                rowClassName={'row'}
-                            // size="small"
-                            // theme={{
-                            //     token: {
-                            //         fontFamily: "Yekan",
-                            //         Table: {
-                            //             cellFontSize: 1,
-                            //             padding: "2px",
-                            //             borderColor: "black"
-                            //             /* here is your component tokens */
-                            //         }
-                            //     }
-                            // }}
-                               summary={(pageData) => {
-
-
-                                   return (<>
-                                       <Table.Summary.Row>
-                                           <Table.Summary.Cell index={1} colSpan={5} align={"center"}
-                                                               className={"font-bold"}>
-                                               {Payment_type ?
-                                                   <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text> :
-                                                   <p className={""}>کسر از تنخواه(شارژ تنخواه) {user} به
-                                                       مبلغ {Num2persian(Price)} ریال </p>
-
-
-                                               }
-
-                                           </Table.Summary.Cell>
-                                           <Table.Summary.Cell index={1} colSpan={2} align={"center"}>
-                                               <Text className={"text-sm font-extrabold"}>{Price_ir}  </Text>
-                                           </Table.Summary.Cell>
-                                           <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
-                                               <Text className={"text-sm font-extrabold"}>{Vat_ir}  </Text>
-                                           </Table.Summary.Cell>
-
-                                       </Table.Summary.Row>
-
-                                   </>);
-                               }}/>
+                        />
+                        <p>شرح : {record.descr || ''}</p>
                     </article>
-                    {Payment_type &&
-                        <article className={"pb-4 "}>
-                            <Table className={"text-s "} columns={columns_bank} dataSource={bank_log_list} bordered
-                                   pagination={false}
-                                   rowClassName={'row'}
-                                   summary={(pageData) => {
-                                       return (<>
-                                           <Table.Summary.Row>
-
-                                               <Table.Summary.Cell index={1} colSpan={3} align={"center"}
-                                                                   className={"font-bold"}>
-                                                   <Text type="">جمع کل به حروف : {Num2persian(Price)} ریال </Text>
-                                               </Table.Summary.Cell>
-                                               <Table.Summary.Cell index={1} colSpan={1} align={"center"}>
-                                                   <Text className={"text-sm font-extrabold"}>{Price_ir}  </Text>
-                                               </Table.Summary.Cell>
-                                               {/*<Table.Summary.Cell index={1} colSpan={1} align={"center"}>*/}
-                                               {/*    <Text className={"text-sm font-extrabold"}>{Vat_ir}  </Text>*/}
-                                               {/*</Table.Summary.Cell>*/}
-                                           </Table.Summary.Row>
-                                       </>);
-                                   }}/>
-                        </article>}
                     <footer className="nazanin" style={{width: "100%"}}>
                         <table style={{width: "100%"}}>
                             <tbody style={{width: "100%"}}>
@@ -499,6 +260,66 @@ function Contract_print(props, ref) {
                         </table>
 
 
+                    </footer>
+                </div>
+            </div>
+            <div className=" pl-8 ">
+                <div className="page-content">
+                    <header>
+                        <Row gutter={50}>
+                            <Col span={6}>
+                                <Image
+                                    src={arm}
+                                    height={100}
+                                    alt="Picture of the author"
+                                    className={""}
+                                />
+                            </Col>
+                            <Col span={12}>
+                                <p className={"text-center font-bold yekan text-2xl"}>دانشگاه هنر اسلامی تبریز </p>
+                                <p className={"text-center font-bold yekan text-2xl"}> حواله پرداخت </p>
+                                <p className={"text-center font-bold yekan text-2xl"}> {Contractor_level_name} </p>
+                            </Col>
+                            <Col span={6} className={"text-right"}>
+                                <div className={"float-left"}>
+                                    <h1> شماره سند: {(parseInt(props.record?.id)).toLocaleString('fa-IR')} </h1>
+                                    <h1>تاریخ: {toPersianNumbers(dayjs().format('YYYY/MM/DD'))}</h1>
+                                </div>
+                            </Col>
+                        </Row>
+                    </header>
+                    <article className={"pb-4 text-right pt-2 pb-0"}>
+                        <p className={"font-bold"}>مدیر محترم امور مالی</p>
+                        <p>به استناد مواد ۱۶ و ۱۷ آئین نامه مالی و معاملاتی دانشگاه
+                            مبلغ {record?.final_payable_amount} به ریال</p>
+                        <p> مبلغ به حروف : {Num2persian(record?.final_payable_amount || 0) + " "}
+                            از محل اعتبارات ردیف ۱۲۲۹۰۰ بودجه
+                            سال {record?.document_date && !isNaN(new Date(record?.document_date)) ? new Intl.DateTimeFormat('fa-IR', {
+                                year: 'numeric'
+                            }).format(new Date(record?.document_date)) : ''} کل کشور نسبت به پرداخت اقدام نمائید. </p>
+                    </article>
+                    <article className={"pb-4  "}>
+                        <Table className={"text-s pb-5"} columns={columns2} dataSource={[record]} bordered
+                               pagination={false}
+                               rowClassName={'row'}/>
+                        <Table className={"text-s "} columns={columns1} dataSource={[record]} bordered
+                               pagination={false}
+                               rowClassName={'row'}
+                        />
+                        <p>شرح : {record.descr || ''}</p>
+                    </article>
+                    <footer className="nazanin" style={{width: "100%"}}>
+                        <table style={{width: "100%"}}>
+                            <tbody style={{width: "100%"}}>
+                            <tr style={{width: "100%"}}>
+                                <td style={{width: "50%"}}></td>
+                                <td className={"py-5 text-center text-2xl"}>
+                                    <p className={""}>رئیس دانشگاه</p>
+                                    <p className={""}> دکتر محمدتقی پیربابائی </p>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </footer>
                 </div>
             </div>

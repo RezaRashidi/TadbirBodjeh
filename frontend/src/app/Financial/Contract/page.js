@@ -19,7 +19,6 @@ const Contract_Doc = (prop) => {
     const [selected_location, set_selected_location] = useState([]);
     const [selected_organization, set_selected_organization] = useState([]);
     const [id, set_id] = useState(0)
-    const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
     // const is_fin = Cookies.get("group") == "financial"
     const [relation, set_relation] = useState([])
     const [selected_relation, set_selected_relation] = useState(0)
@@ -30,6 +29,7 @@ const Contract_Doc = (prop) => {
     useJalaliLocaleListener();
     dayjs.calendar('jalali');
     dayjs.extend(jalaliPlugin);
+    const [form_date, set_form_date] = useState(dayjs(new Date(), {jalali: true}))
     useEffect(() => {
         // Fetch initial data from the API
         // api().url('/api/contract-record/').get().json()
@@ -154,6 +154,8 @@ const Contract_Doc = (prop) => {
         return newItem;
     };
     const handleInputChange = (value, record, dataIndex) => {
+
+
         const newData = Contract_record.map(item => {
             if (item.key === record.key) {
                 if (item.mode === "new") {
@@ -167,10 +169,10 @@ const Contract_Doc = (prop) => {
         const index = newData.findIndex((item) => record.key === item.key);
         if (index > -1) {
             const item = {...newData[index], [dataIndex]: value};
-
             // Handle string input for 'descr'
             if (dataIndex === 'descr') {
                 item.descr = value;
+
             } else if (item.requested_performance_amount !== 0) {
                 // Update related fields for numeric inputs
                 switch (dataIndex) {
@@ -198,9 +200,11 @@ const Contract_Doc = (prop) => {
                 item.tax_percentage = 0;
                 item.tax_amount = 0;
             }
-            console.log(value)
+            // console.log( item.descr)
+            item.updated = new Date()
             // Recalculate the item
             const recalculatedItem = recalculateItem(item, Contractor_level);
+            // console.log(recalculatedItem)
             newData.splice(index, 1, recalculatedItem);
             set_Contract_record(newData);
         }
@@ -233,7 +237,7 @@ const Contract_Doc = (prop) => {
                 if (item.id === prop.selectedid) {
                     set_Fdoc_key(item.Fdoc_key)
                     // console.log(item.Fdoc_key)
-                    console.log(item)
+                    // console.log(item)
                     set_id(item.id)
                     var x = item.uploads.map((file) => {
                         return {
@@ -310,7 +314,7 @@ const Contract_Doc = (prop) => {
             r.map((item) => {
                 printRefs[item.id] = React.createRef();
             });
-            console.log(r)
+            // console.log(r)
         })
 
     }
@@ -333,7 +337,7 @@ const Contract_Doc = (prop) => {
 
     function loadRelation() {
         if (selected_organization !== null) {
-            console.log(selected_organization)
+            // console.log(selected_organization)
             api().url("/api/relation?no_pagination=true&organization=" + selected_organization).get().json().then(r => {
                 set_relation(r);
                 console.log(r)
@@ -718,14 +722,69 @@ const Contract_Doc = (prop) => {
         },
         {
             title: "چاپ", key: 'print', align: 'center', render: (record) => {
+                // console.log(record)
+                const getOrganizationName = (locationId) =>
+                    location.find((item) => item.id === locationId)?.organization_name || 'Not found';
+
+                const getBudgetRowInfo = (budgetRowId) => {
+                    const foundItem = relation.find((item) => item.budget_row?.id === budgetRowId);
+                    if (foundItem?.budget_row) {
+                        const {name, fin_code} = foundItem.budget_row;
+                        return `${name}:${fin_code}`;
+                    }
+                    return 'Not found';
+                };
+
+                const getProgramInfo = (budgetRowId, programId) => {
+                    const foundItem = relation.find((item) => item.budget_row?.id === budgetRowId);
+                    const foundProgram = foundItem?.programs?.find((item) => item.id === programId);
+                    if (foundProgram) {
+                        const {name, fin_code} = foundProgram;
+                        return `${name}:${fin_code}`;
+                    }
+                    return 'Not found';
+                };
+
+                const getCostType = (costTypeId) => {
+                    const costTypes = {
+                        0: "عمومی",
+                        1: "اختصاصی",
+                        2: "متفرقه و ابلاغی",
+                        3: "تعمیر و تجهیز",
+                        4: "تامین فضا"
+                    };
+                    return costTypes[costTypeId] || "نامشخص";
+                };
+                let data = {
+                    ...record, ...form.getFieldsValue(),
+                    organization: getOrganizationName(form.getFieldValue('Location')),
+                    budget_row: getBudgetRowInfo(form.getFieldValue('budget_row')),
+                    program: getProgramInfo(form.getFieldValue('budget_row'), form.getFieldValue('program')),
+                    cost_type: getCostType(form.getFieldValue('cost_type')),
+                    Contractor_level: Contractor_level,
+                    descr: record.descr,
+                }
+// Inside your component's render or return statement:
+//                 console.log({
+//                     organization: getOrganizationName(form.getFieldValue('Location')),
+//                     budget_row: getBudgetRowInfo(form.getFieldValue('budget_row')),
+//                     program: getProgramInfo(form.getFieldValue('budget_row'), form.getFieldValue('program')),
+//                     cost_type: getCostType(form.getFieldValue('cost_type'))
+//                 });
+                // console.log({...record, ...form.getFieldsValue()});
+
+
                 // if (!printRefs[record.id]) {
                 //     setPrintRefs(prevRefs => ({...prevRefs, [record.id]: React.createRef()}));
                 // }
                 // console.log(`${record.id}-${record.updated}`);
+                // console.log(record.descr)
                 return <>
-                    <div style={{display: 'none'}}>
-                        <Contract_print key={record.updated} ref={printRefs[record.id]} record={record}
-                                        form={form.getFieldsValue()}/>
+                    <div
+                        style={{display: 'none'}}
+                    >
+                        <Contract_print key={`${JSON.stringify(data)}`} ref={printRefs[record.id]} record={data}/>
+
                     </div>
                     <ReactToPrint
                         pageStyle="@media print {
@@ -1193,8 +1252,6 @@ const Contract_Doc = (prop) => {
                     </Form.Item>
                 </Col>
             </Row>
-
-
             <Row>
                 <Col span={24}>
                     <Form.Item
@@ -1207,8 +1264,6 @@ const Contract_Doc = (prop) => {
                     </Form.Item>
                 </Col>
             </Row>
-
-
             <Button
                 onClick={handleAdd}
                 type="primary"
